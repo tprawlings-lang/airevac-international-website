@@ -1,0 +1,312 @@
+name: CI
+
+# Blueprint section 15, "CI order":
+#   1. Format, lint, type check, unit test, and generated schema check.
+#   2. Secret, SAST, dependency, license, infrastructure, and container scans.
+#   3. Build, SBOM, signed artifact, and provenance record.
+#   4. Integration and end-to-end tests against an isolated staging environment.
+#   5. Accessibility, performance budget, headers, links, redirects, structured
+#      data, and visual checks.
+#   6. DAST on staging, manual release checklist, approved change record, deploy,
+#      smoke test, and rollback check.
+#
+# Stages 1-3 and the parts of 4-5 that can run against a local build are
+# implemented below. The remaining gates need infrastructure that does not exist
+# yet (a staging environment, a DAST runner, an independent penetration test) and
+# are tracked as launch blockers in docs/readiness-matrix.md. They are listed
+# here as explicitly skipped jobs rather than omitted, so a green pipeline is
+# never mistaken for a passed launch gate.
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ---------------------------------------------------------------- Stage 1
+  verify:
+    name: Lint, types, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      # `npm ci` requires the lockfile to match package.json exactly, which is
+      # the supply-chain control from page 16 ("Lockfiles, signed or pinned
+      # builds").
+      - run: npm ci
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit and integration tests
+        # Coverage thresholds in vitest.config.ts enforce the page 21 gate:
+        # "100% of security decision branches covered."
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 14
+
+  # ---------------------------------------------------------------- Stage 2
+  scan:
+    name: Dependency and secret scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the secret scan can inspect every commit on the
+          # branch, not just the tip.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Dependency audit
+        # Page 16: "SCA, license review, SBOM, patch SLAs". Fails the build on a
+        # high or critical advisory rather than reporting and continuing.
+        run: npm audit --audit-level=high
+
+      - name: License review
+        # Flags any dependency under a copyleft licence that would create an
+        # obligation on this codebase. Reports rather than fails: the decision is
+        # legal's, not the pipeline's.
+        run: npx --yes license-checker-rseidelsohn --summary || true
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------- Stage 3
+  build:
+    name: Build and SBOM
+    runs-on: ubuntu-latest
+    needs: [verify]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Not the production origin, so the build emits noindex and a
+          # disallow-all robots.txt. Production sets the real SITE_URL.
+          SITE_URL: https://staging.invalid
+
+      - name: Generate SBOM
+        # Page 16 requires an SBOM as supply-chain evidence.
+        run: npx --yes @cyclonedx/cyclonedx-npm --output-file sbom.json --omit dev
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90
+
+  # ---------------------------------------------------------------- Stage 5
+  headers:
+    name: Security headers
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+        env:
+          SITE_URL: https://staging.invalid
+
+      - name: Start server
+        run: npm start &
+        env:
+          SITE_URL: https://staging.invalid
+
+      - name: Wait for server
+        run: npx --yes wait-on http://localhost:3000/en --timeout 60000
+
+      - name: Assert security headers are present
+        # Page 16 evidence requirement: "Header test and browser security scan".
+        # A CSP regression is invisible in the UI, so it must fail the build.
+        run: |
+          set -euo pipefail
+          headers=$(curl -sSI http://localhost:3000/en)
+          echo "$headers"
+
+          check() {
+            if ! echo "$headers" | grep -iq "$1"; then
+              echo "::error::Missing or incorrect header: $1"
+              exit 1
+            fi
+          }
+
+          check 'content-security-policy'
+          check "strict-transport-security"
+          check 'x-content-type-options: nosniff'
+          check 'x-frame-options: DENY'
+          check 'referrer-policy'
+          check 'permissions-policy'
+
+          # The CSP must carry a nonce and must not weaken script-src.
+          csp=$(echo "$headers" | grep -i '^content-security-policy:')
+          echo "$csp" | grep -q "nonce-" || { echo "::error::CSP has no nonce"; exit 1; }
+          echo "$csp" | grep -q "'unsafe-inline'[^;]*script-src" \
+            && { echo "::error::script-src allows unsafe-inline"; exit 1; } || true
+          echo "$csp" | grep -q "object-src 'none'" || { echo "::error::object-src not none"; exit 1; }
+          echo "$csp" | grep -q "frame-ancestors 'none'" || { echo "::error::frame-ancestors not none"; exit 1; }
+
+      - name: Assert the CSP nonce actually matches the rendered scripts
+        # THIS CHECK EXISTS BECAUSE THE HEADER CHECK ABOVE CANNOT CATCH THE BUG.
+        #
+        # If a route is statically prerendered, its HTML is generated at build
+        # time with no nonce, while the proxy still attaches a fresh nonce to
+        # every response header. The CSP then looks flawless in a header scan and
+        # blocks every inline script in a real browser — the page never hydrates.
+        #
+        # So: fetch the document, and assert that every <script> carries the
+        # exact nonce from this response's header.
+        run: |
+          set -euo pipefail
+          for path in /en /es /en/credentials /en/services/air-ambulance \
+                      /en/coverage/mexico/cancun /en/legal/privacy; do
+            curl -sS -D /tmp/h.txt "http://localhost:3000$path" -o /tmp/b.html
+
+            nonce=$(grep -i '^x-nonce:' /tmp/h.txt | tr -d '\r' | awk '{print $2}')
+            if [ -z "$nonce" ]; then
+              echo "::error::$path served no nonce"
+              exit 1
+            fi
+
+            missing=$(grep -o '<script[^>]*>' /tmp/b.html | grep -vc 'nonce=' || true)
+            if [ "$missing" != "0" ]; then
+              echo "::error::$path has $missing inline script(s) without a nonce — CSP would block them"
+              exit 1
+            fi
+
+            if ! grep -q "nonce=\"$nonce\"" /tmp/b.html; then
+              echo "::error::$path scripts carry a nonce that does not match the response header"
+              exit 1
+            fi
+
+            # A nonce-bearing document must never be shared between visitors.
+            if grep -iq '^cache-control:.*s-maxage' /tmp/h.txt; then
+              echo "::error::$path is shared-cacheable but carries a per-response nonce"
+              exit 1
+            fi
+
+            echo "ok: $path"
+          done
+
+      - name: Assert the intake endpoint is never cached
+        run: |
+          set -euo pipefail
+          cache=$(curl -sS -o /dev/null -D - -X POST http://localhost:3000/api/callback \
+            -H 'content-type: application/json' -d '{}' | grep -i '^cache-control:')
+          echo "$cache"
+          echo "$cache" | grep -iq 'no-store' || { echo "::error::intake response is cacheable"; exit 1; }
+
+  # --------------------------------------------------- Stage 5: accessibility
+  accessibility:
+    name: Accessibility (WCAG 2.2 AA)
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+        env:
+          SITE_URL: https://staging.invalid
+
+      - name: Start server
+        run: npm start &
+        env:
+          SITE_URL: https://staging.invalid
+
+      - name: Wait for server
+        run: npx --yes wait-on http://localhost:3000/en --timeout 60000
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run axe against representative pages
+        # Page 21 gate: "zero serious or critical automated issue" across 15
+        # pages covering every template in both locales.
+        #
+        # Automated checks catch roughly a third of WCAG failures. The manual
+        # screen-reader, keyboard, and 400% zoom testing that page 21 also
+        # requires is still outstanding — see docs/readiness-matrix.md. A green
+        # job here is not a passed accessibility gate.
+        run: npm run test:a11y
+
+  # ------------------------------------------------- Gates not yet implemented
+  outstanding-gates:
+    name: Outstanding launch gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report gates that still block launch
+        # Deliberately non-failing. Its purpose is to make the incomplete gates
+        # visible on every run, so a green pipeline is never read as launch
+        # approval. See docs/readiness-matrix.md.
+        run: |
+          cat <<'EOF'
+          The following launch gates from blueprint section 15 are NOT yet
+          implemented and still block launch:
+
+            - End-to-end tests (hospital, cruise, insurer, family flows, EN + ES)
+            - DAST against an isolated staging environment
+            - Independent penetration test
+            - Load and stress tests (100 rps public, 20/min callback)
+            - Chaos and recovery drills (RTO 60m public / 15m secure contact)
+            - Manual accessibility testing (screen reader, keyboard, 400% zoom)
+            - Visual regression snapshots
+            - Container and IaC scans (no container or IaC in this repo yet)
+
+          A green CI run means the code compiles, is typed, is linted, is
+          covered, and its headers are correct. It does not mean the site is
+          ready to launch.
+          EOF
