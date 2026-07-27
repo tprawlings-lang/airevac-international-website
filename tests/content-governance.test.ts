@@ -41,6 +41,33 @@ function fullText(page: PageContent): string {
   return [page.title, page.intro, page.description, ...page.blocks.map(textOf)].join(' ');
 }
 
+/**
+ * Resolves a path against the app directory the way Next does: at each
+ * segment, prefer a literal directory, and fall back to a dynamic `[param]`
+ * directory. Both branches must be explored, because `/coverage/mexico` is
+ * literal at segment 1 and dynamic at segment 2.
+ */
+function routeExists(path: string): boolean {
+  const segments = path.split('/').filter(Boolean);
+
+  function walk(dir: string, remaining: string[]): boolean {
+    if (!existsSync(dir)) return false;
+    if (remaining.length === 0) return existsSync(join(dir, 'page.tsx'));
+
+    const [head, ...tail] = remaining;
+    if (head === undefined) return false;
+
+    // Literal segment first.
+    if (walk(join(dir, head), tail)) return true;
+
+    // Then any dynamic segment at this level.
+    return ['[slug]', '[region]', '[route]'].some((param) => walk(join(dir, param), tail));
+  }
+
+  return walk(APP_DIR, segments);
+}
+
+
 describe('prohibited claims never appear in published copy', () => {
   /**
    * Claims held by the register (D1, D3, D4, D5) must not leak into prose,
@@ -223,32 +250,6 @@ describe('route integrity', () => {
    * that also covers the redirect map, which typed routes would not have
    * validated at all.
    */
-  /**
-   * Resolves a path against the app directory the way Next does: at each
-   * segment, prefer a literal directory, and fall back to a dynamic `[param]`
-   * directory. Both branches must be explored, because `/coverage/mexico` is
-   * literal at segment 1 and dynamic at segment 2.
-   */
-  function routeExists(path: string): boolean {
-    const segments = path.split('/').filter(Boolean);
-
-    function walk(dir: string, remaining: string[]): boolean {
-      if (!existsSync(dir)) return false;
-      if (remaining.length === 0) return existsSync(join(dir, 'page.tsx'));
-
-      const [head, ...tail] = remaining;
-      if (head === undefined) return false;
-
-      // Literal segment first.
-      if (walk(join(dir, head), tail)) return true;
-
-      // Then any dynamic segment at this level.
-      return ['[slug]', '[region]', '[route]'].some((param) => walk(join(dir, param), tail));
-    }
-
-    return walk(APP_DIR, segments);
-  }
-
   it('resolves the routes it is asked to check (guards the resolver itself)', () => {
     expect(routeExists('/')).toBe(true);
     expect(routeExists('/credentials')).toBe(true);
@@ -318,16 +319,11 @@ describe('redirect map (section 3)', () => {
       if (rule.source.includes(':path*')) continue; // catch-alls land on the homepage
 
       const withoutLocale = rule.destination.replace(/^\/(en|es)/, '') || '/';
-      const segments = withoutLocale.split('/').filter(Boolean);
 
-      const resolves =
-        segments.length === 0 ||
-        existsSync(join(APP_DIR, ...segments, 'page.tsx')) ||
-        ['[slug]', '[region]', '[route]'].some((param) =>
-          existsSync(join(APP_DIR, ...segments.slice(0, -1), param, 'page.tsx')),
-        );
-
-      expect(resolves, `${rule.destination} does not resolve to a page`).toBe(true);
+      expect(
+        routeExists(withoutLocale),
+        `${rule.destination} does not resolve to a page`,
+      ).toBe(true);
     }
   });
 

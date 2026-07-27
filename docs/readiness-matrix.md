@@ -89,7 +89,7 @@ Last updated: 2026-07-27.
 | Performance / Core Web Vitals | Gap | Medium | No budget enforcement in CI and no field data. Zero third-party scripts and minimal client JS give good headroom, but this is untested. | Marketing owner |
 | Load and stress | Gap | High | Not run. Page 21 targets 100 rps public and 20 accepted callbacks/min. | Security or technology owner |
 | Chaos and recovery | Gap | High | Not run. | Security or technology owner |
-| SEO and redirects | Pass (was Fail) | Low | Canonical URLs, hreflang pairs, per-page unique title and description, sitemap generated from the page registry, robots blocking non-production by origin, redirect map with automated no-chain and destination-resolves checks. | Marketing owner |
+| SEO and redirects | Pass (was Fail) | Low | Canonical URLs, hreflang pairs, per-page unique title and description, sitemap generated from the page registry, robots blocking non-production by origin. **Redirect map is now complete** — all 88 legacy URLs from the live sitemap (43 pages, 44 posts, 1 author), with automated no-chain, locale-prefix, and destination-resolves checks, verified single-hop against a running server. See [migration-findings.md](migration-findings.md). Remaining: export the real URL list from Search Console, which shows indexed URLs a sitemap omits. | Marketing owner |
 | Spanish content | Gap | High | UI chrome translated as a draft (D11). All medical, legal, insurance, and coverage body copy renders `TranslationPendingNotice` in Spanish rather than machine translation, per page 24. | Marketing owner |
 | CMS | Gap | Medium | Content is typed data conforming to the section 5 block model, but no CMS, approval workflow, version history, or scheduled review is implemented. | Marketing owner |
 

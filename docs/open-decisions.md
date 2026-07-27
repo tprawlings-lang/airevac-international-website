@@ -205,6 +205,33 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 
 ---
 
+## Decisions raised by the crawl of the current site
+
+Full detail in [migration-findings.md](migration-findings.md).
+
+| ID | Decision | Owner |
+|---|---|---|
+| D15 | Is `(888) 761-2253` current, and should it be published alongside `619-754-6755`? If both, which is primary? | Operations |
+| D16 | Rebuild the six private cruise-island pages with operations-informed content, or let the redirects stand? | Operations and Marketing |
+| D17 | Confirm the contracting entity for Terms and the Privacy Notice — the 2021 press release says "Medical Logistics Management, Inc. dba AirEvac International" | Legal |
+
+Two findings from the same crawl need attention on the **live site**, regardless
+of this project's timeline:
+
+- `/case-managers/` promises transports "typically with **no money out of
+  pocket** for the patient" — the exact claim page 24 forbids and section 12
+  treats as a misleading insurance claim under the FTC Act.
+- `robots.txt` advertises a `www.` sitemap while every canonical URL is non-www.
+  Pick one host and 301 the other before cutover.
+
+The crawl also recovered the likely answer to a question D10 has been waiting
+on: **who signs off medical content.** A 2021 press release names Dr. Dan Quan
+as Chief Medical Director and Dr. Adriana Yates as Medical Director for Florida.
+If still current, that is the `reviewer` for every medical page in
+`src/content/pages/**`.
+
+---
+
 ## Decisions this repository made on its own
 
 These were not on the blueprint's list but had to be settled to build. Each has
