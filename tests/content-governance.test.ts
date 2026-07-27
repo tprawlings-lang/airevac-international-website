@@ -6,6 +6,7 @@ import { canRenderLocale, type Block, type PageContent } from '@/content/blocks'
 import { getDictionary } from '@/content/dictionary';
 import { buildLegalNavigation, buildNavigation, PRIORITY_ROUTES } from '@/content/navigation';
 import { legacyRedirects } from '@/content/redirects';
+import { MEDIA, mediaNeedingPermission, publishableMedia } from '@/content/media';
 import { REGION_CONTENT } from '@/content/pages/coverage';
 import { ALL_CONTENT_PAGES } from '@/lib/page-registry';
 import { LOCALES } from '@/lib/i18n';
@@ -395,5 +396,54 @@ describe('dictionary parity', () => {
     for (const locale of LOCALES) {
       expect(getDictionary(locale).emergency.notice.length).toBeGreaterThan(40);
     }
+  });
+});
+
+describe('media registry (blueprint page 10)', () => {
+  it('never publishes an asset on hold', () => {
+    // The isolation-pod photo asserts a clinical capability and may show a
+    // patient. Both need approval; neither exists.
+    const held = MEDIA.crewIsolationLoading;
+    expect(held).toBeDefined();
+    expect(publishableMedia(held!)).toBe(false);
+  });
+
+  it('gives every held asset a note explaining what is blocking it', () => {
+    for (const asset of Object.values(MEDIA)) {
+      if (!publishableMedia(asset)) {
+        expect(asset.note, `${asset.id} is held with no explanation`).toBeTruthy();
+      }
+    }
+  });
+
+  it('gives every asset meaningful alt text', () => {
+    // WCAG 1.1.1. A filename or a bare "image" is not alt text.
+    for (const asset of Object.values(MEDIA)) {
+      expect(asset.alt.length, `${asset.id} alt too short`).toBeGreaterThan(10);
+      expect(asset.alt.toLowerCase(), `${asset.id}`).not.toMatch(/^(image|photo|picture)\b/);
+    }
+  });
+
+  it('never attributes a photograph to a specific tail number', () => {
+    /*
+     * No registration is legible in any available frame. An alt text naming
+     * N322PR or N669MD would assert that the photo depicts that airframe —
+     * a fleet claim the register cannot evidence (D4/D5).
+     */
+    for (const asset of Object.values(MEDIA)) {
+      expect(asset.alt, `${asset.id} names a tail number`).not.toMatch(/N\d{3}[A-Z]{2}/);
+    }
+  });
+
+  it('records provenance for every asset', () => {
+    for (const asset of Object.values(MEDIA)) {
+      expect(asset.provenance.length, `${asset.id} has no provenance`).toBeGreaterThan(10);
+    }
+  });
+
+  it('tracks which assets still need a permission record (D12)', () => {
+    // Not a failure — a visible count, so the outstanding work stays known.
+    const pending = mediaNeedingPermission().map((a) => a.id);
+    expect(Array.isArray(pending)).toBe(true);
   });
 });

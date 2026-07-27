@@ -156,10 +156,28 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 **Owner:** Marketing and compliance · **Needed by:** before proof modules
 
 - **Impact:** all photography, the partner-proof block, and Mission Stories.
-- **Safe default in code:** `photos: []` on every aircraft, so cards render a
-  typographic panel rather than stock imagery (page 10 forbids generic stretcher
-  and dramatic emergency photos). Mission Stories and Leadership ship as honest
-  empty states explaining the standard being applied.
+- **Partially addressed.** AirEvac's own photography was recovered from the live
+  WordPress media library and is now registered in `src/content/media.ts` with
+  provenance, alt text, and a publication status. Five images publish; one is
+  held. Aircraft cards still show the schematic, and Mission Stories and
+  Leadership still ship as honest empty states.
+- **What is still open, and it is not small:** "it was already on our website"
+  is not the same as "we own the copyright and hold model releases". For each
+  image Marketing must confirm who shot it, whether AirEvac owns or licenses it,
+  and whether the identifiable crew consented to continued commercial use. Until
+  then `permissionId` is null and status is `inherited-from-live-site` — it
+  renders, because the image is already public on AirEvac's own site so
+  republishing changes nothing about its exposure, but the question stays
+  tracked.
+- **One image is held outright** (`crewIsolationLoading`), on two independent
+  grounds: it asserts an isolation transport capability with no clinical owner
+  approval (page 6), and the isolation unit appears to contain a person, which
+  would need authorization under page 10. It is currently live on
+  airevacinternational.com — that is an existing exposure worth reviewing there,
+  not a clearance.
+- **No photo is attributed to a tail number.** No registration is legible in any
+  available frame, so pairing one with N322PR or N669MD would be a fleet claim.
+  A test enforces this.
 - **To close:** supply images with written permission and a permission ID, then
   populate `photos`. For case stories, the block model on page 11 still needs
   building: authorization ID, de-identification status, expiration/revocation

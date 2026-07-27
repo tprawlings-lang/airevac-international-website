@@ -39,7 +39,7 @@ Last updated: 2026-07-27.
 | Conversion layout | Pass (was Fail) | Low | Homepage implements the section 4 block order. Phone is first in every contact block via `ContactBlock` and `PhoneCta`. | Marketing owner |
 | Referral paths | Pass | Low | Hospital, cruise, and insurance pages implement the section 5 template order. | Marketing owner |
 | Mobile call bar | Pass | Low | Fixed bar with reserved body padding so it never covers content or a focused element. | Marketing owner |
-| Imagery | Gap | Medium | No operational photography (D12). Aircraft cards render a typographic placeholder rather than stock imagery. | Marketing owner |
+| Imagery | Gap (improved) | Medium | AirEvac's own operational photography recovered from their live site and placed on the hero, fleet, about, and partner sections, registered in `src/content/media.ts` with provenance and alt text. **Permission records are still outstanding (D12)** — "already on our site" is not proof of copyright ownership or crew model releases. The isolation-pod photo is held: it asserts an isolation capability with no clinical sign-off, and may show a real patient. | Marketing owner |
 
 ## 3. Privacy and data
 

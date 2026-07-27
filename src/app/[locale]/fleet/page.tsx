@@ -11,6 +11,7 @@ import { FLEET } from '@/content/fleet';
 import { FLEET_PAGES } from '@/content/pages/fleet';
 import { isLocale, localePath, LOCALES } from '@/lib/i18n';
 import { publishable } from '@/lib/credential-register';
+import { Photo } from '@/components/graphics/Photo';
 
 /**
  * Fleet page. Blueprint page 2 sets the approved fleet copy — "Two Learjet 31As:
@@ -81,6 +82,20 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
 
       <Section>
         <Container>
+          {/*
+           * General fleet imagery. It is NOT placed on the individual aircraft
+           * cards: no registration is legible in any available frame, and
+           * pairing a photo with a tail number would assert that it depicts
+           * that airframe — a fleet claim we cannot evidence. The cards keep
+           * the schematic until a photo of a known registration exists.
+           */}
+          <Photo
+            id="aircraftHangar"
+            sizes="(min-width: 1280px) 1152px, 100vw"
+            priority
+            className="mb-10 aspect-[16/7] w-full rounded-panel object-cover"
+          />
+
           <div className="grid gap-6 md:grid-cols-2">
             {visibleAircraft.map((aircraft) => (
               <AircraftCard

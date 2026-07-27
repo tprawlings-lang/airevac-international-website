@@ -6,6 +6,7 @@ import { localePath, LOCALE_LABEL, LOCALES, type Locale } from '@/lib/i18n';
 import { Container } from '@/components/ui/Container';
 import { CtaLink } from '@/components/ui/Cta';
 import { NavMenu } from '@/components/NavMenu';
+import { Photo } from '@/components/graphics/Photo';
 
 /**
  * Blueprint page 9, the 24/7 contact bar: "Phone, EN/ES, secure chat", sitting
@@ -71,12 +72,14 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               className="flex flex-col leading-tight"
               aria-label={`${SITE.name} — ${dictionary.common.home}`}
             >
-              <span className="text-xl font-bold tracking-tight text-navy-900">
-                AirEvac
-              </span>
-              <span className="text-xs font-medium uppercase tracking-[0.18em] text-ink-500">
-                International
-              </span>
+              {/* AirEvac's own mark, recovered from their live site. The
+                  white artwork is inverted for the light header. */}
+              <Photo
+                id="logo"
+                sizes="200px"
+                priority
+                className="h-11 w-auto invert"
+              />
             </Link>
 
             {/* Desktop navigation.

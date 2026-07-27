@@ -11,6 +11,7 @@ import { ReferralSelector } from '@/components/ReferralSelector';
 import { SecureChatButton } from '@/components/SecureChatButton';
 import { CoverageMap } from '@/components/graphics/CoverageMap';
 import { HeroBackdrop } from '@/components/graphics/HeroBackdrop';
+import { BackdropPhoto, Photo } from '@/components/graphics/Photo';
 import { TranslationPendingNotice } from '@/components/TranslationPendingNotice';
 
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
@@ -106,10 +107,26 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         className="relative overflow-hidden py-0!"
         ariaLabelledBy="hero-heading"
       >
-        {/* Decorative depth while permission-cleared photography is pending
-            (D12). See the note in HeroBackdrop for why this is geometry rather
-            than a stock aviation photo. */}
-        <HeroBackdrop className="pointer-events-none absolute inset-0 h-full w-full" />
+        {/*
+         * AirEvac's own aircraft photograph, recovered from their live site.
+         * Page 10 wants "calm medical transport imagery" — a golden-hour ramp
+         * shot is exactly that, and it is their airframe rather than stock.
+         *
+         * The navy scrim is what makes it usable: white headline text over a
+         * bright sky would fail AA contrast, so the photo sits at low opacity
+         * under a navy gradient and carries atmosphere rather than detail.
+         * `priority` because this is the LCP element.
+         */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <BackdropPhoto
+            id="aircraftGoldenHour"
+            sizes="100vw"
+            priority
+            className="object-cover object-center opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy-900 via-navy-900/90 to-navy-900/55" />
+          <HeroBackdrop className="absolute inset-0 h-full w-full" />
+        </div>
 
         <Container className="relative">
           <div className="grid gap-10 py-14 lg:grid-cols-[1.2fr_1fr] lg:items-center sm:py-20">
@@ -362,6 +379,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               : 'Checklists, document paths, and direct contacts for the teams who refer cases ' +
                 'to us.'}
           </p>
+
+          <Photo
+            id="aircraftEngineDetail"
+            sizes="(min-width: 1024px) 900px, 100vw"
+            className="mt-8 aspect-[16/6] w-full rounded-panel object-cover"
+          />
 
           <ul className="mt-8 grid gap-4 sm:grid-cols-3">
             {[

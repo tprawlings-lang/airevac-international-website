@@ -6,6 +6,7 @@ import { Container, Section } from '@/components/ui/Container';
 import { ContentBlocks } from '@/components/ContentBlocks';
 import { ContactBlock } from '@/components/ContactBlock';
 import { PageHeader } from '@/components/PageHeader';
+import { Photo } from '@/components/graphics/Photo';
 import { TranslationPendingNotice } from '@/components/TranslationPendingNotice';
 import { getNonce } from '@/lib/nonce';
 
@@ -23,6 +24,15 @@ import { getNonce } from '@/lib/nonce';
  *      reviewers for medical, billing, insurance, and patient-rights content"
  *      with a visible review date and correction path.
  */
+/**
+ * Lead image per content page. Only pages where a photograph genuinely adds
+ * something appear here — a privacy notice does not want an aircraft above it.
+ */
+const LEAD_IMAGES: Record<string, 'aircraftRampFront' | 'aircraftHangar' | 'aircraftEngineDetail'> = {
+  '/about': 'aircraftRampFront',
+  '/about/why-airevac': 'aircraftEngineDetail',
+};
+
 export async function ContentPage({
   page,
   locale,
@@ -103,6 +113,17 @@ export async function ContentPage({
                     )}
                   </p>
                 ))}
+
+              {/* One lead image, only where the registry names one for this
+                  page. Content pages are mostly long-form and do not want
+                  decoration between every heading. */}
+              {LEAD_IMAGES[page.path] !== undefined && (
+                <Photo
+                  id={LEAD_IMAGES[page.path]!}
+                  sizes="(min-width: 768px) 768px, 100vw"
+                  className="mb-8 aspect-[16/8] w-full rounded-panel object-cover"
+                />
+              )}
 
               <ContentBlocks blocks={blocks} />
             </>

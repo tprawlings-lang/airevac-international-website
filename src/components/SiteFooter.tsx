@@ -4,6 +4,7 @@ import { buildLegalNavigation, buildNavigation } from '@/content/navigation';
 import { SITE } from '@/content/site';
 import { localePath, type Locale } from '@/lib/i18n';
 import { Container } from '@/components/ui/Container';
+import { Photo } from '@/components/graphics/Photo';
 
 /**
  * Blueprint page 9, final contact block: "Call, secure chat, callback, Fort
@@ -26,7 +27,10 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
             {/* --- Contact ------------------------------------------------ */}
             <div>
-              <h2 className="mb-3 text-lg font-bold">{SITE.name}</h2>
+              <h2 className="mb-4">
+                <Photo id="logo" sizes="220px" className="h-10 w-auto" />
+                <span className="sr-only">{SITE.name}</span>
+              </h2>
 
               <p className="mb-4">
                 <a href={SITE.phone.href} className="text-xl font-bold underline underline-offset-4">
