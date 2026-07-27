@@ -9,9 +9,10 @@ import { EmergencyNotice } from '@/components/EmergencyNotice';
 import { ProcessSteps } from '@/components/ProcessSteps';
 import { ReferralSelector } from '@/components/ReferralSelector';
 import { SecureChatButton } from '@/components/SecureChatButton';
+import { VerifiedFacts } from '@/components/VerifiedFacts';
 import { CoverageMap } from '@/components/graphics/CoverageMap';
 import { HeroBackdrop } from '@/components/graphics/HeroBackdrop';
-import { BackdropPhoto, Photo } from '@/components/graphics/Photo';
+import { BackdropPhoto } from '@/components/graphics/Photo';
 import { TranslationPendingNotice } from '@/components/TranslationPendingNotice';
 
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
@@ -108,28 +109,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         ariaLabelledBy="hero-heading"
       >
         {/*
-         * AirEvac's own aircraft photograph, recovered from their live site.
-         * Page 10 wants "calm medical transport imagery" — a golden-hour ramp
-         * shot is exactly that, and it is their airframe rather than stock.
+         * AirEvac's own aircraft at dusk, from their live site. Page 10 wants
+         * "calm medical transport imagery" and forbids dramatic emergency
+         * imagery — a quiet golden-hour ramp shot is exactly the former.
          *
-         * The navy scrim is what makes it usable: white headline text over a
-         * bright sky would fail AA contrast, so the photo sits at low opacity
-         * under a navy gradient and carries atmosphere rather than detail.
-         * `priority` because this is the LCP element.
+         * THE GRADIENT IS DOING THE ACCESSIBILITY WORK, NOT THE OPACITY.
+         * An earlier version dimmed the whole photo to 30%, which protected the
+         * text but wasted the only strong image available — the aircraft was
+         * barely legible. Instead the photo now runs at full strength and a
+         * hard left-to-right scrim keeps the headline column on solid navy:
+         * opaque through 45%, then falling away so the airframe reads clearly
+         * on the right. Text contrast is unchanged; the picture is visible.
+         *
+         * The second, vertical gradient stops the photo colliding with the
+         * section below it.
          */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <BackdropPhoto
             id="aircraftGoldenHour"
             sizes="100vw"
             priority
-            className="object-cover object-center opacity-30"
+            className="object-cover object-[70%_center]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-navy-900 via-navy-900/90 to-navy-900/55" />
-          <HeroBackdrop className="absolute inset-0 h-full w-full" />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy-950 from-30% via-navy-950/95 via-55% to-navy-950/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-transparent to-navy-950/70" />
+          <HeroBackdrop className="absolute inset-0 h-full w-full opacity-60" />
         </div>
 
         <Container className="relative">
-          <div className="grid gap-10 py-14 lg:grid-cols-[1.2fr_1fr] lg:items-center sm:py-20">
+          <div className="grid gap-10 pt-16 pb-10 lg:grid-cols-[1.15fr_1fr] lg:items-center sm:pt-24 sm:pb-12 lg:pt-28 lg:pb-14">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-support-500">
                 {locale === 'es'
@@ -139,7 +147,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
               <h1
                 id="hero-heading"
-                className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl"
+                className="mt-5 max-w-[15ch] text-[2.75rem] font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-[4.25rem]"
               >
                 {locale === 'es'
                   ? 'Coordinación directa de ambulancia aérea, sin intermediarios.'
@@ -233,6 +241,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </Container>
       </Section>
+
+      {/* ================= VERIFIED FACTS ================================
+          Sits between the hero and the referral selector: the fastest
+          credibility signal in the category, built only from claims the
+          register can evidence. See VerifiedFacts for why the numbers are
+          deliberately modest. */}
+      <VerifiedFacts locale={locale} now={now} />
 
       {/* ================= REFERRAL SELECTOR ============================= */}
       <Section tone="tint" ariaLabelledBy="referral-selector-heading">
@@ -379,12 +394,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               : 'Checklists, document paths, and direct contacts for the teams who refer cases ' +
                 'to us.'}
           </p>
-
-          <Photo
-            id="aircraftEngineDetail"
-            sizes="(min-width: 1024px) 900px, 100vw"
-            className="mt-8 aspect-[16/6] w-full rounded-panel object-cover"
-          />
 
           <ul className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
