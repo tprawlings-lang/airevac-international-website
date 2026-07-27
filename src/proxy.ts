@@ -59,8 +59,95 @@ function buildCsp(nonce: string, isDev: boolean): string {
     .join('; ');
 }
 
+/**
+ * Constant-time string comparison.
+ *
+ * `crypto.timingSafeEqual` is Node-only and this runs in the edge runtime, so
+ * the comparison is written out. A plain `===` on a credential leaks its length
+ * and its matching prefix through response timing.
+ */
+function safeEqual(a: string, b: string): boolean {
+  const encoder = new TextEncoder();
+  const left = encoder.encode(a);
+  const right = encoder.encode(b);
+
+  // Compare a fixed number of bytes regardless of input length.
+  let diff = left.length ^ right.length;
+  const max = Math.max(left.length, right.length);
+  for (let i = 0; i < max; i += 1) {
+    diff |= (left[i] ?? 0) ^ (right[i] ?? 0);
+  }
+  return diff === 0;
+}
+
+/**
+ * Optional HTTP Basic auth for non-production deploys.
+ *
+ * ===================== WHY THIS EXISTS =====================
+ * A hosted preview of this site looks like the live AirEvac site and carries the
+ * real 24/7 coordinator phone number — while the legal pages are unapproved
+ * drafts (D10) and the callback form does not reach a coordinator (D7/D8/D9).
+ *
+ * A link that escapes to a hospital, a partner, or a family is exactly the harm
+ * the blueprint's launch rule exists to prevent. So a preview gets a lock.
+ *
+ * Set PREVIEW_USERNAME and PREVIEW_PASSWORD to enable. Leave them unset in
+ * production, where the site is meant to be public.
+ *
+ * This is preview-gating, NOT an application authentication system. Blueprint
+ * page 16 requires SSO with phishing-resistant MFA for anything privileged;
+ * Basic auth over TLS is appropriate only for keeping an unfinished marketing
+ * site off the open web.
+ */
+function previewAuthFailed(request: NextRequest): boolean {
+  const username = process.env.PREVIEW_USERNAME;
+  const password = process.env.PREVIEW_PASSWORD;
+
+  // Disabled unless both are set.
+  if (!username || !password) return false;
+
+  const header = request.headers.get('authorization');
+  if (header === null || !header.startsWith('Basic ')) return true;
+
+  let decoded: string;
+  try {
+    decoded = atob(header.slice(6));
+  } catch {
+    return true;
+  }
+
+  // Split on the FIRST colon only — a password may legitimately contain one.
+  const separator = decoded.indexOf(':');
+  if (separator === -1) return true;
+
+  const givenUser = decoded.slice(0, separator);
+  const givenPassword = decoded.slice(separator + 1);
+
+  // Both comparisons always run, so a wrong username and a wrong password cost
+  // the same time.
+  const userOk = safeEqual(givenUser, username);
+  const passwordOk = safeEqual(givenPassword, password);
+  return !(userOk && passwordOk);
+}
+
 export default function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
+
+  // --- Preview lock ------------------------------------------------------
+  // `/healthz` is exempt so the host's health check does not see a 401 and
+  // restart the service in a loop. It returns no site content.
+  if (pathname !== '/healthz' && previewAuthFailed(request)) {
+    return new NextResponse('Authentication required.', {
+      status: 401,
+      headers: {
+        'WWW-Authenticate': 'Basic realm="AirEvac preview", charset="UTF-8"',
+        'Cache-Control': 'no-store',
+        // A locked preview must never be indexed even if a crawler is given
+        // credentials by some intermediary.
+        'X-Robots-Tag': 'noindex, nofollow',
+      },
+    });
+  }
 
   // --- Locale prefix -----------------------------------------------------
   // Every page lives under /en or /es. Section 3 makes English canonical, so an
@@ -71,7 +158,14 @@ export default function proxy(request: NextRequest): NextResponse {
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
   );
 
-  if (!hasLocale && !pathname.startsWith('/api') && !PUBLIC_FILE.test(pathname)) {
+  if (
+    !hasLocale &&
+    !pathname.startsWith('/api') &&
+    // /healthz is infrastructure, not content. Redirecting it to /en/healthz
+    // sends the host's uptime probe to a 404 and the service flaps.
+    pathname !== '/healthz' &&
+    !PUBLIC_FILE.test(pathname)
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`;
     // 308 preserves the method and is cacheable — section 3 requires permanent

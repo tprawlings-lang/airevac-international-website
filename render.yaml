@@ -1,0 +1,43 @@
+# Render Blueprint. https://render.com/docs/blueprint-spec
+#
+# Deploys the public site as a Node web service. It is NOT a static site: HTML is
+# rendered per request so the CSP nonce is real (see
+# docs/adr/0004-security-headers.md), and /api/callback needs a server runtime.
+
+services:
+  - type: web
+    name: airevac-website-preview
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: claude/air-evac-website-6c03r7
+
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+
+    healthCheckPath: /healthz
+
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.2
+
+      # Set this to the Render URL of THIS service, e.g.
+      #   https://airevac-website-preview.onrender.com
+      #
+      # SITE_URL controls canonical tags, hreflang, the sitemap, and the robots
+      # policy. Any value other than https://airevacinternational.com causes the
+      # site to serve `noindex` and a disallow-all robots.txt — which is what a
+      # preview must do, and which does not affect anyone opening the link.
+      #
+      # Set it to the production domain only on the eventual production service,
+      # at launch, after the readiness matrix is cleared.
+      - key: SITE_URL
+        sync: false
+
+      # OPTIONAL preview lock (HTTP Basic auth), implemented in src/proxy.ts.
+      # Disabled unless BOTH are set — leave them unset for an open preview.
+      # Useful later for the isolated staging environment the blueprint requires.
+      # - key: PREVIEW_USERNAME
+      #   sync: false
+      # - key: PREVIEW_PASSWORD
+      #   sync: false

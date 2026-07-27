@@ -6,9 +6,9 @@ import { SITE } from '@/content/site';
  * search results, secure flows and portal pages."
  *
  * STAGING IS BLOCKED BY ORIGIN, NOT BY A FLAG. `SITE.url` comes from the
- * SITE_URL environment variable, so any non-production origin serves a
- * disallow-all — nobody has to remember to set a staging flag, and a staging
- * deploy cannot be indexed by omission.
+ * SITE_URL environment variable, whose default is deliberately NOT production —
+ * so a preview or staging deploy that simply omits the variable serves a
+ * disallow-all. Indexing is opt-in, and it cannot happen by omission.
  *
  * Note that `Disallow` controls crawling, not indexing. The secure flow at
  * /request-transport ALSO sets `robots: { index: false }` in its own metadata,
@@ -17,6 +17,16 @@ import { SITE } from '@/content/site';
  */
 
 const IS_PRODUCTION = SITE.url === 'https://airevacinternational.com';
+
+/**
+ * Evaluated per request, not at build time.
+ *
+ * `SITE_URL` is read at runtime by canonical tags and hreflang. If this route
+ * were statically generated it would capture whatever `SITE_URL` was set during
+ * the build, and a deploy that changed the variable without rebuilding would
+ * advertise one origin here and a different one in the page markup.
+ */
+export const dynamic = 'force-dynamic';
 
 export default function robots(): MetadataRoute.Robots {
   if (!IS_PRODUCTION) {

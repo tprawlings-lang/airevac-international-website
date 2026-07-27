@@ -54,6 +54,16 @@ function entry(path: string, lastModified: Date): MetadataRoute.Sitemap[number] 
   };
 }
 
+/**
+ * Evaluated per request, not at build time.
+ *
+ * `SITE_URL` is read at runtime by canonical tags and hreflang. If this route
+ * were statically generated it would capture whatever `SITE_URL` was set during
+ * the build, and a deploy that changed the variable without rebuilding would
+ * advertise one origin here and a different one in the page markup.
+ */
+export const dynamic = 'force-dynamic';
+
 export default function sitemap(): MetadataRoute.Sitemap {
   /*
    * A single build timestamp for every entry. Per-page `lastModified` should

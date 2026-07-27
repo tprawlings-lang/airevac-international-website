@@ -7,11 +7,17 @@ export const SITE = {
   name: 'AirEvac International',
 
   /**
-   * Canonical production origin. Used for canonical tags, hreflang, sitemap, and
-   * structured data. Override per-environment with SITE_URL so staging never
-   * emits production canonicals (section 19: "noindex for staging").
+   * Origin used for canonical tags, hreflang, sitemap, and structured data.
+   *
+   * THE DEFAULT IS DELIBERATELY NOT PRODUCTION. Section 19 requires "noindex for
+   * staging", and the only way to guarantee that is to make production the thing
+   * you must opt into rather than the thing you get by forgetting a variable.
+   *
+   * A preview deploy that omits SITE_URL gets localhost here, which makes
+   * `IS_PRODUCTION` false in robots.ts — so it serves a disallow-all robots.txt
+   * and `noindex`, instead of advertising itself with production canonicals.
    */
-  url: process.env.SITE_URL ?? 'https://airevacinternational.com',
+  url: process.env.SITE_URL ?? 'http://localhost:3000',
 
   /**
    * The primary conversion. Blueprint page 7: "Primary: Call a Flight
