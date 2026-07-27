@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { getDictionary } from '@/content/dictionary';
 import { localePath, type Locale } from '@/lib/i18n';
+import {
+  FamilyIcon,
+  HospitalIcon,
+  ShieldIcon,
+  ShipIcon,
+} from '@/components/graphics/Icons';
 
 /**
  * Blueprint page 9: "Referral selector — Hospital | Cruise | Insurance | Family".
@@ -21,26 +27,35 @@ export function ReferralSelector({ locale }: { locale: Locale }) {
   const dictionary = getDictionary(locale);
   const { referralSelector } = dictionary;
 
+  /*
+   * Icons are decorative: each sits above its own visible label, so they are
+   * aria-hidden and add scanning speed rather than meaning. A referrer picking
+   * their path under time pressure finds the ship faster than the word "Cruise".
+   */
   const paths = [
     {
       href: '/partners/hospitals',
       label: referralSelector.hospital,
       description: referralSelector.hospitalDescription,
+      Icon: HospitalIcon,
     },
     {
       href: '/partners/cruise',
       label: referralSelector.cruise,
       description: referralSelector.cruiseDescription,
+      Icon: ShipIcon,
     },
     {
       href: '/partners/insurance',
       label: referralSelector.insurance,
       description: referralSelector.insuranceDescription,
+      Icon: ShieldIcon,
     },
     {
       href: '/patients-families',
       label: referralSelector.family,
       description: referralSelector.familyDescription,
+      Icon: FamilyIcon,
     },
   ];
 
@@ -60,6 +75,7 @@ export function ReferralSelector({ locale }: { locale: Locale }) {
               href={localePath(locale, path.href)}
               className="flex h-full flex-col rounded-panel border border-ink-300 bg-white p-5 transition-colors hover:border-navy-800 hover:bg-support-50"
             >
+              <path.Icon className="mb-3 size-9 text-support-700" />
               <span className="text-lg font-bold text-navy-900">{path.label}</span>
               <span className="mt-2 text-sm text-ink-700">{path.description}</span>
               <span

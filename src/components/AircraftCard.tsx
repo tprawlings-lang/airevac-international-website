@@ -2,6 +2,7 @@ import { getDictionary } from '@/content/dictionary';
 import type { AircraftRecord } from '@/content/fleet';
 import { formatDate, type Locale } from '@/lib/i18n';
 import { publishable } from '@/lib/credential-register';
+import { AircraftPlanform } from '@/components/graphics/HeroBackdrop';
 
 /**
  * Aircraft record, blueprint page 11.
@@ -53,13 +54,21 @@ export function AircraftCard({
           loading="lazy"
         />
       ) : (
-        <div className="flex aspect-[16/9] w-full items-center justify-center bg-navy-900 px-6">
-          <p className="text-center">
+        /*
+         * Photography is permission-gated (D12). The placeholder is a technical
+         * schematic rather than stock imagery — page 10 forbids generic
+         * stretcher and dramatic emergency photos, and a schematic is
+         * unmistakably a diagram, so it cannot be mistaken for a depiction of
+         * this specific airframe.
+         */
+        <div className="relative flex aspect-[16/9] w-full items-center justify-between gap-4 overflow-hidden bg-navy-900 px-7">
+          <p>
             <span className="block text-3xl font-bold tracking-tight text-white">
               {aircraft.tailNumber}
             </span>
             <span className="mt-1 block text-sm text-white/70">{aircraft.model}</span>
           </p>
+          <AircraftPlanform className="h-[84%] w-auto shrink-0 text-white/20" />
         </div>
       )}
 

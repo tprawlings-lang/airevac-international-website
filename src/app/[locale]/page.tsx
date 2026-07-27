@@ -9,6 +9,8 @@ import { EmergencyNotice } from '@/components/EmergencyNotice';
 import { ProcessSteps } from '@/components/ProcessSteps';
 import { ReferralSelector } from '@/components/ReferralSelector';
 import { SecureChatButton } from '@/components/SecureChatButton';
+import { CoverageMap } from '@/components/graphics/CoverageMap';
+import { HeroBackdrop } from '@/components/graphics/HeroBackdrop';
 import { TranslationPendingNotice } from '@/components/TranslationPendingNotice';
 
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
@@ -99,8 +101,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           file (D4). The copy below says what is true today: AirEvac coordinates
           the transport directly, with no broker in between.
           ============================================================== */}
-      <Section tone="navy" className="py-0!" ariaLabelledBy="hero-heading">
-        <Container>
+      <Section
+        tone="navy"
+        className="relative overflow-hidden py-0!"
+        ariaLabelledBy="hero-heading"
+      >
+        {/* Decorative depth while permission-cleared photography is pending
+            (D12). See the note in HeroBackdrop for why this is geometry rather
+            than a stock aviation photo. */}
+        <HeroBackdrop className="pointer-events-none absolute inset-0 h-full w-full" />
+
+        <Container className="relative">
           <div className="grid gap-10 py-14 lg:grid-cols-[1.2fr_1fr] lg:items-center sm:py-20">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-support-500">
@@ -153,7 +164,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
              */}
             <aside
               aria-label={locale === 'es' ? 'Datos operativos' : 'Operational facts'}
-              className="rounded-panel border border-white/25 bg-white/5 p-6"
+              className="rounded-panel border border-white/25 bg-navy-950/70 p-6"
             >
               <dl className="space-y-4 text-sm">
                 <div>
@@ -287,7 +298,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 'Caribbean.'}
           </p>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_2fr]">
+          {/* The route map. Competitor research found neither REVA nor AirMed
+              publishes one, and regional concentration is the position this
+              site argues — so the map does argumentative work, not decoration. */}
+          <CoverageMap locale={locale} className="mt-8 text-navy-900" />
+
+          <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_2fr]">
             <nav aria-label={locale === 'es' ? 'Regiones' : 'Regions'}>
               <ul className="space-y-2">
                 {COVERAGE_REGIONS.map((region) => (

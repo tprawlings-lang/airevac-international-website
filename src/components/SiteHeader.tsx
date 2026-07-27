@@ -5,6 +5,7 @@ import { SITE } from '@/content/site';
 import { localePath, LOCALE_LABEL, LOCALES, type Locale } from '@/lib/i18n';
 import { Container } from '@/components/ui/Container';
 import { CtaLink } from '@/components/ui/Cta';
+import { NavMenu } from '@/components/NavMenu';
 
 /**
  * Blueprint page 9, the 24/7 contact bar: "Phone, EN/ES, secure chat", sitting
@@ -78,41 +79,12 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               </span>
             </Link>
 
-            {/* Desktop navigation */}
+            {/* Desktop navigation.
+                Interactive (hover intent, click, 10s idle close, Escape) so it
+                lives in NavMenu, the only client component in the header. The
+                mobile disclosure below stays script-free. */}
             <nav aria-label="Main" className="hidden lg:block">
-              <ul className="flex items-center gap-1">
-                {navigation.map((group) => (
-                  <li key={group.label} className="relative">
-                    <details className="group">
-                      <summary
-                        className="inline-flex min-h-[44px] cursor-pointer list-none items-center gap-1 whitespace-nowrap rounded px-3 py-2 text-sm font-semibold text-navy-900 hover:bg-support-50"
-                      >
-                        {group.label}
-                        <span aria-hidden="true" className="text-xs">
-                          ▾
-                        </span>
-                      </summary>
-                      <ul className="absolute left-0 top-full z-20 w-72 rounded-panel border border-ink-300 bg-white p-2 shadow-lg">
-                        {group.links.map((link) => (
-                          <li key={link.href}>
-                            <Link
-                              href={localePath(locale, link.href)}
-                              className="block rounded px-3 py-2 text-sm text-ink-900 hover:bg-support-50"
-                            >
-                              {link.label}
-                              {link.pending !== undefined && (
-                                <span className="mt-0.5 block text-xs text-ink-500">
-                                  {link.pending}
-                                </span>
-                              )}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  </li>
-                ))}
-              </ul>
+              <NavMenu groups={navigation} locale={locale} />
             </nav>
 
             <div className="hidden items-center gap-2 lg:flex">

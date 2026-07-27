@@ -272,6 +272,14 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Navigation behaviour
+        # Regression guard for the dropdown fix: hover intent, click toggle,
+        # single-menu-open, outside click, Escape + focus return, the 10s idle
+        # close for tablets, and the WCAG 2.2 SC 2.2.1 exception that keeps the
+        # menu open while a link holds keyboard focus. None of this is
+        # observable without a real browser.
+        run: npm run test:nav
+
       - name: Run axe against representative pages
         # Page 21 gate: "zero serious or critical automated issue" across 15
         # pages covering every template in both locales.
