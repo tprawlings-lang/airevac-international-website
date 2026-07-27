@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BASE_AIRPORT, MAPPED_AIRPORTS, type MappedAirport } from '@/content/airports';
+import { COASTLINE_PATHS, COASTLINE_VIEW } from '@/content/coastlines';
 import { PRIORITY_ROUTES } from '@/content/navigation';
 import { localePath, type Locale } from '@/lib/i18n';
 
@@ -51,6 +52,20 @@ const MID_LAT_RADIANS = (((minLat + maxLat) / 2) * Math.PI) / 180;
 const VIEW_HEIGHT = Math.round(
   (VIEW_WIDTH * latSpan) / (lonSpan * Math.cos(MID_LAT_RADIANS)),
 );
+
+/**
+ * Guards the generated geometry against this component's projection drifting.
+ * If someone changes PADDING or VIEW_WIDTH without regenerating the coastlines,
+ * the land would silently slide out from under the markers — so fail loudly at
+ * import time instead. Asserted again in tests.
+ */
+if (COASTLINE_VIEW.width !== VIEW_WIDTH || COASTLINE_VIEW.height !== VIEW_HEIGHT) {
+  throw new Error(
+    `Coastline geometry was generated for ${COASTLINE_VIEW.width}x${COASTLINE_VIEW.height} but ` +
+      `the map projects to ${VIEW_WIDTH}x${VIEW_HEIGHT}. ` +
+      'Run: node scripts/generate-coastlines.mjs',
+  );
+}
 
 function project(airport: { lat: number; lon: number }) {
   return {
@@ -132,6 +147,28 @@ export function CoverageMap({
             ? `Base de operaciones en Fort Lauderdale, Florida, con rutas hacia ${MAPPED_AIRPORTS.length} aeropuertos en México, el Caribe y Centroamérica.`
             : `Operating base at Fort Lauderdale, Florida, with routes to ${MAPPED_AIRPORTS.length} airports across Mexico, the Caribbean, and Central America.`}
         </desc>
+
+        {/*
+         * Landmasses. Generated from Natural Earth (public domain) by
+         * scripts/generate-coastlines.mjs, using this exact projection, so the
+         * coastlines sit under the airport markers rather than beside them.
+         *
+         * Filled rather than outlined: a coordinator needs to recognise the Gulf
+         * and the Yucatán at a glance, and outlines at this scale read as noise.
+         * Low contrast keeps land as context and the routes as the subject.
+         */}
+        <g
+          fill="currentColor"
+          fillOpacity="0.10"
+          stroke="currentColor"
+          strokeOpacity="0.22"
+          strokeWidth="0.75"
+          strokeLinejoin="round"
+        >
+          {COASTLINE_PATHS.map((d, index) => (
+            <path key={index} d={d} />
+          ))}
+        </g>
 
         {/* Graticule: 5° grid. Establishes that this is a real projection. */}
         <g stroke="currentColor" strokeWidth="0.5" opacity="0.12">

@@ -63,7 +63,7 @@ Last updated: 2026-07-27.
 | Rate limiting | Gap | High | Blueprint's starting thresholds implemented and tested, but **in-memory and single-instance**. Multiplies by replica count in production. Must move to the CDN/WAF or a shared store. See ADR 0003. | Security or technology owner |
 | Auth and RBAC | Gap | High | No accounts exist in phase 1, which is per plan. CMS SSO/MFA/RBAC is not built because no CMS is selected. | Security or technology owner |
 | Secrets | Pass | Low | No secrets in the repo. Only `SITE_URL` is read, and it is non-secret. Gitleaks runs in CI. | Security or technology owner |
-| Supply chain | Pass | Low | Lockfile committed, `npm ci` in CI, `npm audit --audit-level=high` fails the build, SBOM generated. Zero advisories at time of writing. | Security or technology owner |
+| Supply chain | Pass | Low | Lockfile committed, `npm ci` in CI, `npm audit --audit-level=high` fails the build, SBOM generated. **Zero advisories.** Three `overrides` in package.json pin patched transitives: `postcss` and `sharp` (Next.js), and `minimatch` (eslint's chain, which otherwise pulls a brace-expansion DoS). The minimatch override rather than a direct brace-expansion one is deliberate — overriding brace-expansion to v5 breaks eslint, because minimatch depends on the v1 CommonJS export shape. | Security or technology owner |
 | Penetration test | Gap | High | Not performed. Launch gate on page 21. | Security or technology owner |
 | DAST | Gap | High | Not run. Needs a staging environment. | Security or technology owner |
 

@@ -7,6 +7,8 @@ import { getDictionary } from '@/content/dictionary';
 import { buildLegalNavigation, buildNavigation, PRIORITY_ROUTES } from '@/content/navigation';
 import { legacyRedirects } from '@/content/redirects';
 import { MEDIA, mediaNeedingPermission, publishableMedia } from '@/content/media';
+import { COASTLINE_PATHS, COASTLINE_VIEW } from '@/content/coastlines';
+import { BASE_AIRPORT, MAPPED_AIRPORTS } from '@/content/airports';
 import { REGION_CONTENT } from '@/content/pages/coverage';
 import { ALL_CONTENT_PAGES } from '@/lib/page-registry';
 import { LOCALES } from '@/lib/i18n';
@@ -441,5 +443,76 @@ describe('media registry (blueprint page 10)', () => {
     // Not a failure — a visible count, so the outstanding work stays known.
     const pending = mediaNeedingPermission().map((a) => a.id);
     expect(Array.isArray(pending)).toBe(true);
+  });
+});
+
+describe('coverage map geometry', () => {
+  /*
+   * These guard a failure mode that is silent by construction. The generator's
+   * first version applied Ramer-Douglas-Peucker directly to closed rings, whose
+   * first and last points are identical — so every perpendicular distance came
+   * out zero, every shape collapsed, and the script cheerfully wrote a file with
+   * ZERO paths. The build passed, the types passed, and the map rendered with no
+   * land on it. Only looking at it caught that.
+   */
+
+  it('ships a substantial number of coastline paths', () => {
+    expect(COASTLINE_PATHS.length).toBeGreaterThan(40);
+  });
+
+  it('has no degenerate paths', () => {
+    // A collapsed ring serialises to a two-point path. That is the exact
+    // signature of the bug above.
+    for (const path of COASTLINE_PATHS) {
+      const points = path.split('L').length;
+      expect(points, `degenerate path: ${path.slice(0, 60)}`).toBeGreaterThan(2);
+    }
+  });
+
+  it('projects geometry to the same viewBox the map renders', () => {
+    /*
+     * The coastlines are generated against a copy of the map's projection. If
+     * PADDING or VIEW_WIDTH changes without regenerating, the land silently
+     * slides out from under the airport markers. CoverageMap throws at import
+     * time on a mismatch; this asserts the committed geometry is current.
+     */
+    expect(COASTLINE_VIEW.width).toBe(1000);
+    expect(COASTLINE_VIEW.height).toBeGreaterThan(400);
+    expect(COASTLINE_VIEW.height).toBeLessThan(600);
+  });
+
+  it('keeps every path inside the viewBox bounds, allowing for edge bleed', () => {
+    // The generator clamps to a 120px bleed margin past the viewBox.
+    const BLEED = 120;
+    const maxX = COASTLINE_VIEW.width + BLEED;
+    const maxY = COASTLINE_VIEW.height + BLEED;
+
+    for (const path of COASTLINE_PATHS) {
+      const numbers = path.match(/-?\d+(\.\d+)?/g) ?? [];
+      for (let i = 0; i < numbers.length; i += 2) {
+        // Inclusive: the clamp produces points sitting exactly on the bound.
+        expect(Math.abs(Number(numbers[i]))).toBeLessThanOrEqual(maxX);
+        expect(Math.abs(Number(numbers[i + 1]))).toBeLessThanOrEqual(maxY);
+      }
+    }
+  });
+
+  it('places every mapped airport inside the viewBox', () => {
+    // Catches a coordinate typo that would put a marker off the map.
+    for (const airport of [BASE_AIRPORT, ...MAPPED_AIRPORTS]) {
+      expect(airport.lat, `${airport.code} latitude`).toBeGreaterThan(5);
+      expect(airport.lat, `${airport.code} latitude`).toBeLessThan(30);
+      expect(airport.lon, `${airport.code} longitude`).toBeGreaterThan(-115);
+      expect(airport.lon, `${airport.code} longitude`).toBeLessThan(-65);
+    }
+  });
+
+  it('links every mapped airport with a routeSlug to a real priority route', () => {
+    const slugs = new Set(PRIORITY_ROUTES.map((route) => route.slug));
+    for (const airport of MAPPED_AIRPORTS) {
+      if (airport.routeSlug !== undefined) {
+        expect(slugs.has(airport.routeSlug), `${airport.code} -> ${airport.routeSlug}`).toBe(true);
+      }
+    }
   });
 });
