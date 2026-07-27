@@ -9,7 +9,7 @@ services:
     name: airevac-website-preview
     runtime: node
     plan: starter
-    region: oregon
+    region: virginia
     branch: claude/air-evac-website-6c03r7
 
     buildCommand: npm ci && npm run build
