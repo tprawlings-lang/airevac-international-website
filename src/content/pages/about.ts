@@ -48,7 +48,7 @@ export const ABOUT_PAGES: readonly PageContent[] = [
         heading: 'Coordination without a broker in between',
         paragraphs: [
           'When you call, you reach a flight coordinator who works the case, not a call ' +
-            'centre that passes your request to whoever answers next. That matters most in the ' +
+            'center that passes your request to whoever answers next. That matters most in the ' +
             'first hour, when the questions are operational and the answers determine the ' +
             'timeline.',
         ],

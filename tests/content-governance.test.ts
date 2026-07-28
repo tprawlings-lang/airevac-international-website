@@ -520,6 +520,80 @@ describe('coverage map geometry', () => {
 });
 
 /* ==========================================================================
+   Route page depth. Blueprint page 8: "Do not build thin pages for every
+   state, city, airport, island, or diagnosis. Each indexable page must add
+   local or audience-specific utility."
+
+   A route page is generated from PRIORITY_ROUTES, so the only thing standing
+   between twelve useful pages and twelve doorway pages is whether the authored
+   detail actually differs per route. That is what these assert.
+   ========================================================================== */
+
+describe('route pages carry genuinely local detail', () => {
+  const detailOf = (route: (typeof PRIORITY_ROUTES)[number]) => [
+    ...route.groundAndAirport,
+    ...route.hospitalAndDischarge,
+    ...route.documentsAndBorder,
+  ];
+
+  it('gives every route all three detail sets', () => {
+    for (const route of PRIORITY_ROUTES) {
+      expect(route.groundAndAirport.length, `${route.slug} ground`).toBeGreaterThanOrEqual(3);
+      expect(route.hospitalAndDischarge.length, `${route.slug} hospital`).toBeGreaterThanOrEqual(3);
+      expect(route.documentsAndBorder.length, `${route.slug} documents`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('writes every detail item as a full sentence', () => {
+    for (const route of PRIORITY_ROUTES) {
+      for (const item of detailOf(route)) {
+        expect(item.length, `${route.slug}: "${item}"`).toBeGreaterThan(40);
+        expect(item.endsWith('.'), `${route.slug}: "${item}"`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps each route mostly unique, so no page is a template with the name swapped', () => {
+    // Shared closing items (customs handling, travel documents) are fine; a
+    // route whose detail is mostly shared is a doorway page.
+    const occurrences = new Map<string, number>();
+    for (const route of PRIORITY_ROUTES) {
+      for (const item of detailOf(route)) {
+        occurrences.set(item, (occurrences.get(item) ?? 0) + 1);
+      }
+    }
+
+    for (const route of PRIORITY_ROUTES) {
+      const items = detailOf(route);
+      const unique = items.filter((item) => occurrences.get(item) === 1).length;
+      const ratio = unique / items.length;
+      expect(ratio, `${route.slug} is only ${Math.round(ratio * 100)}% unique`).toBeGreaterThan(0.5);
+    }
+  });
+
+  it('makes no operating-authority, price, or response-time claim', () => {
+    // D6 (state licences and marketed-base authority) is open, so these pages
+    // describe process and geography only.
+    const forbidden: { pattern: RegExp; why: string }[] = [
+      { pattern: /\b(licen[cs]ed|certificated|authorized) (to operate|in)\b/i, why: 'operating authority (D6)' },
+      { pattern: /\bwe (are|hold) .{0,30}\b(licence|license|certificate|permit)\b/i, why: 'operating authority (D6)' },
+      { pattern: /\$\s?\d/, why: 'price' },
+      { pattern: /\bwithin \d+ (minutes|hours)\b/i, why: 'response-time promise (D14)' },
+      { pattern: /\bguarantee[sd]?\b/i, why: 'guarantee' },
+      { pattern: /\bpartner(ed|ship)? with\b/i, why: 'unapproved partner relationship' },
+    ];
+
+    for (const route of PRIORITY_ROUTES) {
+      for (const item of detailOf(route)) {
+        for (const { pattern, why } of forbidden) {
+          expect(pattern.test(item), `${route.slug}: ${why} in "${item}"`).toBe(false);
+        }
+      }
+    }
+  });
+});
+
+/* ==========================================================================
    AEI handoff source scans (Section 16). These are the handoff's global
    sign-off checks, run as CI: the retired phrasings must have no matches in
    source, no registration or tail number may appear in src/, and the em dash

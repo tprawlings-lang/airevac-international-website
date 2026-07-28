@@ -92,7 +92,7 @@ export async function consume(
   const rule = RATE_LIMITS[name];
   const key = `${name}:${identifier}`;
 
-  // Amortised cleanup: sweep roughly once every 500 calls rather than on every
+  // Amortized cleanup: sweep roughly once every 500 calls rather than on every
   // request, so the hot path stays O(1).
   if (buckets.size > 0 && Math.floor(now / 1000) % 500 === 0) sweep(now);
 

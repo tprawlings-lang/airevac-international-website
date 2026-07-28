@@ -22,7 +22,7 @@ import { getNonce } from '@/lib/nonce';
  * NO OPERATING-AUTHORITY CLAIM APPEARS ON THESE PAGES. D6 (state licences and
  * marketed-base authority) is open, so coverage pages describe process,
  * logistics, and the factors that drive timing - never a claim to be licensed
- * or authorised in a particular jurisdiction.
+ * or authorized in a particular jurisdiction.
  *
  * Coverage content describes operational and clinical logistics, so Spanish is
  * gated on human review (D11).

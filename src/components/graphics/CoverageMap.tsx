@@ -155,7 +155,7 @@ export function CoverageMap({
          * scripts/generate-coastlines.mjs, using this exact projection, so the
          * coastlines sit under the airport markers rather than beside them.
          *
-         * Filled rather than outlined: a coordinator needs to recognise the Gulf
+         * Filled rather than outlined: a coordinator needs to recognize the Gulf
          * and the Yucatán at a glance, and outlines at this scale read as noise.
          * Low contrast keeps land as context and the routes as the subject.
          */}

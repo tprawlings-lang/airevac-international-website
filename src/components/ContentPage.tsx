@@ -139,7 +139,7 @@ export async function ContentPage({
 /**
  * Builds the localized metadata object for a content page.
  *
- * Centralised so that canonical URL and hreflang are consistent across every
+ * Centralized so that canonical URL and hreflang are consistent across every
  * page - section 19 requires both, and getting hreflang subtly wrong on a
  * bilingual site is a classic way to have the wrong language indexed.
  */

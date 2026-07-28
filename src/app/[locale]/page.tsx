@@ -159,7 +159,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     'centro de llamadas.'
                   : 'We work with hospitals, cruise and maritime teams, insurers, and families ' +
                     'moving a patient from Mexico, the Caribbean, and Central America. You ' +
-                    'speak directly to a flight coordinator, not a call centre.'}
+                    'speak directly to a flight coordinator, not a call center.'}
               </p>
 
               {/* Phone and email actions (handoff, homepage order item 2). */}

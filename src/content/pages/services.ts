@@ -180,7 +180,7 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Who this is for',
         paragraphs: [
-          'A traveller, expatriate, cruise passenger, or seasonal resident who became ill or ' +
+          'A traveler, expatriate, cruise passenger, or seasonal resident who became ill or ' +
             'was injured away from home and needs to return for continued treatment.',
           'Repatriation differs from an emergency transfer in one important way: there is ' +
             'usually time to do it properly. That time is best spent confirming the receiving ' +

@@ -89,7 +89,7 @@ export default async function RequestTransportPage({
   /*
    * `?role=hospital` pre-selects the referral path when arriving from a partner
    * page. It is validated against the allowlist and used only to set a radio
-   * default - an unrecognised value is discarded rather than reflected into the
+   * default - an unrecognized value is discarded rather than reflected into the
    * page, which is what makes this safe.
    *
    * Section 13 forbids "query-string patient data" on intake. A role is not

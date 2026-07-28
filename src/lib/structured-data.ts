@@ -106,7 +106,7 @@ export function breadcrumbJsonLd(
 }
 
 /**
- * Serialises JSON-LD for a `<script type="application/ld+json">` tag.
+ * Serializes JSON-LD for a `<script type="application/ld+json">` tag.
  *
  * `<` is escaped so a value containing `</script>` cannot break out of the
  * script element - the standard XSS vector for JSON embedded in HTML. Values

@@ -265,7 +265,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         heading: 'Acceptable use',
         items: [
           'Do not submit medical, insurance, identification, or payment information through this website. It is not a secure clinical channel.',
-          'Do not attempt to gain unauthorised access to any part of this site or its supporting systems.',
+          'Do not attempt to gain unauthorized access to any part of this site or its supporting systems.',
           'Do not use automated tools to submit requests, scrape content, or place load on the contact paths that urgent cases depend on.',
         ],
       },

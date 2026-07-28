@@ -68,6 +68,45 @@ Required handback for the **AirEvac Sample Site Coding Change Handoff, Revision
    method-preserving), the modern equivalent Next.js emits for
    `permanent: true`. Link equity treatment is identical.
 
+## Follow-up: coverage routes (2026-07-28)
+
+Two things happened after the handoff pass.
+
+**A packaging defect, fixed.** `.gitignore` carried a bare `coverage` entry for
+istanbul output. Git matches that at any depth, so it also matched
+`src/app/[locale]/coverage/`, and the four coverage route files were never
+committed. They compiled, rendered, and passed the route-integrity tests
+locally, because those read the working directory. The deployed site had no
+coverage routes at all: every region, country, and route link returned a hard
+404. The ignore rule is now anchored to the repository root, the files are
+committed, and `tests/repo-integrity.test.ts` asks git rather than the
+filesystem whether every route and source module is present.
+
+**Route pages deepened.** Each of the twelve priority routes now carries three
+authored, route-specific sections in addition to the existing context and
+airport blocks:
+
+- **Getting to the aircraft** — road distances and travel times from the areas
+  where patients are actually treated, island first-legs, ramp and handling
+  realities at the departure field.
+- **Hospitals, discharge, and the account** — local treatment patterns,
+  where tertiary capacity sits, and the account-settlement step that most often
+  sets the timeline.
+- **Documents and border paperwork** — travel documents, consular replacement
+  of a lost or hospital-held passport, ship-held document sets for cruise
+  cases, and the customs and permit work our coordinators handle.
+
+Rules enforced in `tests/content-governance.test.ts`: tendencies rather than
+commitments, no operating-authority claim in any jurisdiction (D6 is open), no
+price, no response time, no named partner or receiving-hospital relationship,
+and every route at least 50% textually unique so no page is a template with the
+name swapped in (current range 58% to 92%).
+
+**These route specifics are drafted from general regional knowledge and are not
+yet confirmed by AEI.** They are the kind of thing an operations lead can
+verify quickly, and they should be verified before launch. This is added to the
+approvals list below.
+
 ## Open production approvals
 
 - AEI operations approval for the conditional 90-minute response copy.
@@ -75,3 +114,7 @@ Required handback for the **AirEvac Sample Site Coding Change Handoff, Revision
 - AEI privacy approval for the email and fax handling statement.
 - AEI billing and legal decision on required patient and cost notices before launch.
 - AEI operations approval for the two Learjet 31A public fleet statement.
+- AEI operations confirmation of the per-route ground, hospital, and paperwork
+  detail on the twelve priority route pages (`PRIORITY_ROUTES` in
+  `src/content/navigation.ts`). Drafted from general regional knowledge, not
+  from AEI case data.

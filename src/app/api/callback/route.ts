@@ -89,7 +89,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   // --- 3. PHI tripwire -----------------------------------------------------
-  // Runs before schema validation so a clinical submission is recognised as a
+  // Runs before schema validation so a clinical submission is recognized as a
   // privacy event rather than a generic 400. The field NAMES are logged; the
   // values never are.
   const forbidden = detectForbiddenFields(body);

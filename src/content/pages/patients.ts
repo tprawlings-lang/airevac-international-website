@@ -70,7 +70,7 @@ export const PATIENT_PAGES: readonly PageContent[] = [
           'It means the transport starts at the patient’s bed in the sending hospital and ends ' +
             'at their bed in the receiving hospital. Ground ambulances at both ends are part of ' +
             'the transport, not something you arrange separately.',
-          'You should not be organising an ambulance in a country you do not live in, in a ' +
+          'You should not be organizing an ambulance in a country you do not live in, in a ' +
             'language you may not speak, while your relative is unwell. That is our job.',
         ],
       },

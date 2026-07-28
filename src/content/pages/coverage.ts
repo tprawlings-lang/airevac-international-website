@@ -39,7 +39,7 @@ export const REGION_CONTENT: readonly RegionContent[] = [
       'Medical transport from Mexico to the United States: common departure airports, ' +
       'receiving coordination, documentation, and the factors that drive timing.',
     intro:
-      'Mexico is our highest-volume origin. Most cases are resort-area hospitalisations and ' +
+      'Mexico is our highest-volume origin. Most cases are resort-area hospitalizations and ' +
       'cruise disembarkations returning to the United States or Canada.',
     blocks: [
       {
@@ -47,7 +47,7 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         heading: 'Route context',
         paragraphs: [
           'Most Mexican transports we coordinate originate in a resort region (the Yucatán ' +
-            'peninsula, Los Cabos, or Puerto Vallarta) where a visitor has been hospitalised ' +
+            'peninsula, Los Cabos, or Puerto Vallarta) where a visitor has been hospitalized ' +
             'and needs to return home for continued care.',
           'The clinical picture is usually clear by the time we are called. The variables that ' +
             'determine the timeline are documentation, the receiving bed, and the airport.',
@@ -170,7 +170,7 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         items: [
           'Overflight and landing permits, which have lead times that vary by country.',
           'Airport operating hours at smaller regional fields.',
-          'Whether the sending facility can stabilise the patient for the flight duration.',
+          'Whether the sending facility can stabilize the patient for the flight duration.',
           'Whether the route requires a fuel stop.',
           'Customs and immigration handling at departure.',
         ],
@@ -271,6 +271,29 @@ export function buildRouteBlocks(route: RouteMarket, regionName: string): Block[
       heading: 'Departure airports we use',
       items: route.airports,
     },
+
+    /*
+     * The three route-specific sets. These are what separate one route page
+     * from another: a template with the place name swapped in is exactly the
+     * thin page blueprint page 8 forbids. Each set is authored per route in
+     * PRIORITY_ROUTES and describes tendencies, never commitments.
+     */
+    {
+      type: 'list',
+      heading: 'Getting to the aircraft',
+      items: [...route.groundAndAirport],
+    },
+    {
+      type: 'list',
+      heading: 'Hospitals, discharge, and the account',
+      items: [...route.hospitalAndDischarge],
+    },
+    {
+      type: 'list',
+      heading: 'Documents and border paperwork',
+      items: [...route.documentsAndBorder],
+    },
+
     {
       type: 'list',
       heading: 'What we coordinate',
@@ -280,17 +303,6 @@ export function buildRouteBlocks(route: RouteMarket, regionName: string): Block[
         'Receiving facility coordination and bed confirmation before departure.',
         'Customs, immigration, and permit handling for the international segment.',
         'Ground ambulance from the arrival airport to the receiving hospital.',
-      ],
-    },
-    {
-      type: 'list',
-      heading: 'What affects timing on this route',
-      items: [
-        'Whether the receiving hospital has accepted the patient.',
-        'Airport operating hours and permit lead times at the departure field.',
-        'Discharge readiness at the sending facility, including any account settlement it requires.',
-        'The patient’s clinical stability for the flight duration.',
-        'Weather, which in this region is seasonal and can move a departure by hours.',
       ],
     },
     {
