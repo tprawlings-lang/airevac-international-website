@@ -10,12 +10,12 @@ import { LOCALES, localePath } from '@/lib/i18n';
  *    staging, search results, secure flows and portal pages."
  *
  * Generated from the same registries the pages render from, so a new page cannot
- * be published and silently omitted — the readiness matrix on page 22 records
+ * be published and silently omitted - the readiness matrix on page 22 records
  * SEO as Fail/High partly because of exactly that class of mismatch.
  *
  * EXCLUDED ON PURPOSE:
- *   /request-transport  — a secure flow, `noindex` in its own metadata.
- *   /api/*              — not content.
+ *   /request-transport  - a secure flow, `noindex` in its own metadata.
+ *   /api/*              - not content.
  *
  * `alternates.languages` gives each entry its hreflang pair, which section 3
  * requires for the bilingual content set.
@@ -89,6 +89,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const coveragePaths = [
     ...COVERAGE_REGIONS.map((region) => `/coverage/${region.slug}`),
+    // Other Destinations is a static coverage child (AEI handoff, Section 13).
+    '/coverage/other-destinations',
     ...PRIORITY_ROUTES.map((route) => `/coverage/${route.region}/${route.slug}`),
   ];
 

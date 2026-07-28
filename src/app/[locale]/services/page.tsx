@@ -27,8 +27,8 @@ export async function generateMetadata({
     title: locale === 'es' ? 'Servicios' : 'Services',
     description:
       locale === 'es'
-        ? 'Ambulancia aérea, repatriación médica, transporte de cuidados críticos y escolta médica comercial: qué cubre cada uno y a quién corresponde.'
-        : 'Air ambulance, medical repatriation, critical care transport, and commercial medical escort — what each covers and who it suits.',
+        ? 'Ambulancia aérea, repatriación médica y transporte de cuidados críticos: qué cubre cada uno y a quién corresponde.'
+        : 'Air ambulance, medical repatriation, and critical care transport: what each covers and who it suits.',
     alternates: {
       canonical: localePath(locale, '/services'),
       languages: {

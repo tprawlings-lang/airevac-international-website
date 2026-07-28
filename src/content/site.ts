@@ -14,7 +14,7 @@ export const SITE = {
    * you must opt into rather than the thing you get by forgetting a variable.
    *
    * A preview deploy that omits SITE_URL gets localhost here, which makes
-   * `IS_PRODUCTION` false in robots.ts — so it serves a disallow-all robots.txt
+   * `IS_PRODUCTION` false in robots.ts - so it serves a disallow-all robots.txt
    * and `noindex`, instead of advertising itself with production canonicals.
    */
   url: process.env.SITE_URL ?? 'http://localhost:3000',
@@ -23,17 +23,31 @@ export const SITE = {
    * The primary conversion. Blueprint page 7: "Primary: Call a Flight
    * Coordinator 24/7 at 619-754-6755." Confirmed against the FXE directory [S4].
    *
-   * This number must remain reachable when every other component fails — see
+   * This number must remain reachable when every other component fails - see
    * `PhoneFallback` and the graceful-degradation rule on page 20.
    */
   phone: {
-    display: '619-754-6755',
+    display: '(619) 754-6755',
     /** E.164, for `tel:` links. */
     href: 'tel:+16197546755',
   },
 
+  /**
+   * Operations email and fax, per the AEI change handoff (G-05, G-06):
+   * coordination is presented as available 24/7 by phone and email, and
+   * clinical documents are directed to email or fax. The handoff cross-checks
+   * the fax number against AirEvac's current public materials [R1] [R2].
+   */
+  email: {
+    display: 'ops@aeiamericas.com',
+    href: 'mailto:ops@aeiamericas.com',
+  },
+  fax: {
+    display: '(619) 330-4551',
+  },
+
   base: {
-    name: 'Fort Lauderdale Executive Airport (FXE)',
+    name: 'Fort Lauderdale Executive Airport (KFXE)',
     street: '2525 NW 55th Court, Hangar 24',
     locality: 'Fort Lauderdale',
     region: 'FL',

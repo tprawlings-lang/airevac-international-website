@@ -21,13 +21,13 @@ import { safeLog } from '@/lib/redact';
  *
  * Writing a coordinator's name and callback number into an unapproved store
  * would create exactly the "Sensitive PII" record that section 9 says must live
- * in an encrypted, minimized, retention-bounded system — before that system has
+ * in an encrypted, minimized, retention-bounded system - before that system has
  * been chosen. So the current implementation mints an inquiry ID, records the
  * idempotency key, and logs a non-identifying acceptance event.
  *
  * WHAT THIS MEANS OPERATIONALLY TODAY: the phone line is the delivery mechanism.
  * The form is not connected to a coordinator queue and must not be presented as
- * if it were until D7/D8/D9 close. The UI reflects this — the confirmation
+ * if it were until D7/D8/D9 close. The UI reflects this - the confirmation
  * screen tells the visitor to call if the case is time-critical.
  *
  * When the vendor is chosen, replace `recordInquiry`'s body with the adapter
@@ -38,7 +38,7 @@ import { safeLog } from '@/lib/redact';
 export interface InquiryResult {
   /** Reference the coordinator and the visitor can both quote. */
   inquiryId: string;
-  /** True when this key was already accepted — no second case was created. */
+  /** True when this key was already accepted - no second case was created. */
   duplicate: boolean;
 }
 
@@ -58,7 +58,7 @@ interface SeenKey {
 }
 
 /**
- * In-memory only, and deliberately so — see the scope boundary above. This must
+ * In-memory only, and deliberately so - see the scope boundary above. This must
  * become the approved store's own idempotency mechanism before launch; a
  * single-instance map does not survive a restart or span replicas, which is a
  * launch blocker tracked in docs/readiness-matrix.md.
@@ -111,7 +111,7 @@ export async function recordInquiry(
 
   // Section 14 (Circuit breaker / fallback): staff must be able to see that an
   // inquiry arrived even when no downstream system is connected. This is the
-  // alert seam — wire it to the on-call channel when D8 closes.
+  // alert seam - wire it to the on-call channel when D8 closes.
   safeLog('info', 'inquiry.accepted_pending_delivery', {
     inquiryId,
     role: intake.role,

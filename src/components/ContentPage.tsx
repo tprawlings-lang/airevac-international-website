@@ -14,19 +14,19 @@ import { getNonce } from '@/lib/nonce';
  * Standard content page template.
  *
  * Every template in blueprint section 5 ends with "Contact", so `ContactBlock`
- * is appended here rather than left to each page — a content page with no way to
+ * is appended here rather than left to each page - a content page with no way to
  * reach a coordinator is a dead end, and the conversion hierarchy on page 7
  * applies to every page, not just the homepage.
  *
  * This component also enforces the two content-governance rules:
- *   1. The Spanish gate (`canRenderLocale`) — page 24.
- *   2. The reviewer byline — section 19 requires "Named authors and qualified
+ *   1. The Spanish gate (`canRenderLocale`) - page 24.
+ *   2. The reviewer byline - section 19 requires "Named authors and qualified
  *      reviewers for medical, billing, insurance, and patient-rights content"
  *      with a visible review date and correction path.
  */
 /**
  * Lead image per content page. Only pages where a photograph genuinely adds
- * something appear here — a privacy notice does not want an aircraft above it.
+ * something appear here - a privacy notice does not want an aircraft above it.
  */
 const LEAD_IMAGES: Record<string, 'aircraftRampFront' | 'aircraftHangar' | 'aircraftEngineDetail'> = {
   '/about': 'aircraftRampFront',
@@ -140,7 +140,7 @@ export async function ContentPage({
  * Builds the localized metadata object for a content page.
  *
  * Centralised so that canonical URL and hreflang are consistent across every
- * page — section 19 requires both, and getting hreflang subtly wrong on a
+ * page - section 19 requires both, and getting hreflang subtly wrong on a
  * bilingual site is a classic way to have the wrong language indexed.
  */
 export function contentPageMetadata(page: PageContent, locale: Locale) {

@@ -8,7 +8,7 @@ import { localePath, type Locale } from '@/lib/i18n';
  * The bar is `position: fixed`, and `body` reserves exactly
  * `--mobile-call-bar-height` of bottom padding for it (see globals.css). That
  * pairing is what satisfies "does not cover content" and WCAG 2.2 SC 2.4.11
- * (Focus Not Obscured) — without the reserved padding, the last focusable
+ * (Focus Not Obscured) - without the reserved padding, the last focusable
  * element on a page would sit underneath this bar.
  *
  * Hidden at `md` and above, where the persistent header already carries the

@@ -1,19 +1,25 @@
 import type { PageContent } from '@/content/blocks';
 
 /**
- * Service pages. Blueprint page 11 fixes the required block order:
+ * Service pages.
  *
- *   "Who it is for | What is included | Medical review | Aircraft and equipment |
- *    Process | Limits | FAQ | Contact"
+ * Updated per the AEI Sample Site Coding Change Handoff (2026-07-27):
+ *  - S-01/G-04: fleet described as two Learjet 31A aircraft, no registrations.
+ *  - S-02: the old process heading is renamed "Next Steps".
+ *  - S-03/G-08: records move by email or fax, never a protected channel or
+ *    public upload.
+ *  - S-04: "our coordinators" wherever the copy refers to AEI staff.
+ *  - S-05: receiving bed acceptance callout, exact handoff copy.
+ *  - S-06: the commercial-alternative sentence is deleted, not replaced.
+ *  - Section 07: the response-time FAQ uses the conditional 90-minute copy and
+ *    the bed-acceptance FAQ is added. Both carry a production approval gate
+ *    (see docs/handoff-completion-report.md).
+ *  - The escort service page is removed entirely; its route redirects to
+ *    /services (Section 10).
  *
- * The "Limits" block is the one most sites omit and the one this blueprint makes
- * mandatory. Section 12 (FTC Act) requires "No misleading privacy, insurance,
- * price, medical, safety, availability, review, or accreditation claims" — the
- * most common misleading claim in this industry is silence about what a service
- * cannot do.
- *
- * All service pages are `contentClass: 'medical'`, so Spanish is gated on human
- * review (D11).
+ * The blueprint's original rule against publishing response times (D14) is
+ * overridden by this handoff for the conditional 90-minute copy; the conflict
+ * is recorded in the completion report.
  */
 
 export const SERVICE_PAGES: readonly PageContent[] = [
@@ -25,7 +31,7 @@ export const SERVICE_PAGES: readonly PageContent[] = [
       'Central America, coordinated directly with your receiving facility.',
     intro:
       'A dedicated aircraft configured for patient transport, with a medical crew, flown ' +
-      'bedside to bedside between the sending and receiving facilities.',
+      'bed-to-bed between the sending and receiving facilities.',
     contentClass: 'medical',
     reviewer: null,
     reviewedOn: null,
@@ -47,12 +53,12 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         type: 'list',
         heading: 'What is included',
         items: [
-          'A dedicated aircraft for your patient — the flight is not shared and is not routed around other cases.',
+          'A dedicated aircraft for your patient. The flight is not shared and is not routed around other cases.',
           'A medical crew configured to the patient’s accepted level of care.',
-          'Ground ambulance coordination at both ends, so the transport is bedside to bedside rather than airport to airport.',
+          'Ground ambulance coordination at both ends, so the transport is bed-to-bed rather than airport to airport.',
           'Coordination with the sending physician and the receiving facility, including bed confirmation before departure.',
           'Flight planning, permits, customs and immigration handling for international segments.',
-          'A named flight coordinator who stays with the case and gives you status updates.',
+          'Our coordinators stay with the case and give you status updates.',
         ],
       },
       {
@@ -72,23 +78,31 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Aircraft and equipment',
         paragraphs: [
-          'The current working fleet includes Learjet 31A aircraft N322PR and N669MD, both ' +
-            'listed on our EURAMI provider record. Aircraft registration details and ' +
-            'verification links are on the fleet page.',
+          'The current working fleet is two Learjet 31A aircraft. Details about the fleet ' +
+            'and the flight medical team are on the fleet pages.',
         ],
       },
       {
         type: 'list',
-        heading: 'How the process runs',
+        heading: 'Next Steps',
         ordered: true,
         items: [
-          'You call a flight coordinator, or request a callback with the route and timing only.',
+          'Call (619) 754-6755 or email ops@aeiamericas.com. Our coordinators are available 24/7 by phone and email.',
           'We confirm the logistics: where the patient is, where they need to go, and by when.',
-          'A coordinator opens a protected channel for patient details, records, and insurance documents. This never happens through a public form on this site.',
+          'Our coordinators will identify the records needed for review. Email them to ops@aeiamericas.com or fax them to (619) 330-4551.',
           'Medical, flight, receiving-facility, and financial review run in parallel.',
           'We confirm the transport plan, the crew, the aircraft, and the timeline with you.',
-          'The transport runs, and your coordinator updates you through it.',
+          'The transport runs, and our coordinators update you through it.',
         ],
+      },
+      {
+        type: 'callout',
+        tone: 'info',
+        heading: 'Receiving Bed Acceptance Is Required',
+        body:
+          'Every patient must have confirmed bed acceptance at the receiving location before ' +
+          'transport. If acceptance has not been completed, AEI can send the case information ' +
+          'and coordinate with the receiving facility to help complete the process.',
       },
       {
         type: 'callout',
@@ -105,9 +119,8 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         heading: 'Limits',
         items: [
           'We are not a local emergency response service. For an immediate emergency where the patient is, call local emergency services first.',
-          'We do not guarantee insurance payment. Coverage is decided by the insurer.',
+          'We cannot guarantee insurance payment. Coverage is decided by the insurer.',
           'Transport feasibility depends on the patient’s condition, weather, airport hours and permits, aircraft availability, and the receiving facility accepting the patient.',
-          'Some patients are better served by a commercial medical escort than by a dedicated air ambulance. We will say so when that is the case.',
         ],
       },
       {
@@ -115,20 +128,27 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         heading: 'Common questions',
         items: [
           {
-            question: 'How quickly can a transport happen?',
+            question: 'How quickly can AEI respond?',
             answer:
-              'It depends on the patient’s condition, the receiving facility accepting them, ' +
-              'permits and airport hours at both ends, and weather. Your coordinator will give ' +
-              'you a realistic window once the route is known, and will tell you what is ' +
-              'driving it. We do not publish a standard response time, because a number that ' +
-              'is not true for your route is worse than no number.',
+              'AEI’s standard response time is 90 minutes once we have all required ' +
+              'information, required payment or financial clearance, confirmed receiving bed ' +
+              'acceptance, and an available aircraft. Weather, permits, airport access, and ' +
+              'medical review may affect timing. Call (619) 754-6755 or email ' +
+              'ops@aeiamericas.com.',
+          },
+          {
+            question: 'Does the patient need bed acceptance?',
+            answer:
+              'Yes. Every patient must have confirmed bed acceptance at the receiving ' +
+              'location before transport. If it has not been completed, AEI can send the case ' +
+              'information and coordinate with the receiving facility to help complete it.',
           },
           {
             question: 'Can a family member fly with the patient?',
             answer:
               'Usually one companion can travel, subject to the aircraft configuration, weight ' +
-              'and balance, and the medical crew’s assessment. Confirm it with your coordinator ' +
-              'early, because it affects planning.',
+              'and balance, and the medical crew’s assessment. Confirm it with our ' +
+              'coordinators early, because it affects planning.',
           },
           {
             question: 'Who decides which hospital the patient goes to?',
@@ -164,14 +184,14 @@ export const SERVICE_PAGES: readonly PageContent[] = [
             'was injured away from home and needs to return for continued treatment.',
           'Repatriation differs from an emergency transfer in one important way: there is ' +
             'usually time to do it properly. That time is best spent confirming the receiving ' +
-            'bed, aligning the insurer, and assembling records — not waiting.',
+            'bed, aligning the insurer, and assembling records, not waiting.',
         ],
       },
       {
         type: 'list',
         heading: 'What is included',
         items: [
-          'Assessment of whether a dedicated air ambulance or a commercial medical escort fits the patient’s condition and the route.',
+          'Assessment of the transport plan that fits the patient’s condition and the route.',
           'Coordination with the sending facility for records, current status, and discharge planning.',
           'Receiving hospital coordination and bed confirmation before departure.',
           'Documentation support for insurers and assistance companies.',
@@ -193,29 +213,29 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Aircraft and equipment',
         paragraphs: [
-          'The current working fleet includes Learjet 31A aircraft N322PR and N669MD. Longer ' +
-            'routes may require a technical stop for fuel; your coordinator will tell you if ' +
-            'your route does, and what it adds to the timeline.',
+          'The current working fleet is two Learjet 31A aircraft. Longer routes may require ' +
+            'a technical stop for fuel; our coordinators will tell you if your route does, ' +
+            'and what it adds to the timeline.',
         ],
       },
       {
         type: 'list',
-        heading: 'How the process runs',
+        heading: 'Next Steps',
         ordered: true,
         items: [
-          'Call or request a callback with the patient’s current city and the destination city.',
+          'Call (619) 754-6755 or email ops@aeiamericas.com with the patient’s current city and the destination city.',
           'We confirm the route, the timing you need, and who is coordinating on your side.',
-          'A coordinator opens a protected channel for records, insurance, and consent.',
-          'Medical and operational review determines the right transport type and configuration.',
+          'Our coordinators will identify the records needed for review. Email them to ops@aeiamericas.com or fax them to (619) 330-4551.',
+          'Medical and operational review determines the right transport configuration.',
           'We confirm the receiving bed, the plan, and the cost basis before the transport is scheduled.',
-          'The transport runs bedside to bedside.',
+          'The transport runs bed-to-bed.',
         ],
       },
       {
         type: 'list',
         heading: 'Limits',
         items: [
-          'A receiving facility must accept the patient before a repatriation can be confirmed. We help coordinate this, but we cannot compel a hospital to accept.',
+          'A receiving facility must accept the patient before a repatriation can be confirmed. AEI can send the case information and coordinate with the receiving facility to help complete the process.',
           'Travel insurance and health plans differ on repatriation benefits. We support the claim; we do not decide it.',
           'Some destinations have limited airport hours, permit lead times, or seasonal constraints that affect scheduling.',
         ],
@@ -228,17 +248,16 @@ export const SERVICE_PAGES: readonly PageContent[] = [
             question: 'Is repatriation covered by travel insurance?',
             answer:
               'Sometimes, and it depends entirely on the policy. Many travel policies include ' +
-              'medical repatriation; many domestic health plans do not cover transport ' +
-              'originating abroad. Our team works the authorization with your insurer and will ' +
-              'tell you plainly what the policy says. We do not promise coverage.',
+              'medical repatriation; many domestic plans do not cover transport originating ' +
+              'abroad. Our team works with your insurer and will tell you plainly what the ' +
+              'policy says. We cannot guarantee coverage.',
           },
           {
             question: 'What is the difference between repatriation and an air ambulance transport?',
             answer:
-              'Air ambulance describes the transport type — a dedicated, medically configured ' +
-              'aircraft. Repatriation describes the purpose — returning a patient home. A ' +
-              'repatriation may be flown as an air ambulance or, for a stable patient, as a ' +
-              'commercial medical escort.',
+              'Air ambulance describes the transport type: a dedicated, medically configured ' +
+              'aircraft. Repatriation describes the purpose: returning a patient home for ' +
+              'continued care.',
           },
         ],
       },
@@ -250,7 +269,7 @@ export const SERVICE_PAGES: readonly PageContent[] = [
     title: 'Critical Care Transport',
     description:
       'Transport for critically ill and injured patients, with a critical care crew and ' +
-      'in-flight monitoring, under our EURAMI Critical Care Transports endorsement.',
+      'in-flight monitoring, coordinated bed-to-bed.',
     intro:
       'Transport for patients who need critical care continued in the air, not interrupted ' +
       'by it.',
@@ -263,22 +282,12 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Who this is for',
         paragraphs: [
-          'Patients under intensive care who need to move between facilities — including ' +
+          'Patients under intensive care who need to move between facilities, including ' +
             'ventilated patients, patients on multiple infusions, and patients requiring ' +
-            'continuous haemodynamic monitoring — where the sending facility cannot provide ' +
+            'continuous haemodynamic monitoring, where the sending facility cannot provide ' +
             'the definitive care needed.',
           'These cases almost always come from an ICU physician or a hospital case manager, ' +
             'and they are the cases where early coordination matters most.',
-        ],
-      },
-      {
-        type: 'prose',
-        heading: 'Accreditation scope',
-        paragraphs: [
-          'AirEvac International USA holds EURAMI accreditation as a Regional Fixed Wing Air ' +
-            'Ambulance with a Critical Care Transports endorsement. The exact scope, holder, ' +
-            'expiry date, and a link to EURAMI’s own record are published on our credentials ' +
-            'page so you can verify it independently.',
         ],
       },
       {
@@ -288,7 +297,7 @@ export const SERVICE_PAGES: readonly PageContent[] = [
           'Critical care cases receive a physician-level review before acceptance. That review ' +
             'covers current haemodynamic and respiratory status, ventilator and infusion ' +
             'requirements, altitude physiology, the equipment and drugs required in flight, ' +
-            'and the handover plan at both ends.',
+            'and the plan at both ends.',
           'The review is a clinical decision made by our medical team in consultation with ' +
             'the sending physician. It is not made by this website, and no part of this site ' +
             'assesses a patient or determines fitness to fly.',
@@ -298,116 +307,19 @@ export const SERVICE_PAGES: readonly PageContent[] = [
         type: 'list',
         heading: 'What coordination looks like',
         items: [
-          'Direct physician-to-physician contact between the sending facility and our medical team where the case warrants it.',
-          'Confirmation of the receiving ICU bed and accepting physician before departure.',
-          'A documented handover at both ends, so nothing is lost between teams.',
+          'Bed-to-bed coordination between the sending and receiving facilities, with our medical team engaged where the case warrants it.',
+          'Confirmation of the receiving bed and accepting physician before departure.',
+          'A case report at both ends, so nothing is lost between teams.',
           'Continuous monitoring appropriate to the patient’s accepted level of care throughout the transport.',
         ],
       },
       {
-        type: 'callout',
-        tone: 'warning',
-        heading: 'Send clinical information through the protected channel',
-        body:
-          'Do not send patient records, imaging, or clinical detail through this website’s ' +
-          'forms or by ordinary email. Call a coordinator and we will open a protected ' +
-          'channel for the clinical handoff.',
-      },
-      {
         type: 'list',
         heading: 'Limits',
         items: [
-          'Not every critically ill patient is transportable. If the medical review concludes that moving the patient carries more risk than benefit, we will say so.',
-          'Some equipment and therapies cannot be supported in flight. The medical review establishes what can.',
+          'Every case requires medical and operational review before transport can be confirmed.',
+          'Confirmed bed acceptance at the receiving location is required before departure.',
           'We do not accept a critical care transport without an accepting physician and a confirmed bed at the receiving facility.',
-        ],
-      },
-    ],
-  },
-
-  {
-    path: '/services/commercial-medical-escort',
-    title: 'Commercial Medical Escort',
-    description:
-      'A medical escort accompanying a stable patient on a scheduled commercial flight, ' +
-      'when a dedicated air ambulance is not clinically necessary.',
-    intro:
-      'For a stable patient who can travel on a scheduled airline with a medical professional ' +
-      'alongside them.',
-    contentClass: 'medical',
-    reviewer: null,
-    reviewedOn: null,
-    esReviewedOn: null,
-    blocks: [
-      {
-        type: 'callout',
-        tone: 'info',
-        heading: 'Service availability is being confirmed',
-        body:
-          'This page describes how a commercial medical escort works. Confirm current ' +
-          'availability with a flight coordinator before planning around it.',
-      },
-      {
-        type: 'prose',
-        heading: 'Who this is for',
-        paragraphs: [
-          'A patient who is medically stable, does not need continuous monitoring or in-flight ' +
-            'intervention, and can be safely accommodated in an airline cabin — but who should ' +
-            'not travel alone.',
-          'A commercial escort is often the right answer for a patient recovering after a ' +
-            'stabilised event, returning home over a long route where a dedicated aircraft ' +
-            'would require multiple fuel stops.',
-        ],
-      },
-      {
-        type: 'definitions',
-        heading: 'How it differs from an air ambulance',
-        items: [
-          {
-            term: 'Clinical threshold',
-            detail:
-              'An escort suits stable patients. A patient needing continuous monitoring, ' +
-              'ventilation, or in-flight intervention needs a dedicated air ambulance.',
-          },
-          {
-            term: 'Schedule',
-            detail:
-              'An escort runs on the airline’s schedule, not yours. An air ambulance departs ' +
-              'when the patient and crew are ready.',
-          },
-          {
-            term: 'Route',
-            detail:
-              'An escort can use long-haul routes without technical stops, which sometimes ' +
-              'makes it faster overall on very long distances.',
-          },
-          {
-            term: 'Cost',
-            detail:
-              'An escort generally costs substantially less than a dedicated aircraft. Your ' +
-              'coordinator will explain the cost basis for both once the route and the ' +
-              'patient’s status are known.',
-          },
-        ],
-      },
-      {
-        type: 'list',
-        heading: 'What is included',
-        items: [
-          'Assessment of whether the patient is suitable for commercial travel.',
-          'Airline medical clearance coordination, which most carriers require in advance.',
-          'A medical escort travelling with the patient for the full journey.',
-          'Ground transfers and airport assistance at both ends.',
-          'Seating, oxygen, and equipment arrangements with the carrier where applicable.',
-        ],
-      },
-      {
-        type: 'list',
-        heading: 'Limits',
-        items: [
-          'The airline decides whether to carry the patient. Medical clearance is the carrier’s decision, and it takes lead time.',
-          'A patient whose condition changes before departure may no longer be suitable for commercial travel.',
-          'Oxygen, stretcher, and equipment provisions vary considerably between carriers and routes.',
         ],
       },
     ],

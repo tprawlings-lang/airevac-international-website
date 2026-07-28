@@ -9,7 +9,7 @@
  *    review."
  *
  * Every image on this site is registered here with its provenance and its
- * publication status, and `publishableMedia()` gates rendering — the same
+ * publication status, and `publishableMedia()` gates rendering - the same
  * contract the credential register applies to claims. An image is a claim: a
  * photograph of a crew loading an isolation pod asserts an isolation transport
  * capability just as surely as a sentence would.
@@ -25,9 +25,9 @@
  * confirm for each image: who took it, whether AirEvac owns or licenses it, and
  * whether the identifiable crew have consented to continued commercial use.
  * That is what `permissionId` records. Until then `status` stays
- * `inherited-from-live-site`, which publishes — because the image is already
+ * `inherited-from-live-site`, which publishes - because the image is already
  * public on AirEvac's own site, so republishing it changes nothing about its
- * exposure — but keeps the outstanding question visible and tracked.
+ * exposure - but keeps the outstanding question visible and tracked.
  */
 
 export type MediaStatus =
@@ -71,7 +71,7 @@ export const MEDIA: Record<string, MediaAsset> = {
     width: 760,
     height: 228,
     // The logo is the company's own mark; the alt is the company name because
-    // that is what it communicates. No "logo" — a screen reader already says
+    // that is what it communicates. No "logo" - a screen reader already says
     // "image".
     alt: 'AirEvac International',
     provenance: 'airevacinternational.com media library (2021/01/AirEvac_WHITE.png)',
@@ -91,7 +91,7 @@ export const MEDIA: Record<string, MediaAsset> = {
     status: 'inherited-from-live-site',
     note:
       'No registration is legible in this frame, so it is used as general fleet ' +
-      'imagery and is NOT attributed to N322PR or N669MD. Calm rather than ' +
+      'imagery and is not attributed to a specific airframe. Calm rather than ' +
       'dramatic, which is what page 10 asks for.',
   },
 
@@ -147,7 +147,7 @@ export const MEDIA: Record<string, MediaAsset> = {
     permissionId: null,
     status: 'hold',
     note:
-      'BLOCKER — two separate approvals needed, either of which is disqualifying ' +
+      'BLOCKER: two separate approvals needed, either of which is disqualifying ' +
       'on its own.\n' +
       '(1) CLINICAL: the image asserts an isolation transport capability. Page 6 ' +
       '    requires "isolation ... claims approved by the responsible clinical ' +
@@ -156,7 +156,7 @@ export const MEDIA: Record<string, MediaAsset> = {
       '(2) PRIVACY: the isolation unit appears to contain a person. If that is a ' +
       '    real patient rather than a drill or a mannequin, page 10 requires ' +
       '    approved authorization before publication, and none is on file.\n' +
-      'It is currently live on airevacinternational.com. That is not a clearance — ' +
+      'It is currently live on airevacinternational.com. That is not a clearance; ' +
       'it may be an existing exposure that should be reviewed there too.',
   },
 };

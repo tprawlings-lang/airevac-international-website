@@ -3,7 +3,7 @@ import type { Locale } from '@/lib/i18n';
 /**
  * UI chrome strings.
  *
- * SCOPE LIMIT — blueprint page 24, "Do not build":
+ * SCOPE LIMIT - blueprint page 24, "Do not build":
  *   "Unreviewed automatic Spanish translation for medical, legal, insurance, or
  *    emergency content."
  *
@@ -27,9 +27,8 @@ export interface Dictionary {
     skipToContent: string;
     callCoordinator: string;
     call24_7: string;
-    secureChat: string;
-    secureChatUnavailable: string;
     requestCallback: string;
+    emailCoordinator: string;
     requestTransport: string;
     startReferral: string;
     languageSwitch: string;
@@ -126,13 +125,8 @@ export interface Dictionary {
   };
 
   fleet: {
-    tailNumber: string;
-    model: string;
-    status: string;
-    registeredOwner: string;
-    registrationExpires: string;
-    configurationPending: string;
-    photoPending: string;
+    /** The approved public fleet statement: model and quantity only (G-04). */
+    statement: string;
   };
 
   translation: {
@@ -148,10 +142,9 @@ const en: Dictionary = {
   common: {
     skipToContent: 'Skip to main content',
     callCoordinator: 'Call a Flight Coordinator',
-    call24_7: 'Flight coordinators, 24/7',
-    secureChat: 'Start Secure Chat',
-    secureChatUnavailable: 'Secure chat is not yet available. Call or request a callback.',
+    call24_7: '24/7 Flight Coordination by Phone and Email',
     requestCallback: 'Request a Callback',
+    emailCoordinator: 'Email a Flight Coordinator',
     requestTransport: 'Request Transport',
     startReferral: 'Start a Referral',
     languageSwitch: 'Language',
@@ -201,13 +194,14 @@ const en: Dictionary = {
   intake: {
     heading: 'Request a Callback',
     intro:
-      'Share only the logistics below. A flight coordinator will call you, and any ' +
-      'clinical or insurance details are collected afterwards through a protected channel.',
+      'Share only the logistics below. A flight coordinator will call you. Our ' +
+      'coordinators will identify any records needed and you can send them by email ' +
+      'or fax.',
     phiWarningTitle: 'Do not enter protected information on this form',
     phiWarning:
       'Do not enter medical, insurance, identification, or payment information here. ' +
-      'This form is not a secure clinical channel. A coordinator will open a protected ' +
-      'channel for patient details, records, and insurance documents.',
+      'Our coordinators will identify the records needed for review. Email them to ' +
+      'ops@aeiamericas.com or fax them to (619) 330-4551.',
     contactName: 'Your name',
     organization: 'Organization or facility',
     role: 'You are contacting us as',
@@ -264,13 +258,7 @@ const en: Dictionary = {
   },
 
   fleet: {
-    tailNumber: 'Registration',
-    model: 'Model',
-    status: 'Status',
-    registeredOwner: 'Registered owner',
-    registrationExpires: 'Registration valid through',
-    configurationPending: 'Medical configuration details are under clinical review.',
-    photoPending: 'Photography pending permission clearance.',
+    statement: 'The current working fleet is two Learjet 31A aircraft.',
   },
 
   translation: {
@@ -284,7 +272,7 @@ const en: Dictionary = {
 };
 
 /**
- * DRAFT — pending D11 sign-off. Chrome only; no medical, legal, insurance, or
+ * DRAFT - pending D11 sign-off. Chrome only; no medical, legal, insurance, or
  * emergency body copy is translated here.
  *
  * The emergency notice IS translated because withholding an emergency
@@ -298,11 +286,9 @@ const es: Dictionary = {
   common: {
     skipToContent: 'Saltar al contenido principal',
     callCoordinator: 'Llame a un coordinador de vuelo',
-    call24_7: 'Coordinadores de vuelo, 24/7',
-    secureChat: 'Iniciar chat seguro',
-    secureChatUnavailable:
-      'El chat seguro aún no está disponible. Llame o solicite que lo contactemos.',
+    call24_7: 'Coordinación de vuelos 24/7 por teléfono y correo electrónico',
     requestCallback: 'Solicitar una llamada',
+    emailCoordinator: 'Escribir a un coordinador de vuelo',
     requestTransport: 'Solicitar transporte',
     startReferral: 'Iniciar una remisión',
     languageSwitch: 'Idioma',
@@ -354,12 +340,13 @@ const es: Dictionary = {
     heading: 'Solicitar una llamada',
     intro:
       'Comparta únicamente la información logística indicada. Un coordinador de vuelo lo ' +
-      'llamará, y los datos clínicos o de seguro se recopilan después por un canal protegido.',
+      'llamará. Nuestros coordinadores le indicarán qué expedientes se necesitan y usted ' +
+      'puede enviarlos por correo electrónico o fax.',
     phiWarningTitle: 'No ingrese información protegida en este formulario',
     phiWarning:
-      'No ingrese información médica, de seguro, de identificación ni de pago aquí. Este ' +
-      'formulario no es un canal clínico seguro. Un coordinador abrirá un canal protegido ' +
-      'para los datos del paciente, los expedientes y los documentos del seguro.',
+      'No ingrese información médica, de seguro, de identificación ni de pago aquí. ' +
+      'Nuestros coordinadores le indicarán qué expedientes se necesitan. Envíelos por ' +
+      'correo a ops@aeiamericas.com o por fax al (619) 330-4551.',
     contactName: 'Su nombre',
     organization: 'Organización o centro',
     role: 'Nos contacta como',
@@ -419,13 +406,7 @@ const es: Dictionary = {
   },
 
   fleet: {
-    tailNumber: 'Matrícula',
-    model: 'Modelo',
-    status: 'Estado',
-    registeredOwner: 'Propietario registrado',
-    registrationExpires: 'Matrícula vigente hasta',
-    configurationPending: 'Los detalles de configuración médica están en revisión clínica.',
-    photoPending: 'Fotografía pendiente de autorización.',
+    statement: 'La flota de trabajo actual consta de dos aeronaves Learjet 31A.',
   },
 
   translation: {

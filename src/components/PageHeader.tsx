@@ -19,7 +19,7 @@ export function PageHeader({
   locale: Locale;
   title: string;
   intro?: string;
-  /** Ancestors only — the current page is appended automatically. */
+  /** Ancestors only - the current page is appended automatically. */
   breadcrumbs?: { name: string; path: string }[];
   tone?: 'navy' | 'paper';
 }) {

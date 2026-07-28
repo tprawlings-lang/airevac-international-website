@@ -62,7 +62,9 @@ await page.waitForTimeout(150);
 check('clicking outside closes the menu', (await openCount()) === 0);
 
 // --- 5. Hover opens, moving away closes ----------------------------------
-await trigger('For Partners').hover();
+// "For Partners" became a direct link in the AEI handoff (no dropdown), so
+// hover behaviour is exercised on a group that still has children.
+await trigger('Patients and Families').hover();
 await page.waitForTimeout(300);
 check('hover opens the menu', (await openCount()) === 1);
 

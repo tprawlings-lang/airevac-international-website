@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 
 import { EmergencyNotice } from '@/components/EmergencyNotice';
 import { PageHeader } from '@/components/PageHeader';
-import { SecureChatButton } from '@/components/SecureChatButton';
 import { Container, Section } from '@/components/ui/Container';
 import { CtaLink, PhoneCta } from '@/components/ui/Cta';
 import { getDictionary } from '@/content/dictionary';
@@ -18,7 +17,7 @@ import { getNonce } from '@/lib/nonce';
  * referral, with the emergency notice always present.
  *
  * The address is the Fort Lauderdale one confirmed by the airport directory
- * [S4] — not the Scottsdale address that appears in the legacy WordPress privacy
+ * [S4] - not the Scottsdale address that appears in the legacy WordPress privacy
  * policy [S11]. Correcting that mismatch is part of closing the privacy finding
  * on page 18.
  */
@@ -95,7 +94,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
               <ol className="mt-6 space-y-6">
                 <li>
                   <h3 className="text-lg font-bold text-navy-900">
-                    {locale === 'es' ? '1. Llame — lo más rápido' : '1. Call — fastest'}
+                    {locale === 'es' ? '1. Llame: lo más rápido' : '1. Call: fastest'}
                   </h3>
                   <p className="mt-1 text-sm text-ink-700">
                     {locale === 'es'
@@ -107,14 +106,16 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
 
                 <li>
                   <h3 className="text-lg font-bold text-navy-900">
-                    {locale === 'es' ? '2. Chat seguro' : '2. Secure chat'}
+                    {locale === 'es' ? '2. Escriba por correo' : '2. Email'}
                   </h3>
                   <p className="mt-1 text-sm text-ink-700">
                     {locale === 'es'
-                      ? 'Con un coordinador de vuelo. No es una herramienta médica automatizada.'
-                      : 'With a flight coordinator. Not an automated medical tool.'}
+                      ? 'Nuestros coordinadores responden el correo las 24 horas.'
+                      : 'Our coordinators are available 24/7 by email as well as phone.'}
                   </p>
-                  <SecureChatButton locale={locale} className="mt-3" />
+                  <CtaLink href={SITE.email.href} variant="secondary" className="mt-3">
+                    {SITE.email.display}
+                  </CtaLink>
                 </li>
 
                 <li>
@@ -179,20 +180,25 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                 </a>
               </address>
 
-              <div className="mt-6 rounded-panel border-l-4 border-urgent-600 bg-urgent-50 p-5">
+              {/* Clinical document contact, exact approved copy from the AEI
+                  handoff (Section 02). Replaces the earlier do-not-email
+                  guidance; the conflict is recorded in the completion report
+                  and the email/fax handling statement carries a privacy
+                  production approval. */}
+              <div className="mt-6 rounded-panel border-l-4 border-support-500 bg-support-50 p-5">
                 <h3 className="font-bold text-navy-900">
                   {locale === 'es'
-                    ? 'No envíe expedientes médicos por correo electrónico'
-                    : 'Do not send medical records by email'}
+                    ? 'Expedientes clínicos y documentos de transporte'
+                    : 'Clinical records and transport documents'}
                 </h3>
                 <p className="mt-2 text-sm text-ink-900">
                   {locale === 'es'
-                    ? 'El correo electrónico ordinario no es un canal seguro. Llame a un ' +
-                      'coordinador y abriremos un canal protegido para los expedientes, los ' +
-                      'documentos del seguro y los datos del paciente.'
-                    : 'Ordinary email is not a secure channel. Call a coordinator and we will ' +
-                      'open a protected channel for records, insurance documents, and patient ' +
-                      'details.'}
+                    ? 'Envíe los expedientes clínicos y los documentos de transporte por correo ' +
+                      'a ops@aeiamericas.com o por fax al (619) 330-4551. Nuestros ' +
+                      'coordinadores confirmarán la recepción y solicitarán lo que falte.'
+                    : 'Email clinical records and transport documents to ops@aeiamericas.com ' +
+                      'or fax them to (619) 330-4551. Our coordinators will confirm receipt ' +
+                      'and request anything still needed.'}
                 </p>
               </div>
 

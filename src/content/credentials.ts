@@ -112,7 +112,7 @@ export const CREDENTIAL_REGISTER: readonly ClaimRecord[] = [
   {
     id: 'fort-lauderdale-base',
     category: 'coverage',
-    scope: 'Operating base at Fort Lauderdale Executive Airport (FXE), Hangar 24',
+    scope: 'Operating base at Fort Lauderdale Executive Airport (KFXE), Hangar 24',
     holder: 'AirEvac International',
     issuer: 'Fort Lauderdale Executive Airport business directory',
     owner: 'Director of Operations',

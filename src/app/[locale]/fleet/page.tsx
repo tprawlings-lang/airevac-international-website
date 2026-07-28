@@ -2,29 +2,25 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { AircraftCard } from '@/components/AircraftCard';
 import { ContactBlock } from '@/components/ContactBlock';
 import { PageHeader } from '@/components/PageHeader';
 import { Container, Section } from '@/components/ui/Container';
 import { getDictionary } from '@/content/dictionary';
-import { FLEET } from '@/content/fleet';
 import { FLEET_PAGES } from '@/content/pages/fleet';
 import { isLocale, localePath, LOCALES } from '@/lib/i18n';
-import { publishable } from '@/lib/credential-register';
 import { Photo } from '@/components/graphics/Photo';
+import { AircraftPlanform } from '@/components/graphics/HeroBackdrop';
 
 /**
- * Fleet page. Blueprint page 2 sets the approved fleet copy — "Two Learjet 31As:
- * N322PR and N669MD" — and page 6 sets the exact allowed language:
+ * Fleet page. The AEI handoff (G-03/G-04) supersedes the blueprint's original
+ * fleet copy: registrations never appear publicly, in text or alt text. The
+ * only approved public statement is model and quantity - "The current working
+ * fleet is two Learjet 31A aircraft." The registration-to-internal-reference
+ * mapping lives in docs/fleet-register.md, which is not published.
  *
- *   Allowed: "AirEvac's current working fleet includes Learjet 31A aircraft
- *             N322PR and N669MD."
- *   Do not say: "Owned and operated unless leases, OpSpecs, and operating
- *               control are documented."
- *
- * The copy below uses the allowed wording verbatim. `AircraftCard` enforces the
- * rest: Learjet 35 N277MK is on hold pending D5 and therefore renders nowhere,
- * and no ownership language appears while `ownershipLanguageCleared` is false.
+ * The masked register still gates what renders: the reserve Learjet 35 is on
+ * hold pending D5 and therefore is not counted, and no ownership language
+ * appears while `ownershipLanguageCleared` is false.
  */
 
 export function generateStaticParams() {
@@ -43,10 +39,10 @@ export async function generateMetadata({
     title: locale === 'es' ? 'Flota Learjet 31A' : 'Learjet 31A Fleet',
     description:
       locale === 'es'
-        ? 'La flota de trabajo actual de AirEvac International incluye los Learjet 31A ' +
-          'N322PR y N669MD, con enlaces de verificación al registro de la FAA.'
-        : 'AirEvac International’s current working fleet includes Learjet 31A aircraft N322PR ' +
-          'and N669MD, with verification links to the FAA registry.',
+        ? 'La flota de trabajo actual de AirEvac International consta de dos aeronaves ' +
+          'Learjet 31A configuradas para transporte médico.'
+        : 'AirEvac International’s current working fleet is two Learjet 31A aircraft ' +
+          'configured for medical transport.',
     alternates: {
       canonical: localePath(locale, '/fleet'),
       languages: {
@@ -63,19 +59,17 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
   if (!isLocale(locale)) notFound();
 
   const dictionary = getDictionary(locale);
-  const now = new Date();
-  const visibleAircraft = FLEET.filter((aircraft) => publishable(aircraft.claim, now));
 
   return (
     <>
       <PageHeader
         locale={locale}
         title={locale === 'es' ? 'Flota Learjet 31A' : 'Learjet 31A Fleet'}
-        // Approved wording from blueprint page 6, used verbatim.
+        // Model and quantity only (AEI handoff G-04). No registrations.
         intro={
           locale === 'es'
-            ? 'La flota de trabajo actual incluye los Learjet 31A N322PR y N669MD.'
-            : 'The current working fleet includes Learjet 31A aircraft N322PR and N669MD.'
+            ? dictionary.fleet.statement
+            : dictionary.fleet.statement
         }
         breadcrumbs={[{ name: dictionary.common.home, path: '/' }]}
       />
@@ -86,7 +80,7 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
            * General fleet imagery. It is NOT placed on the individual aircraft
            * cards: no registration is legible in any available frame, and
            * pairing a photo with a tail number would assert that it depicts
-           * that airframe — a fleet claim we cannot evidence. The cards keep
+           * that airframe - a fleet claim we cannot evidence. The cards keep
            * the schematic until a photo of a known registration exists.
            */}
           <Photo
@@ -96,34 +90,26 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
             className="mb-10 aspect-[16/7] w-full rounded-panel object-cover"
           />
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {visibleAircraft.map((aircraft) => (
-              <AircraftCard
-                key={aircraft.tailNumber}
-                aircraft={aircraft}
-                locale={locale}
-                now={now}
-              />
-            ))}
-          </div>
-
           {/*
-           * Registration is a public FAA fact and is presented as exactly that.
-           * Page 5: "Registration does not by itself establish the current
-           * operating certificate, medical configuration, beneficial ownership,
-           * or Part 135 OpSpecs." Saying so is what stops a reader inferring
-           * more from these cards than they support.
+           * Model and quantity only (AEI handoff G-03/G-04): no per-airframe
+           * cards, registrations, or registry links. The verification trail
+           * lives in the internal fleet register, not in public output.
            */}
-          <p className="mt-8 max-w-3xl rounded-panel border border-ink-300 bg-support-50 p-5 text-sm text-ink-700">
-            {locale === 'es'
-              ? 'Los datos de matrícula provienen del registro de aeronaves de la FAA y se ' +
-                'pueden verificar en los enlaces anteriores. La matrícula por sí sola no ' +
-                'establece el certificado operativo, la configuración médica ni la titularidad ' +
-                'efectiva de una aeronave.'
-              : 'Registration details come from the FAA Aircraft Registry and can be verified ' +
-                'through the links above. Registration alone does not establish an aircraft’s ' +
-                'operating certificate, medical configuration, or beneficial ownership.'}
-          </p>
+          <div className="relative mt-10 flex flex-col items-start justify-between gap-6 overflow-hidden rounded-panel bg-navy-900 p-8 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                {locale === 'es' ? 'Dos Learjet 31A' : 'Two Learjet 31A aircraft'}
+              </h2>
+              <p className="mt-3 max-w-xl text-white/85">
+                {locale === 'es'
+                  ? 'Cada transporte se realiza en una aeronave dedicada, configurada para el ' +
+                    'nivel de atención aceptado del paciente.'
+                  : 'Every transport runs on a dedicated aircraft, configured to the ' +
+                    'patient’s accepted level of care.'}
+              </p>
+            </div>
+            <AircraftPlanform className="h-40 w-auto shrink-0 text-white/25" />
+          </div>
 
           <nav aria-label={locale === 'es' ? 'Más sobre la flota' : 'More about the fleet'} className="mt-12">
             <h2 className="text-2xl font-bold text-navy-900">

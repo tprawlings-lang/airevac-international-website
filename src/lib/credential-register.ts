@@ -8,7 +8,7 @@
  * This module is the machine enforcement of that rule. Every regulated claim in
  * the site renders through `publishable()`. A record that is missing evidence,
  * missing an approval, or past its expiry returns `false` and the component
- * renders nothing — there is no prop, flag, or environment variable that
+ * renders nothing - there is no prop, flag, or environment variable that
  * overrides it.
  *
  * The gate is deliberately a pure function of (record, now) so the launch
@@ -100,7 +100,7 @@ export interface ClaimRecord {
 
   /**
    * Why a record is on hold or in gap. Rendered in the internal register view
-   * and in the compliance report — never on a public page.
+   * and in the compliance report - never on a public page.
    */
   note?: string;
 }

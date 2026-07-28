@@ -8,8 +8,8 @@ import { SITE } from '@/content/site';
  *
  * Blueprint page 20, graceful degradation: "If CMS, chat, CRM, translation,
  * analytics, or map fails, the page still loads and the phone remains usable."
- * A 404 is the most common way a visitor ends up somewhere unintended — often
- * from a stale link in a referral email — so the phone number is the first thing
+ * A 404 is the most common way a visitor ends up somewhere unintended - often
+ * from a stale link in a referral email - so the phone number is the first thing
  * on it, not an afterthought.
  *
  * `notFound()` is called before the locale is known in some paths, so this page
@@ -45,8 +45,7 @@ export default function NotFound() {
           <ul className="mt-3 space-y-2">
             {[
               { href: '/en', label: 'Home · Inicio' },
-              { href: '/en/partners/hospitals', label: 'Hospitals and Case Managers' },
-              { href: '/en/partners/cruise', label: 'Cruise and Maritime' },
+              { href: '/en/partners', label: 'For Partners' },
               { href: '/en/patients-families', label: 'Patients and Families' },
               { href: '/en/coverage', label: 'Coverage' },
               { href: '/en/contact', label: 'Contact' },

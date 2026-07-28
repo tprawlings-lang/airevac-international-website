@@ -50,7 +50,7 @@ export interface PageContent {
    * qualified reviewers for medical, billing, insurance, and patient-rights
    * content. Show review date and correction path."
    *
-   * `null` means not yet reviewed — the page renders a visible "under review"
+   * `null` means not yet reviewed - the page renders a visible "under review"
    * state rather than an unattributed claim.
    */
   reviewer: { name: string; role: string } | null;

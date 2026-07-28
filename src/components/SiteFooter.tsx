@@ -36,6 +36,12 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                 <a href={SITE.phone.href} className="text-xl font-bold underline underline-offset-4">
                   {SITE.phone.display}
                 </a>
+                <a
+                  href={SITE.email.href}
+                  className="mt-1 block font-semibold text-white underline underline-offset-4"
+                >
+                  {SITE.email.display}
+                </a>
                 <span className="mt-1 block text-sm text-white/80">
                   {dictionary.common.call24_7}
                 </span>
@@ -55,7 +61,16 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             {navigation.slice(0, 3).map((group) => (
               <nav key={group.label} aria-label={group.label}>
                 <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-white/70">
-                  {group.label}
+                  {group.links.length === 0 && group.href !== undefined ? (
+                    <Link
+                      href={localePath(locale, group.href)}
+                      className="text-white/90 hover:text-white hover:underline"
+                    >
+                      {group.label}
+                    </Link>
+                  ) : (
+                    group.label
+                  )}
                 </h2>
                 <ul className="space-y-2 text-sm">
                   {group.links.map((link) => (

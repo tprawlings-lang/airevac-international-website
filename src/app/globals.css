@@ -9,7 +9,7 @@
  *    and a mobile call bar that does not cover content."
  *
  * Every foreground/background pair below is checked against WCAG 2.2 AA (4.5:1
- * for body text, 3:1 for large text and UI boundaries) — the target on page 18.
+ * for body text, 3:1 for large text and UI boundaries) - the target on page 18.
  * The contrast ratio is recorded next to each pair so a future palette tweak
  * cannot quietly drop a combination below the gate.
  */
@@ -23,7 +23,7 @@
   --color-navy-600: #24528f;
 
   /* --- Support blue: secondary surfaces, links, quiet emphasis. ----------- */
-  --color-support-700: #1d5c96; /* on white: 5.9:1  — link text */
+  --color-support-700: #1d5c96; /* on white: 5.9:1, link text */
   --color-support-500: #4a90c2;
   --color-support-100: #e2eef7; /* tinted panel background */
   --color-support-50: #f2f8fc;
@@ -42,7 +42,7 @@
   /* --- Neutrals ----------------------------------------------------------- */
   --color-ink-900: #14181f; /* body text on white: 15.9:1 */
   --color-ink-700: #333c49; /* on white: 10.4:1 */
-  --color-ink-500: #5a6472; /* on white: 5.6:1  — minimum for secondary text */
+  --color-ink-500: #5a6472; /* on white: 5.6:1, minimum for secondary text */
   --color-ink-300: #c3c9d2; /* borders only, never text */
   --color-ink-100: #eceff3;
   --color-paper: #ffffff;
@@ -77,7 +77,7 @@
 :root {
   color-scheme: light;
   /* Height of the fixed mobile call bar. Page 10: the bar "does not cover
-     content" — this token reserves space for it at the bottom of <body>. */
+     content", this token reserves space for it at the bottom of <body>. */
   --mobile-call-bar-height: 4rem;
 }
 

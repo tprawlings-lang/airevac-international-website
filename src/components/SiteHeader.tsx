@@ -29,16 +29,25 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       <div className="on-navy bg-navy-950 text-white">
         <Container>
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-2 text-sm">
-            <a
-              href={SITE.phone.href}
-              className="inline-flex min-h-[44px] items-center gap-2 font-semibold"
-            >
-              <span aria-hidden="true">☎</span>
-              <span>
-                {dictionary.common.call24_7}:{' '}
+            {/* Approved contact display (handoff Section 02): 24/7 by phone
+                and email, both linked. */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 py-1">
+              <span className="font-semibold">{dictionary.common.call24_7}</span>
+              <a
+                href={SITE.phone.href}
+                className="inline-flex min-h-[36px] items-center gap-2 font-semibold"
+              >
+                <span aria-hidden="true">☎</span>
                 <span className="underline underline-offset-4">{SITE.phone.display}</span>
-              </span>
-            </a>
+              </a>
+              <a
+                href={SITE.email.href}
+                className="inline-flex min-h-[36px] items-center gap-2 font-semibold"
+              >
+                <span aria-hidden="true">✉</span>
+                <span className="underline underline-offset-4">{SITE.email.display}</span>
+              </a>
+            </div>
 
             <nav aria-label={dictionary.common.languageSwitch} className="flex items-center gap-1">
               {LOCALES.map((candidate) => {
@@ -70,7 +79,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <Link
               href={localePath(locale, '/')}
               className="flex flex-col leading-tight"
-              aria-label={`${SITE.name} — ${dictionary.common.home}`}
+              aria-label={`${SITE.name}: ${dictionary.common.home}`}
             >
               {/* AirEvac's own mark, recovered from their live site. The
                   white artwork is inverted for the light header. */}
@@ -109,21 +118,33 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                 <ul className="space-y-4">
                   {navigation.map((group) => (
                     <li key={group.label}>
-                      <p className="mb-1 text-xs font-bold uppercase tracking-wider text-ink-500">
-                        {group.label}
-                      </p>
-                      <ul className="space-y-1">
-                        {group.links.map((link) => (
-                          <li key={link.href}>
-                            <Link
-                              href={localePath(locale, link.href)}
-                              className="block min-h-[44px] py-2 text-ink-900"
-                            >
-                              {link.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                      {group.links.length === 0 && group.href !== undefined ? (
+                        // A childless group (For Partners) is a direct link.
+                        <Link
+                          href={localePath(locale, group.href)}
+                          className="block min-h-[44px] py-2 text-xs font-bold uppercase tracking-wider text-navy-900"
+                        >
+                          {group.label}
+                        </Link>
+                      ) : (
+                        <>
+                          <p className="mb-1 text-xs font-bold uppercase tracking-wider text-ink-500">
+                            {group.label}
+                          </p>
+                          <ul className="space-y-1">
+                            {group.links.map((link) => (
+                              <li key={link.href}>
+                                <Link
+                                  href={localePath(locale, link.href)}
+                                  className="block min-h-[44px] py-2 text-ink-900"
+                                >
+                                  {link.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>

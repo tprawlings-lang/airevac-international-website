@@ -10,7 +10,7 @@ import type { Dictionary } from '@/content/dictionary';
  * hospitals (page 7), and `Patients and Families` sits immediately after it so
  * family support is one item away rather than buried in a footer.
  *
- * Paths are canonical English slugs and are NOT translated — see
+ * Paths are canonical English slugs and are NOT translated - see
  * `localePath` in src/lib/i18n.ts for why.
  */
 
@@ -43,23 +43,18 @@ export function buildNavigation(dictionary: Dictionary): NavGroup[] {
         { href: '/services/air-ambulance', label: 'Air Ambulance' },
         { href: '/services/medical-repatriation', label: 'Medical Repatriation' },
         { href: '/services/critical-care-transport', label: 'Critical Care Transport' },
-        {
-          href: '/services/commercial-medical-escort',
-          label: 'Commercial Medical Escort',
-          // Page 8 lists this service "if current" — it is conditional on the
-          // service line being confirmed as offered.
-          pending: 'Service availability pending operations confirmation.',
-        },
       ],
     },
     {
+      /*
+       * One top-level For Partners item, per the AEI handoff (Section 03):
+       * hospitals, case managers, cruise lines, and maritime callers share a
+       * single merged page. No child links: an empty `links` array renders the
+       * group as a direct link in the header, mobile menu, and footer.
+       */
       label: nav.partners,
       href: '/partners',
-      links: [
-        { href: '/partners/hospitals', label: 'Hospitals and Case Managers' },
-        { href: '/partners/cruise', label: 'Cruise and Maritime' },
-        { href: '/partners/insurance', label: 'Insurance and Assistance Companies' },
-      ],
+      links: [],
     },
     {
       label: nav.patientsFamilies,
@@ -68,7 +63,6 @@ export function buildNavigation(dictionary: Dictionary): NavGroup[] {
         { href: '/patients-families/how-it-works', label: 'How It Works' },
         { href: '/patients-families/insurance-and-payment', label: 'Insurance and Payment' },
         { href: '/patients-families/private-pay', label: 'Private Pay' },
-        { href: '/patient-rights', label: 'Patient Rights and Cost Information' },
       ],
     },
     {
@@ -79,6 +73,7 @@ export function buildNavigation(dictionary: Dictionary): NavGroup[] {
         { href: '/coverage/caribbean', label: 'Caribbean' },
         { href: '/coverage/central-america', label: 'Central America' },
         { href: '/coverage/united-states', label: 'United States' },
+        { href: '/coverage/other-destinations', label: 'Other Destinations' },
       ],
     },
     {
@@ -86,7 +81,6 @@ export function buildNavigation(dictionary: Dictionary): NavGroup[] {
       href: '/fleet',
       links: [
         { href: '/fleet', label: 'Learjet 31A Fleet' },
-        { href: '/fleet/medical-equipment', label: 'Medical Equipment' },
         { href: '/fleet/flight-medical-team', label: 'Flight Medical Team' },
         { href: '/credentials', label: 'Credentials and Licenses' },
       ],
@@ -111,10 +105,12 @@ export function buildNavigation(dictionary: Dictionary): NavGroup[] {
  * urgent contact paths.
  */
 export function buildLegalNavigation(): NavLink[] {
+  // Patient Rights and Cost Info is removed from the public site per the AEI
+  // handoff (Section 14); its copy is archived pending the billing and legal
+  // decision on required notices.
   return [
     { href: '/legal/privacy', label: 'Privacy Notice' },
     { href: '/legal/notice-of-privacy-practices', label: 'Notice of Privacy Practices' },
-    { href: '/patient-rights', label: 'No Surprises Act and Good Faith Estimate' },
     { href: '/legal/terms', label: 'Terms of Use' },
     { href: '/legal/accessibility', label: 'Accessibility Statement' },
     { href: '/legal/cookie-settings', label: 'Cookie Settings' },
@@ -146,84 +142,84 @@ export const PRIORITY_ROUTES: readonly RouteMarket[] = [
     slug: 'cancun',
     name: 'Cancún and the Riviera Maya',
     region: 'mexico',
-    airports: ['CUN — Cancún International'],
+    airports: ['MMUN (Cancún International)'],
     commonDestinations: 'Florida, Texas, and the patient’s home region in the United States or Canada',
   },
   {
     slug: 'cozumel',
     name: 'Cozumel',
     region: 'mexico',
-    airports: ['CZM — Cozumel International', 'CUN — Cancún International'],
+    airports: ['MMCZ (Cozumel International)', 'MMUN (Cancún International)'],
     commonDestinations: 'Florida and the United States Gulf Coast',
   },
   {
     slug: 'los-cabos',
     name: 'Los Cabos',
     region: 'mexico',
-    airports: ['SJD — Los Cabos International'],
+    airports: ['MMSD (Los Cabos International)'],
     commonDestinations: 'California, Arizona, Texas, and the United States West Coast',
   },
   {
     slug: 'puerto-vallarta',
     name: 'Puerto Vallarta',
     region: 'mexico',
-    airports: ['PVR — Licenciado Gustavo Díaz Ordaz International'],
+    airports: ['MMPR (Licenciado Gustavo Díaz Ordaz International)'],
     commonDestinations: 'California, Texas, and the United States West and Mountain regions',
   },
   {
     slug: 'bahamas',
     name: 'The Bahamas',
     region: 'caribbean',
-    airports: ['NAS — Lynden Pindling International', 'FPO — Grand Bahama International'],
+    airports: ['MYNN (Lynden Pindling International)', 'MYGF (Grand Bahama International)'],
     commonDestinations: 'South Florida receiving hospitals',
   },
   {
     slug: 'dominican-republic',
     name: 'Dominican Republic',
     region: 'caribbean',
-    airports: ['PUJ — Punta Cana International', 'SDQ — Las Américas International'],
+    airports: ['MDPC (Punta Cana International)', 'MDSD (Las Américas International)'],
     commonDestinations: 'Florida, the United States Northeast, and Puerto Rico',
   },
   {
     slug: 'jamaica',
     name: 'Jamaica',
     region: 'caribbean',
-    airports: ['MBJ — Sangster International', 'KIN — Norman Manley International'],
+    airports: ['MKJS (Sangster International)', 'MKJP (Norman Manley International)'],
     commonDestinations: 'Florida and the United States East Coast',
   },
   {
     slug: 'turks-and-caicos',
     name: 'Turks and Caicos',
     region: 'caribbean',
-    airports: ['PLS — Providenciales International'],
+    airports: ['MBPV (Providenciales International)'],
     commonDestinations: 'South Florida receiving hospitals',
   },
   {
     slug: 'cayman-islands',
     name: 'Cayman Islands',
     region: 'caribbean',
-    airports: ['GCM — Owen Roberts International'],
+    airports: ['MWCR (Owen Roberts International)'],
     commonDestinations: 'Florida receiving hospitals',
   },
   {
     slug: 'belize',
     name: 'Belize',
     region: 'central-america',
-    airports: ['BZE — Philip S. W. Goldson International'],
+    airports: ['MZBZ (Philip S. W. Goldson International)'],
     commonDestinations: 'Florida, Texas, and the United States Gulf Coast',
   },
   {
     slug: 'costa-rica',
     name: 'Costa Rica',
     region: 'central-america',
-    airports: ['SJO — Juan Santamaría International', 'LIR — Daniel Oduber Quirós International'],
+    airports: ['MROC (Juan Santamaría International)', 'MRLB (Daniel Oduber Quirós International)'],
     commonDestinations: 'Florida, Texas, and the patient’s home region',
   },
   {
     slug: 'honduras',
     name: 'Honduras',
     region: 'central-america',
-    airports: ['RTB — Juan Manuel Gálvez International (Roatán)', 'SAP — Ramón Villeda Morales International'],
+    airports: ['MHRO (Juan Manuel Gálvez International, Roatán)', 'MHLM (Ramón Villeda Morales International)'],
     commonDestinations: 'Florida, Texas, and the United States Gulf Coast',
   },
 ] as const;

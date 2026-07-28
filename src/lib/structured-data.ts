@@ -47,6 +47,7 @@ export function organizationJsonLd(locale: Locale, now: Date): JsonLd {
     name: SITE.name,
     url: `${SITE.url}${localePath(locale, '/')}`,
     telephone: SITE.phone.display,
+    email: SITE.email.display,
     address: {
       '@type': 'PostalAddress',
       streetAddress: SITE.base.street,
@@ -108,7 +109,7 @@ export function breadcrumbJsonLd(
  * Serialises JSON-LD for a `<script type="application/ld+json">` tag.
  *
  * `<` is escaped so a value containing `</script>` cannot break out of the
- * script element — the standard XSS vector for JSON embedded in HTML. Values
+ * script element - the standard XSS vector for JSON embedded in HTML. Values
  * here are authored, but the escape is unconditional because the next
  * contributor's values might not be.
  */

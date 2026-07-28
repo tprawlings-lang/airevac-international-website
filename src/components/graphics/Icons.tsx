@@ -6,7 +6,7 @@
  * They inherit `currentColor` so they work on navy and on white without
  * variants.
  *
- * All are `aria-hidden` — every icon here sits beside a visible text label, so
+ * All are `aria-hidden` - every icon here sits beside a visible text label, so
  * announcing it would just duplicate the label for screen-reader users.
  */
 

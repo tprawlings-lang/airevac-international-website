@@ -54,9 +54,10 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 - **Impact:** two things — whether the site names the operating certificate, and
   whether any page may use ownership language.
 - **Safe default in code:** the `part-135` record is `gap`. Every aircraft has
-  `ownershipLanguageCleared: false`, and a test asserts it. Copy uses the
-  blueprint's approved wording verbatim: *"The current working fleet includes
-  Learjet 31A aircraft N322PR and N669MD."* The hero says AirEvac coordinates
+  `ownershipLanguageCleared: false`, and a test asserts it. Public copy is now
+  model and quantity only per the AEI handoff (G-03/G-04): *"The current
+  working fleet is two Learjet 31A aircraft."* Registrations live in
+  `docs/fleet-register.md`, never in `src/`. The hero says AirEvac coordinates
   directly "with no broker in between" rather than claiming to be the operator.
 - **To close:** clear the `part-135` record, and set
   `ownershipLanguageCleared: true` only for aircraft whose leases and operating
@@ -68,8 +69,8 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 
 - **Impact:** a public inconsistency — EURAMI lists the aircraft, the current
   site does not.
-- **Safe default in code:** `aircraft-n277mk` is `hold` with
-  `statusLabel: 'Under review'`. It renders nowhere. Copy never states a fleet
+- **Safe default in code:** `aircraft-35-reserve` (internal ref AC-35-R) is
+  `hold` with `statusLabel: 'Under review'`. It renders nowhere. Copy never states a fleet
   *size*, only that the working fleet "includes" the two Learjet 31As, so
   resolving D5 either way requires no copy rewrite.
 - **To close:** decide active / reserve / partner-operated / retired, align the
@@ -101,14 +102,17 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 ## D8 — Secure chat and clinical intake vendors
 **Owner:** Operations and privacy · **Needed by:** before sprint 7
 
-- **Impact:** the secondary conversion (chat) and the entire clinical handoff.
+- **Impact:** originally the secure chat widget and clinical upload. The AEI
+  handoff (July 2026) removed both from the product: clinical documents now
+  move by email (ops@aeiamericas.com) or fax ((619) 330-4551), stated verbatim
+  on the contact, intake, and service pages. `SecureChatButton` is deleted.
 - **Safe default in code:** `FEATURES.secureChat: false` and
-  `FEATURES.clinicalUpload: false`. `SecureChatButton` degrades to the callback
-  path with an honest explanatory line rather than rendering a dead widget —
-  which is the same shape page 13 requires on chat failure.
-- **To close:** sign the BAA, complete the security review, agree retention
-  rules, run the 30-day staffing test, then flip `secureChat` and mount the
-  approved launcher inside `SecureChatButton`. No page needs to change.
+  `FEATURES.clinicalUpload: false` remain so no chat or upload UI can return
+  without a deliberate flag flip.
+- **Still open:** AEI privacy approval for the email and fax handling
+  statement (see docs/handoff-completion-report.md), plus retention rules for
+  documents received that way. If chat is ever revived it needs the BAA,
+  security review, and 30-day staffing test the blueprint required.
 
 ## D9 — Approved data retention and deletion schedule
 **Owner:** Privacy and records · **Needed by:** before production config
@@ -124,14 +128,16 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 ## D10 — Current Notice of Privacy Practices and No Surprises/GFE documents
 **Owner:** Legal and billing · **Needed by:** before legal page build
 
-- **Impact:** four pages — privacy, NPP, terms, patient rights.
-- **Safe default in code:** all four have `reviewer: null`, so `ContentPage`
-  renders a visible "Under review — not yet signed off by a qualified reviewer"
-  banner above the content. The patient-rights page describes rights accurately
-  from CMS guidance and links to CMS as the authority; it does **not** reproduce
-  a statutory notice, invent a dispute process, or quote a deadline.
+- **Impact:** three live pages — privacy, NPP, terms. The patient rights and
+  cost information page was removed by the AEI handoff (I-05); its drafted
+  content is archived at `docs/archive/patient-rights-and-cost-info.md`
+  pending AEI's billing and legal decision on required notices.
+- **Safe default in code:** the live pages have `reviewer: null`, so
+  `ContentPage` renders a visible "Under review — not yet signed off by a
+  qualified reviewer" banner above the content.
 - **To close:** set `reviewer` and `reviewedOn` on each page and replace the
-  drafted body with the approved text.
+  drafted body with the approved text; decide whether any No Surprises Act /
+  GFE notice must return before launch.
 
 ## D11 — Spanish 24/7 staffing and translator policy
 **Owner:** Operations · **Needed by:** before language promise

@@ -1,14 +1,16 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { HubPage } from '@/components/HubPage';
-import { PARTNER_PAGES } from '@/content/pages/partners';
-import { isLocale, localePath, LOCALES } from '@/lib/i18n';
+import { ContentPage, contentPageMetadata } from '@/components/ContentPage';
+import { FOR_PARTNERS_PAGE } from '@/content/pages/partners';
+import { getDictionary } from '@/content/dictionary';
+import { isLocale, LOCALES } from '@/lib/i18n';
 
 /**
- * Section landing page for `/partners`. Blueprint section 3 gives each
- * top-level navigation group a landing page so a visitor who clicks the group
- * label lands somewhere useful rather than on the first child by accident.
+ * For Partners: the single merged page for hospitals, case managers, cruise
+ * lines, and maritime callers (AEI handoff, Section 09). The old
+ * /partners/hospitals, /partners/cruise, and /partners/insurance routes
+ * redirect here in one hop.
  */
 
 export function generateStaticParams() {
@@ -22,39 +24,24 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-
-  return {
-    title: locale === 'es' ? 'Para socios' : 'For Partners',
-    description:
-      locale === 'es'
-        ? 'Recursos de remisión para gestores de casos hospitalarios, equipos médicos de cruceros y marítimos, y aseguradoras y compañías de asistencia.'
-        : 'Referral resources for hospital case managers, cruise and maritime medical teams, and insurance and assistance companies.',
-    alternates: {
-      canonical: localePath(locale, '/partners'),
-      languages: {
-        'en-US': localePath('en', '/partners'),
-        'es-419': localePath('es', '/partners'),
-        'x-default': localePath('en', '/partners'),
-      },
-    },
-  };
+  return contentPageMetadata(FOR_PARTNERS_PAGE, locale);
 }
 
-export default async function PartnersHubPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ForPartnersPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
+  const dictionary = getDictionary(locale);
+
   return (
-    <HubPage
+    <ContentPage
+      page={FOR_PARTNERS_PAGE}
       locale={locale}
-      title={locale === 'es' ? 'Para socios' : 'For Partners'}
-      intro={
-        locale === 'es'
-          ? 'Rutas de remisión creadas para los equipos que nos envían la mayoría de nuestros casos.'
-          : 'Referral paths built for the teams who send us most of our cases.'
-      }
-      pages={PARTNER_PAGES}
-      
+      breadcrumbs={[{ name: dictionary.common.home, path: '/' }]}
     />
   );
 }

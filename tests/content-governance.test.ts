@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -477,8 +477,10 @@ describe('coverage map geometry', () => {
      * time on a mismatch; this asserts the committed geometry is current.
      */
     expect(COASTLINE_VIEW.width).toBe(1000);
-    expect(COASTLINE_VIEW.height).toBeGreaterThan(400);
-    expect(COASTLINE_VIEW.height).toBeLessThan(600);
+    // Height grew when EAST_FRAME_LON widened the frame to keep the eastern
+    // Caribbean visible (handoff H-10): the lat/lon aspect now yields ~724.
+    expect(COASTLINE_VIEW.height).toBeGreaterThan(600);
+    expect(COASTLINE_VIEW.height).toBeLessThan(850);
   });
 
   it('keeps every path inside the viewBox bounds, allowing for edge bleed', () => {
@@ -513,6 +515,100 @@ describe('coverage map geometry', () => {
       if (airport.routeSlug !== undefined) {
         expect(slugs.has(airport.routeSlug), `${airport.code} -> ${airport.routeSlug}`).toBe(true);
       }
+    }
+  });
+});
+
+/* ==========================================================================
+   AEI handoff source scans (Section 16). These are the handoff's global
+   sign-off checks, run as CI: the retired phrasings must have no matches in
+   source, no registration or tail number may appear in src/, and the em dash
+   character is banned from source files. Scope is src/ and public/; tests
+   and docs/ are exempt (docs/fleet-register.md deliberately holds the
+   registration mapping, and tests must be able to name what they forbid).
+   ========================================================================== */
+
+describe('AEI handoff source scans', () => {
+  const SCAN_ROOTS = ['src', 'public'];
+  const TEXT_EXTENSIONS = /\.(ts|tsx|js|mjs|css|svg|txt|md|json)$/;
+
+  function scanFiles(): { file: string; content: string }[] {
+    const results: { file: string; content: string }[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) walk(path);
+        else if (TEXT_EXTENSIONS.test(entry.name)) {
+          results.push({ file: path, content: readFileSync(path, 'utf8') });
+        }
+      }
+    };
+    for (const root of SCAN_ROOTS) {
+      const abs = join(process.cwd(), root);
+      if (existsSync(abs)) walk(abs);
+    }
+    return results;
+  }
+
+  const files = scanFiles();
+
+  it('scans a plausible number of source files', () => {
+    // Guards the scanner itself: an empty walk would pass every check below.
+    expect(files.length).toBeGreaterThan(50);
+  });
+
+  it('contains no em dash in any source file (G-01)', () => {
+    for (const { file, content } of files) {
+      expect(content.includes('—'), `${file} contains an em dash`).toBe(false);
+    }
+  });
+
+  it('contains no aircraft registration or tail number (G-03)', () => {
+    // FAA format: N + 1-5 digits + up to 2 letters. Requiring two leading
+    // digits skips generic identifiers while still catching every real
+    // registration this project has ever handled.
+    const tail = /\bN[0-9]{2,5}[A-Z]{0,2}\b/;
+    for (const { file, content } of files) {
+      const match = content.match(tail);
+      expect(match, `${file} contains "${match?.[0]}"`).toBeNull();
+    }
+  });
+
+  it('contains none of the retired phrasings (Section 16)', () => {
+    const banned = [
+      /choose your path/i,
+      /how the process runs/i,
+      /we do not promise/i,
+      /physician-to-physician/i,
+      /document handover/i,
+      /send clinical information/i,
+      /some patients are better served by commercial/i,
+      /good faith estimate/i,
+      /what if a claim is denied/i,
+      /medical configuration/i,
+      /medical escort/i,
+    ];
+    for (const { file, content } of files) {
+      for (const pattern of banned) {
+        expect(pattern.test(content), `${file} matches ${pattern}`).toBe(false);
+      }
+    }
+  });
+
+  it('carries the required replacement phrasings somewhere in content', () => {
+    const all = files.map((f) => f.content).join('\n');
+    for (const required of [
+      'We cannot guarantee',
+      'standard response time',
+      'can send the case information and coordinate',
+      'reviewed case by case',
+      'two Learjet 31A aircraft',
+      'Fort Lauderdale Executive Airport (KFXE)',
+      'ops@aeiamericas.com',
+      '(619) 754-6755',
+      '(619) 330-4551',
+    ]) {
+      expect(all.includes(required), `missing required phrasing: ${required}`).toBe(true);
     }
   });
 });

@@ -90,13 +90,13 @@ interface PhoneCtaProps {
  * The primary conversion, blueprint page 7.
  *
  * This is a plain `<a href="tel:">` with no JavaScript, no click handler, and no
- * tracking wrapper — three deliberate choices:
+ * tracking wrapper - three deliberate choices:
  *
  *  1. Page 20 requires the phone path to survive when "CMS, chat, CRM,
  *     translation, analytics, or map fails". A markup-only link survives a
  *     total JS failure.
  *  2. Page 19 gates call tracking behind "approved notice, consent, vendor
- *     contract and data handling" — none of which exist yet, so no dynamic
+ *     contract and data handling" - none of which exist yet, so no dynamic
  *     number insertion and no click interception.
  *  3. Page 13 forbids ad use of contact data; an onClick that fired a pixel
  *     would be exactly that.

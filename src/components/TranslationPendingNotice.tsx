@@ -9,8 +9,8 @@ import { localePath, type Locale } from '@/lib/i18n';
  *    emergency content."
  *
  * When a page's Spanish body copy has not passed human review, this renders in
- * its place. The alternative — machine-translating a patient-rights page or a
- * Notice of Privacy Practices — is the thing the blueprint explicitly forbids,
+ * its place. The alternative - machine-translating a patient-rights page or a
+ * Notice of Privacy Practices - is the thing the blueprint explicitly forbids,
  * and it is also the version that could mislead a Spanish-speaking family about
  * a legal right.
  *
@@ -22,7 +22,7 @@ export function TranslationPendingNotice({
   englishPath,
 }: {
   locale: Locale;
-  /** Canonical English path for this page, e.g. `/patient-rights`. */
+  /** Canonical English path for this page, e.g. `/legal/privacy`. */
   englishPath: string;
 }) {
   const dictionary = getDictionary(locale);

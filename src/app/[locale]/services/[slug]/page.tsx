@@ -8,9 +8,9 @@ import { isLocale, LOCALES } from '@/lib/i18n';
 import { slugOf } from '@/lib/page-registry';
 
 /**
- * Service pages. Blueprint page 8, "Service" template:
- *   "Air Ambulance, Repatriation, Critical Care, Medical Escort — Explain fit,
- *    process, medical review, and limits."
+ * Service pages. Blueprint page 8, "Service" template: explain fit, process,
+ * medical review, and limits. The AEI handoff reduces the set to three pages:
+ * Air Ambulance, Repatriation, and Critical Care.
  *
  * Statically generated for both locales so the CDN serves them without touching
  * an origin, which is what the availability target on page 20 depends on.

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BASE_AIRPORT, MAPPED_AIRPORTS, type MappedAirport } from '@/content/airports';
+import { BASE_AIRPORT, EAST_FRAME_LON, MAPPED_AIRPORTS, type MappedAirport } from '@/content/airports';
 import { COASTLINE_PATHS, COASTLINE_VIEW } from '@/content/coastlines';
 import { PRIORITY_ROUTES } from '@/content/navigation';
 import { localePath, type Locale } from '@/lib/i18n';
@@ -8,7 +8,7 @@ import { localePath, type Locale } from '@/lib/i18n';
  * Route map: the operating base and the priority markets, drawn from real
  * coordinates.
  *
- * WHY THIS GRAPHIC EXISTS. Competitor research (REVA, AirMed — the two largest
+ * WHY THIS GRAPHIC EXISTS. Competitor research (REVA, AirMed - the two largest
  * fixed-wing international operators) found neither publishes a coverage map;
  * both list countries as text. AirEvac's entire position is regional
  * concentration rather than claimed global reach, so a map is the one graphic
@@ -16,12 +16,12 @@ import { localePath, type Locale } from '@/lib/i18n';
  *
  * WHY IT IS DRAWN, NOT PHOTOGRAPHED. It is inline SVG generated from
  * `airports.ts`: no licensing, no third-party tile server (which `connect-src
- * 'self'` would block and which would leak visitor IPs to a map vendor —
+ * 'self'` would block and which would leak visitor IPs to a map vendor -
  * section 13), no image weight, and it scales perfectly at any zoom, which
  * matters for the 400% reflow requirement on page 21.
  *
  * WHAT IT CLAIMS. Where the base is and where the priority route pages are.
- * It does NOT assert operating authority anywhere — that is gated on D6 — and
+ * It does NOT assert operating authority anywhere - that is gated on D6 - and
  * the caption says so.
  */
 
@@ -32,7 +32,9 @@ function bounds() {
   const points = [BASE_AIRPORT, ...MAPPED_AIRPORTS];
   return {
     minLon: Math.min(...points.map((p) => p.lon)) - PADDING.x,
-    maxLon: Math.max(...points.map((p) => p.lon)) + PADDING.x,
+    // The frame extends east past the easternmost marker so Puerto Rico, the
+    // Lesser Antilles, and the Dominican Republic stay visible (handoff H-10).
+    maxLon: Math.max(Math.max(...points.map((p) => p.lon)) + PADDING.x, EAST_FRAME_LON),
     minLat: Math.min(...points.map((p) => p.lat)) - PADDING.y,
     maxLat: Math.max(...points.map((p) => p.lat)) + PADDING.y,
   };
@@ -56,7 +58,7 @@ const VIEW_HEIGHT = Math.round(
 /**
  * Guards the generated geometry against this component's projection drifting.
  * If someone changes PADDING or VIEW_WIDTH without regenerating the coastlines,
- * the land would silently slide out from under the markers — so fail loudly at
+ * the land would silently slide out from under the markers - so fail loudly at
  * import time instead. Asserted again in tests.
  */
 if (COASTLINE_VIEW.width !== VIEW_WIDTH || COASTLINE_VIEW.height !== VIEW_HEIGHT) {
@@ -139,7 +141,7 @@ export function CoverageMap({
          * The description carries the same information as the graphic, so a
          * screen-reader user is not told merely "a map" (WCAG 1.1.1). The
          * airport list below the figure is the real equivalent, and it is
-         * visible to everyone rather than hidden — an accessible alternative
+         * visible to everyone rather than hidden - an accessible alternative
          * that sighted users also benefit from.
          */}
         <desc id="coverage-map-desc">
@@ -247,7 +249,7 @@ export function CoverageMap({
               fontSize="19"
               fontWeight="700"
             >
-              FXE
+              {BASE_AIRPORT.code}
             </text>
           )}
         </g>
@@ -257,8 +259,8 @@ export function CoverageMap({
         <figcaption className="mt-4">
           {/*
            * The text equivalent of the map. Visible rather than sr-only: it is
-           * genuinely useful — a coordinator scanning for a market finds it
-           * faster here than by reading a map — and it gives every route page an
+           * genuinely useful - a coordinator scanning for a market finds it
+           * faster here than by reading a map - and it gives every route page an
            * internal link, which the map's SVG text cannot.
            */}
           <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">

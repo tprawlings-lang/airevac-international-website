@@ -10,7 +10,7 @@ import { MEDIA, publishableMedia, type MediaAsset } from '@/content/media';
  * fallback so a layout does not collapse.
  *
  * Uses `next/image`, which generates AVIF/WebP and a responsive srcset from the
- * local file. That matters for the Core Web Vitals gate on page 21 — the
+ * local file. That matters for the Core Web Vitals gate on page 21 - the
  * golden-hour hero source is a 24 MB camera original, and shipping anything
  * close to that would blow the LCP budget on a phone in a hospital corridor.
  */
@@ -24,7 +24,7 @@ export function Photo({
   /** Key in the MEDIA registry. */
   id: keyof typeof MEDIA;
   className?: string;
-  /** Responsive sizes hint. Set it — the default assumes full viewport width. */
+  /** Responsive sizes hint. Set it - the default assumes full viewport width. */
   sizes?: string;
   /** True only for an above-the-fold LCP image. */
   priority?: boolean;
@@ -53,7 +53,7 @@ export function Photo({
  * technology.
  *
  * For backdrops behind text, where the surrounding copy already carries the
- * meaning. An empty `alt` is correct here — describing a background photograph
+ * meaning. An empty `alt` is correct here - describing a background photograph
  * that repeats the headline just adds noise for a screen-reader user (WCAG
  * 1.1.1 decorative images).
  */

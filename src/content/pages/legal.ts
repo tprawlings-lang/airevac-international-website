@@ -12,7 +12,7 @@ import type { PageContent } from '@/content/blocks';
  *    rewrite and legal approval."
  *
  * The privacy notice below is therefore written from the actual implementation
- * in this repository — the fields the form accepts, what the endpoint logs, what
+ * in this repository - the fields the form accepts, what the endpoint logs, what
  * it does not store, and which vendors are and are not connected. It describes
  * the system as built, which is the only kind of privacy notice that is true.
  *
@@ -41,12 +41,13 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Scope of this notice',
         paragraphs: [
-          'This notice covers this public website only. It does not cover the protected ' +
-            'channels a flight coordinator opens for patient records, insurance documents, and ' +
-            'clinical information — those are governed separately, and where they involve ' +
-            'protected health information they are covered by our Notice of Privacy Practices.',
+          'This notice covers this public website only. It does not cover records you ' +
+            'send directly to our coordinators by email or fax; those are governed ' +
+            'separately, and where they involve protected health information they are ' +
+            'covered by our Notice of Privacy Practices.',
           'The distinction matters, because this website is deliberately built so that ' +
-            'protected health information never reaches it.',
+            'protected health information never reaches it. The website does not proxy, ' +
+            'parse, store, or log records sent by email or fax.',
         ],
       },
       {
@@ -104,7 +105,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         paragraphs: [
           'This website does not currently set analytics or advertising cookies. Where ' +
             'aggregate measurement is used on public information pages, it is limited to page ' +
-            'views, referrer category, page performance, and broad geography — with no ' +
+            'views, referrer category, page performance, and broad geography, with no ' +
             'identifier tied to you.',
           'No measurement of any kind runs on the callback form or on any page carrying ' +
             'sensitive information.',
@@ -137,7 +138,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         paragraphs: [
           'We contact you at the number you provide only about the transport request you ' +
             'submitted. Message and data rates may apply. You can reply STOP to any text ' +
-            'message to opt out, or tell your coordinator you prefer not to be texted.',
+            'message to opt out, or tell our coordinators you prefer not to be texted.',
         ],
       },
       {
@@ -172,7 +173,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
       'How protected health information is used and disclosed, and what rights you have over ' +
       'it.',
     contentClass: 'legal',
-    reviewer: null, // PENDING D10 — required before this page can publish.
+    reviewer: null, // PENDING D10: required before this page can publish.
     reviewedOn: null,
     esReviewedOn: null,
     blocks: [
@@ -203,8 +204,8 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         paragraphs: [
           'The website privacy notice describes what this public website collects and, more ' +
             'importantly, what it deliberately does not. Protected health information does not ' +
-            'move through this website at all — a coordinator opens a separate protected ' +
-            'channel for it.',
+            'move through this website at all. Records go directly to our coordinators by ' +
+            'email at ops@aeiamericas.com or by fax at (619) 330-4551.',
         ],
       },
     ],
@@ -275,7 +276,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
           'Credentials, accreditations, and aircraft information published on this site are ' +
             'shown with their scope, holder, and expiry date, and with a link to the issuer’s ' +
             'own record where one exists. If you believe something on this site is inaccurate, ' +
-            'tell us — call a flight coordinator and ask for the compliance contact.',
+            'tell us: call a flight coordinator and ask for the compliance contact.',
         ],
       },
     ],
@@ -313,7 +314,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         items: [
           'Every page works with a keyboard alone, with a visible focus indicator that is never removed or obscured.',
           'A skip link is the first focusable element on every page.',
-          'Text can be zoomed to 200% and beyond without loss of content or function — zoom is not capped.',
+          'Text can be zoomed to 200% and beyond without loss of content or function. Zoom is not capped.',
           'Colour is never the only way information is conveyed, and text meets AA contrast ratios.',
           'Form fields have real labels, errors are announced, and the error summary receives focus so a screen-reader user is told what went wrong.',
           'The mobile call bar reserves its own space so it never covers the content or the focused element beneath it.',
@@ -326,8 +327,8 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         tone: 'info',
         heading: 'What has not been verified yet',
         body:
-          'A full independent audit — including manual screen-reader testing across browser ' +
-          'and assistive-technology combinations — has not yet been completed for this site. ' +
+          'A full independent audit, including manual screen-reader testing across browser ' +
+          'and assistive-technology combinations, has not yet been completed for this site. ' +
           'Until it has, this statement describes what the site was built to do rather than ' +
           'what has been independently confirmed. We would rather tell you that than claim a ' +
           'conformance we have not tested.',
@@ -338,7 +339,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         paragraphs: [
           'If any part of this site is difficult or impossible for you to use, call a flight ' +
             'coordinator. You will reach a person, and you do not need to explain the technical ' +
-            'detail — just tell us what you were trying to do.',
+            'detail. Just tell us what you were trying to do.',
           'The phone line is always available as an alternative to anything on this website.',
         ],
       },
@@ -363,7 +364,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
             'profiling cookies, so there is no consent choice to offer you. A cookie banner ' +
             'that asks permission for something that does not happen would be theatre.',
           'If that changes, this page becomes the control for it, and the choice will be a ' +
-            'real one — including the ability to decline non-essential cookies without losing ' +
+            'real one, including the ability to decline non-essential cookies without losing ' +
             'access to any part of the site.',
         ],
       },
@@ -382,7 +383,7 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         heading: 'On the pages that matter most',
         body:
           'No measurement, tag manager, or advertising code runs on the callback form or any ' +
-          'page carrying sensitive information — regardless of any setting on this page. That ' +
+          'page carrying sensitive information, regardless of any setting on this page. That ' +
           'is not a preference; it is a rule the site is built around.',
       },
     ],

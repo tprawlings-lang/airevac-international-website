@@ -13,8 +13,8 @@ import { MobileCallBar } from '@/components/MobileCallBar';
 /**
  * Root layout.
  *
- * This is the top-most layout in the segment tree — there is no `app/layout.tsx`
- * — so that `<html lang>` can be set from the route's locale. Getting `lang`
+ * This is the top-most layout in the segment tree - there is no `app/layout.tsx`
+ * - so that `<html lang>` can be set from the route's locale. Getting `lang`
  * right is not cosmetic: WCAG 2.2 SC 3.1.1 (Language of Page) is a launch gate
  * on page 21, and a screen reader reading Spanish content with an `en` lang
  * attribute is unintelligible.
@@ -56,8 +56,8 @@ export async function generateMetadata({
 
     title: {
       default: isSpanish
-        ? 'AirEvac International — Ambulancia aérea para México y el Caribe'
-        : 'AirEvac International — Air Ambulance for Mexico and the Caribbean',
+        ? 'AirEvac International: Ambulancia aérea para México y el Caribe'
+        : 'AirEvac International: Air Ambulance for Mexico and the Caribbean',
       // Section 19: unique title per page. The template keeps the brand suffix
       // consistent without each page repeating it.
       template: '%s | AirEvac International',

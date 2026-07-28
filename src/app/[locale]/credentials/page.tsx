@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/PageHeader';
 import { Container, Section } from '@/components/ui/Container';
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
 import { getDictionary } from '@/content/dictionary';
-import { FLEET_CLAIMS } from '@/content/fleet';
 import { isLocale, localePath, LOCALES } from '@/lib/i18n';
 
 /**
@@ -22,7 +21,7 @@ import { isLocale, localePath, LOCALES } from '@/lib/i18n';
  *
  * The page deliberately explains the standard it applies. A visitor who
  * understands *why* the list is short trusts it more than one who is shown a
- * wall of badges — and a hospital compliance officer can verify every entry
+ * wall of badges - and a hospital compliance officer can verify every entry
  * against the issuer without contacting us.
  */
 
@@ -131,11 +130,11 @@ export default async function CredentialsPage({
           </div>
 
           <h2 className="mt-12 text-2xl font-bold text-navy-900">
-            {locale === 'es' ? 'Registros de aeronaves' : 'Aircraft registrations'}
+            {locale === 'es' ? 'Flota' : 'Fleet'}
           </h2>
-          <div className="mt-6">
-            <CredentialList records={FLEET_CLAIMS} locale={locale} now={now} />
-          </div>
+          {/* Model and quantity only (AEI handoff G-03/G-04). Registration
+              records are held internally, not published. */}
+          <p className="mt-4 max-w-3xl text-ink-900">{dictionary.fleet.statement}</p>
 
           <h2 className="mt-12 text-2xl font-bold text-navy-900">
             {locale === 'es' ? 'Base de operaciones' : 'Operating base'}

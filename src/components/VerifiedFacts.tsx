@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
 import { FLEET } from '@/content/fleet';
-import { PRIORITY_ROUTES } from '@/content/navigation';
+import { COVERAGE_REGIONS } from '@/content/navigation';
 import { getDictionary } from '@/content/dictionary';
 import { publishable } from '@/lib/credential-register';
 import { localePath, type Locale } from '@/lib/i18n';
@@ -12,7 +12,7 @@ import { AircraftIcon, ClockIcon, PhoneIcon, VerifiedIcon } from '@/components/g
  * The figure band directly under the hero.
  *
  * WHY IT EXISTS. Competitor research found REVA and AirMed both lead with large
- * numbers — "30,000 missions", "90+ countries", "33,000 transports". It is the
+ * numbers - "30,000 missions", "90+ countries", "33,000 transports". It is the
  * fastest credibility device in the category, and the homepage had nothing
  * equivalent between the hero and a wall of text cards.
  *
@@ -23,7 +23,7 @@ import { AircraftIcon, ClockIcon, PhoneIcon, VerifiedIcon } from '@/components/g
  *
  * That constraint is turned into the point of the block. Four modest, verifiable
  * facts under a heading that says we publish only what we can evidence lands
- * harder with a hospital compliance officer than "30,000 missions" does — and it
+ * harder with a hospital compliance officer than "30,000 missions" does - and it
  * is the one claim on the page a competitor cannot copy.
  *
  * COUNTS ARE DERIVED, NOT TYPED. The aircraft count comes from the fleet
@@ -37,8 +37,9 @@ export function VerifiedFacts({ locale, now }: { locale: Locale; now: Date }) {
 
   const publishableAircraft = FLEET.filter((aircraft) => publishable(aircraft.claim, now)).length;
 
-  // Regions with at least one priority route page.
-  const regionCount = new Set(PRIORITY_ROUTES.map((route) => route.region)).size;
+  // The concentrated service areas: Mexico, Caribbean, Central America, and the
+  // United States (handoff H-02 adds the domestic United States).
+  const regionCount = COVERAGE_REGIONS.length;
 
   const baseCleared = CREDENTIAL_REGISTER.some(
     (record) => record.id === 'fort-lauderdale-base' && publishable(record, now),
@@ -49,29 +50,29 @@ export function VerifiedFacts({ locale, now }: { locale: Locale; now: Date }) {
       Icon: AircraftIcon,
       figure: String(publishableAircraft),
       label: isSpanish
-        ? 'Learjet 31A en la flota de trabajo actual, ambos verificados en el registro de la FAA'
-        : 'Learjet 31A aircraft in the current working fleet, both verified against the FAA registry',
+        ? 'Aeronaves Learjet 31A en la flota de trabajo actual'
+        : 'Learjet 31A aircraft in the current working fleet',
     },
     {
       Icon: PhoneIcon,
       figure: '24/7',
       label: isSpanish
-        ? 'Coordinadores de vuelo localizables por teléfono, todos los días'
-        : 'Flight coordinators reachable by phone, every day of the year',
+        ? 'Coordinadores de vuelo disponibles por teléfono y correo, todos los días'
+        : 'Flight coordination available by phone and email, every day of the year',
     },
     {
       Icon: ClockIcon,
       figure: String(regionCount),
       label: isSpanish
-        ? 'Regiones donde concentramos el trabajo: México, el Caribe y Centroamérica'
-        : 'Regions we concentrate on: Mexico, the Caribbean, and Central America',
+        ? 'Áreas de servicio: México, el Caribe, Centroamérica y Estados Unidos'
+        : 'Focused service areas: Mexico, the Caribbean, Central America, and the United States',
     },
     // Only shown when the base record itself passes the gate.
     ...(baseCleared
       ? [
           {
             Icon: VerifiedIcon,
-            figure: 'FXE',
+            figure: 'KFXE',
             label: isSpanish
               ? 'Base de operaciones en Fort Lauderdale Executive, confirmada en el directorio del aeropuerto'
               : 'Operating base at Fort Lauderdale Executive, confirmed by the airport directory',
@@ -91,7 +92,7 @@ export function VerifiedFacts({ locale, now }: { locale: Locale; now: Date }) {
          * MARKUP CONSTRAINT: a <dl> may only directly contain <dt>, <dd>, or a
          * <div> wrapping a dt/dd pair. An earlier version put the icon as a
          * sibling of that wrapper and nested the dt/dd one level deeper, which
-         * axe flagged as `definition-list` and `dlitem` — the pairing is what
+         * axe flagged as `definition-list` and `dlitem` - the pairing is what
          * makes a screen reader announce "2, Learjet 31A aircraft…" rather than
          * two unrelated fragments.
          *
@@ -114,8 +115,8 @@ export function VerifiedFacts({ locale, now }: { locale: Locale; now: Date }) {
 
         <p className="mt-8 border-t border-ink-300 pt-6 text-sm text-ink-500">
           {isSpanish
-            ? 'Publicamos únicamente cifras que podemos respaldar con documentación. No verá aquí recuentos de misiones ni tiempos de respuesta, porque aún no tenemos la evidencia aprobada para publicarlos. '
-            : 'We publish only figures we can evidence. You will not find mission counts or response times here, because we do not yet hold approved documentation for them. '}
+            ? 'Publicamos únicamente cifras que podemos respaldar con documentación. '
+            : 'We publish only figures we can evidence. '}
           <Link
             href={localePath(locale, '/credentials')}
             className="font-semibold text-support-700 underline underline-offset-4 hover:text-navy-900"

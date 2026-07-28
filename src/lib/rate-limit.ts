@@ -10,7 +10,7 @@
  *
  *   "These are safe starting values, not permanent limits."
  *
- * IMPLEMENTATION NOTE — this is an in-memory limiter. It is correct for a single
+ * IMPLEMENTATION NOTE - this is an in-memory limiter. It is correct for a single
  * origin instance and is NOT sufficient for the multi-instance production
  * deployment: each instance would keep its own counters, multiplying the
  * effective limit by the instance count. Production must back this with a shared
@@ -80,7 +80,7 @@ function sweep(now: number): void {
 /**
  * Consumes one unit against `name` for `identifier`.
  *
- * `identifier` must already be coarsened/hashed by the caller — see
+ * `identifier` must already be coarsened/hashed by the caller - see
  * `coarsenIp`. Never pass a raw email or phone number: this map would then hold
  * identifiable contact data outside the retention schedule.
  */

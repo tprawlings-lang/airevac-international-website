@@ -24,11 +24,11 @@ Last updated: 2026-07-27.
 | EURAMI | Gap (was Pass) | Medium | Register entry present with correct scope and expiry, but `approvedOn` is null pending the certificate itself and logo-use terms (D2). The gate therefore withholds it, so the site currently publishes **no** accreditation. `tests/structured-data.test.ts` asserts this. | Compliance lead |
 | NAAMTA | Pass (was Fail) | Low | Held in the register with `status: 'hold'`. Never renders. Enforced by `publishable()` and asserted in `tests/credential-register.test.ts`; prose is scanned for the word in `tests/content-governance.test.ts`. | Compliance lead |
 | ARGUS | Pass (was Gap) | Low | Held with `status: 'gap'`. Never renders; prose scan blocks the term. | Director of Operations |
-| Two Learjet 31As | Pass | Low | Both registrations verified against the FAA registry, published with verification links, `ownershipLanguageCleared: false` so no "owns and operates" wording is possible. | Director of Operations |
+| Two Learjet 31As | Pass | Low | Both registrations verified against the FAA registry. Per the AEI handoff (G-03/G-04) public copy is model and quantity only; registrations are masked to internal refs, mapped in `docs/fleet-register.md`. `ownershipLanguageCleared: false` so no "owns and operates" wording is possible. | Director of Operations |
 | Learjet 35 N277MK | Pass (was Medium risk) | Low | Held pending D5. Never renders; prose scan blocks both the tail number and "Learjet 35". | Director of Operations |
 | FAA Part 135 claim | Pass (was Gap) | Low | Held pending D4. The site does not describe AirEvac as a certificate holder. | Director of Operations |
 | Fort Lauderdale contact | Pass | Low | Published from `SITE.base`, matching the FXE directory [S4]. `tests/structured-data.test.ts` asserts the Scottsdale address never appears. | Director of Operations |
-| Response-time claims | Pass | Low | No response-time number appears anywhere. Held as a register entry (D14) and blocked by a prose scan. | Director of Operations |
+| Response-time claims | Pass with caveat | Medium | The AEI handoff publishes its exact conditional "standard response time" copy (90 minutes, hedged, no promise) in the service FAQ, overriding D14's blanket bar. The prose scan still blocks any unconditional response-time promise. Operations approval for the copy is open (docs/handoff-completion-report.md). | Director of Operations |
 | 24/7 Spanish guarantee | Pass | Low | Not claimed in copy or in structured data, pending D11. | Director of Operations |
 | Case stories / statistics | Gap | Medium | Mission Stories ships as an honest empty state. No case-story block is implemented yet — it needs the authorization ID, de-identification status, and revocation fields from page 11. | Marketing owner |
 
@@ -108,5 +108,7 @@ Last updated: 2026-07-27.
    cannot forge their own bucket.
 
 3. **No legal page is approved** (Gap/High). The privacy notice, Notice of
-   Privacy Practices, terms, and patient-rights pages are drafted and render an
-   "under review" state. D10 must close before launch.
+   Privacy Practices, and terms pages are drafted and render an "under review"
+   state. The patient rights page was removed by the AEI handoff and archived
+   (`docs/archive/patient-rights-and-cost-info.md`). D10 must close before
+   launch.

@@ -10,7 +10,7 @@ import { slugOf } from '@/lib/page-registry';
 /**
  * Governance pages. Blueprint page 8, "Governance" template: "Privacy, Notice of
  * Privacy Practices, No Surprises and GFE, Terms, Accessibility, Cookie
- * Settings — Publish approved notices and rights paths."
+ * Settings - Publish approved notices and rights paths."
  *
  * Every page here carries `reviewer: null` until Legal signs off (D10), so each
  * renders a visible "under review" state rather than presenting drafted text as

@@ -19,7 +19,7 @@ import {
  *   email, preferred language, callback consent.
  *
  * There is no diagnosis field, no patient name, no date of birth, no record
- * number, no insurance ID, and no file upload — page 12 forbids all of them in
+ * number, no insurance ID, and no file upload - page 12 forbids all of them in
  * the public marketing form. The server schema is `.strict()`, so adding an
  * input here without also changing the schema produces a validation error rather
  * than a silent PHI pathway.
@@ -62,7 +62,7 @@ export function IntakeForm({
    * One idempotency key per mounted form. Section 14: "Every inquiry and
    * downstream write carries a unique idempotency key ... to prevent duplicate
    * case creation." Held in a ref rather than state so a re-render never mints a
-   * second key — a double-submit must reuse the same key to be deduplicated.
+   * second key - a double-submit must reuse the same key to be deduplicated.
    */
   const idempotencyKey = useRef<string>(crypto.randomUUID());
 

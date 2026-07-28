@@ -1,9 +1,11 @@
 import type { PageContent } from '@/content/blocks';
 
 /**
- * Fleet sub-pages. Blueprint page 8, "Trust" template: "Fleet, Medical Team and
- * Equipment, Credentials, About, Leadership — Show only verified proof with
- * dates and sources."
+ * Fleet sub-pages.
+ *
+ * The equipment page is removed per the AEI handoff (Section 14):
+ * its route 301s to Critical Care Transport, and general capability copy stays
+ * on approved service pages only. Only the Flight Medical Team page remains.
  *
  * Both pages describe clinical capability, which page 6 places under the
  * Medical Director's approval: "Medical director, crew, equipment, service-line,
@@ -12,70 +14,11 @@ import type { PageContent } from '@/content/blocks';
  *
  * No such approval exists yet, so neither page lists specific equipment models,
  * crew certifications, or specialty capabilities. They describe how capability
- * is determined per case — which is accurate, useful, and unfalsifiable in the
+ * is determined per case - which is accurate, useful, and unfalsifiable in the
  * way an unapproved equipment list is not.
  */
 
 export const FLEET_PAGES: readonly PageContent[] = [
-  {
-    path: '/fleet/medical-equipment',
-    title: 'Medical Equipment',
-    description:
-      'How the medical equipment for an AirEvac transport is determined, and how to confirm ' +
-      'what will be on board for a specific patient.',
-    intro:
-      'How the equipment for a transport is decided, and how to confirm what will be on board ' +
-      'for your patient.',
-    contentClass: 'medical',
-    reviewer: null, // PENDING: Medical Director approval of specific capability claims.
-    reviewedOn: null,
-    esReviewedOn: null,
-    blocks: [
-      {
-        type: 'callout',
-        tone: 'info',
-        heading: 'Equipment is configured per case, not per aircraft',
-        body:
-          'Rather than publish a fixed equipment list, we confirm the configuration for your ' +
-          'specific patient during the medical review. A published list would tell you what is ' +
-          'usually carried, not what will be on your transport — and for a referring physician, ' +
-          'only the second answer is useful.',
-      },
-      {
-        type: 'prose',
-        heading: 'How the configuration is decided',
-        paragraphs: [
-          'During the medical review, our medical team works from the sending physician’s ' +
-            'report to determine the monitoring, respiratory support, infusion, and medication ' +
-            'requirements for the flight, taking altitude physiology and the flight duration ' +
-            'into account.',
-          'The aircraft is then configured, and the crew is assigned, to that requirement.',
-        ],
-      },
-      {
-        type: 'list',
-        heading: 'What a referring physician should confirm with us',
-        items: [
-          'The monitoring capability required for the patient’s current status.',
-          'Ventilator or respiratory support requirements, including specific settings.',
-          'Infusion pump requirements and the medications that must run in flight.',
-          'Any specialised equipment the patient currently depends on.',
-          'Isolation or infection-control requirements.',
-          'Weight, mobility, and loading considerations.',
-        ],
-      },
-      {
-        type: 'prose',
-        heading: 'Ask directly',
-        paragraphs: [
-          'If you are a physician or case manager and need to confirm a specific capability ' +
-            'before referring a patient, call a flight coordinator and ask for the medical ' +
-            'team. You will get a direct answer about your patient rather than a brochure.',
-        ],
-      },
-    ],
-  },
-
   {
     path: '/fleet/flight-medical-team',
     title: 'Flight Medical Team',
@@ -84,7 +27,7 @@ export const FLEET_PAGES: readonly PageContent[] = [
       'configuration for a specific patient.',
     intro: 'How the medical crew for a transport is assigned, and how to confirm it.',
     contentClass: 'medical',
-    reviewer: null, // PENDING: Medical Director approval of crew credential claims.
+    reviewer: null,
     reviewedOn: null,
     esReviewedOn: null,
     blocks: [
@@ -97,16 +40,6 @@ export const FLEET_PAGES: readonly PageContent[] = [
           'Medical Director has approved them and each credential has been verified. Until ' +
           'that review is complete, this page describes how crews are assigned rather than ' +
           'listing qualifications we have not evidenced here.',
-      },
-      {
-        type: 'prose',
-        heading: 'Accreditation scope',
-        paragraphs: [
-          'AirEvac International USA holds EURAMI accreditation as a Regional Fixed Wing Air ' +
-            'Ambulance with a Critical Care Transports endorsement. The exact scope, holder, ' +
-            'expiry, and a link to EURAMI’s own record are on the credentials page — including ' +
-            'the standards that accreditation covers.',
-        ],
       },
       {
         type: 'prose',
@@ -125,8 +58,9 @@ export const FLEET_PAGES: readonly PageContent[] = [
         heading: 'Confirming the crew for a specific patient',
         paragraphs: [
           'Referring physicians and case managers can confirm the proposed crew configuration ' +
-            'during the medical review, before the transport is accepted. Ask your coordinator ' +
-            'to connect you with the medical team.',
+            'during the medical review, before the transport is accepted. Ask our coordinators ' +
+            'to connect you with the medical team: call (619) 754-6755 or email ' +
+            'ops@aeiamericas.com.',
         ],
       },
     ],

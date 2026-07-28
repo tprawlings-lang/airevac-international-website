@@ -7,9 +7,9 @@ import type { PageContent } from '@/content/blocks';
  * Leadership and Mission Stories are the two pages most likely to breach the
  * launch rule, because both are naturally written from unverified material:
  * biographies with unconfirmed credentials, and case stories with patient
- * detail. Page 10 is explicit — "Do not publish patient faces, clinical details,
+ * detail. Page 10 is explicit - "Do not publish patient faces, clinical details,
  * documents, tail numbers, routes, or dates in stories without approved
- * authorization and operations review" — and page 11 requires a case story to
+ * authorization and operations review" - and page 11 requires a case story to
  * carry an authorization ID, a de-identification status, a revocation field, and
  * a publishing approval.
  *
@@ -47,7 +47,7 @@ export const ABOUT_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Coordination without a broker in between',
         paragraphs: [
-          'When you call, you reach a flight coordinator who works the case — not a call ' +
+          'When you call, you reach a flight coordinator who works the case, not a call ' +
             'centre that passes your request to whoever answers next. That matters most in the ' +
             'first hour, when the questions are operational and the answers determine the ' +
             'timeline.',
@@ -60,7 +60,7 @@ export const ABOUT_PAGES: readonly PageContent[] = [
           'Every credential, accreditation, and aircraft claim on this site is shown with its ' +
             'exact scope, the holder, the expiry date, and a link to the issuer’s own record ' +
             'where one exists. If we do not hold current documentation for something, it is not ' +
-            'on this site — including things we may well be entitled to say.',
+            'on this site, including things we may well be entitled to say.',
           'You can verify what we publish without asking us. That is the point.',
         ],
       },
@@ -170,7 +170,7 @@ export const ABOUT_PAGES: readonly PageContent[] = [
           'A mission story is published only when we hold written authorization, the account ' +
           'has been de-identified, and our medical and operations teams have approved the ' +
           'wording. We do not publish patient faces, clinical details, documents, tail numbers, ' +
-          'routes, or dates without that authorization — and we would rather have an empty page ' +
+          'routes, or dates without that authorization, and we would rather have an empty page ' +
           'than a story that identifies someone.',
       },
       {

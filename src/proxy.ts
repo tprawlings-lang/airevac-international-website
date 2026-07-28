@@ -6,7 +6,7 @@ import { DEFAULT_LOCALE, LOCALES } from '@/lib/i18n';
  *   "Context encoding, strict CSP with nonces or hashes, Trusted Types where
  *    supported, no unsafe inline scripts, secure MIME types."
  *
- * WHY A NONCE AND NOT A HASH — see docs/adr/0004-security-headers.md.
+ * WHY A NONCE AND NOT A HASH - see docs/adr/0004-security-headers.md.
  * Next.js emits inline bootstrap scripts whose content changes with every build
  * and with every streamed RSC payload, so a build-time hash allowlist is not
  * stable. A per-response nonce is the supported mechanism. The cost is that HTML
@@ -15,7 +15,7 @@ import { DEFAULT_LOCALE, LOCALES } from '@/lib/i18n';
  * Core Web Vitals budget on page 21 is actually won.
  *
  * `strict-dynamic` means the nonce propagates to scripts Next loads at runtime
- * without having to enumerate them, and it makes host allowlists inert — which
+ * without having to enumerate them, and it makes host allowlists inert - which
  * is intended: section 13 forbids third-party advertising and analytics code
  * outright, so there is no host to allow.
  */
@@ -85,7 +85,7 @@ function safeEqual(a: string, b: string): boolean {
  *
  * ===================== WHY THIS EXISTS =====================
  * A hosted preview of this site looks like the live AirEvac site and carries the
- * real 24/7 coordinator phone number — while the legal pages are unapproved
+ * real 24/7 coordinator phone number - while the legal pages are unapproved
  * drafts (D10) and the callback form does not reach a coordinator (D7/D8/D9).
  *
  * A link that escapes to a hospital, a partner, or a family is exactly the harm
@@ -116,7 +116,7 @@ function previewAuthFailed(request: NextRequest): boolean {
     return true;
   }
 
-  // Split on the FIRST colon only — a password may legitimately contain one.
+  // Split on the FIRST colon only - a password may legitimately contain one.
   const separator = decoded.indexOf(':');
   if (separator === -1) return true;
 
@@ -168,7 +168,7 @@ export default function proxy(request: NextRequest): NextResponse {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`;
-    // 308 preserves the method and is cacheable — section 3 requires permanent
+    // 308 preserves the method and is cacheable - section 3 requires permanent
     // redirects with no chains.
     return NextResponse.redirect(url, 308);
   }

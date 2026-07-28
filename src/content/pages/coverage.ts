@@ -11,7 +11,7 @@ import { PRIORITY_ROUTES, type CoverageRegionSlug, type RouteMarket } from '@/co
  *    diagnosis. Each indexable page must add local or audience-specific utility."
  *
  * The generator below composes each route page from the operational specifics in
- * `PRIORITY_ROUTES` — real departure airports, real receiving corridors, and the
+ * `PRIORITY_ROUTES` - real departure airports, real receiving corridors, and the
  * factors that actually drive timing in that region. A route with nothing
  * specific to say produces a thin page, which is the signal to remove it from
  * `PRIORITY_ROUTES` rather than publish it.
@@ -46,8 +46,8 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         type: 'prose',
         heading: 'Route context',
         paragraphs: [
-          'Most Mexican transports we coordinate originate in a resort region — the Yucatán ' +
-            'peninsula, Los Cabos, or Puerto Vallarta — where a visitor has been hospitalised ' +
+          'Most Mexican transports we coordinate originate in a resort region (the Yucatán ' +
+            'peninsula, Los Cabos, or Puerto Vallarta) where a visitor has been hospitalised ' +
             'and needs to return home for continued care.',
           'The clinical picture is usually clear by the time we are called. The variables that ' +
             'determine the timeline are documentation, the receiving bed, and the airport.',
@@ -70,14 +70,14 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         body:
           'In Mexico, private hospitals commonly require the account to be settled before ' +
           'they will discharge a patient. That step, not the aircraft, is what most often ' +
-          'delays a transport. Raise it with your coordinator on the first call so it can be ' +
+          'delays a transport. Raise it with our coordinators on the first call so it can be ' +
           'worked in parallel with everything else.',
       },
       {
         type: 'list',
         heading: 'What drives cost on Mexican routes',
         items: [
-          'Distance to the receiving facility — a Cancún to Florida transport is a very different route from Los Cabos to the United States West Coast.',
+          'Distance to the receiving facility. A Cancún to Florida transport is a very different route from Los Cabos to the United States West Coast.',
           'The medical crew level the patient’s condition requires.',
           'Ground ambulance at both ends.',
           'Airport fees, permits, and customs handling.',
@@ -102,7 +102,7 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         type: 'prose',
         heading: 'Route context',
         paragraphs: [
-          'Caribbean transports are usually short — most islands are within a few hours of ' +
+          'Caribbean transports are usually short. Most islands are within a few hours of ' +
             'South Florida, and our Fort Lauderdale base sits at the receiving end of that ' +
             'corridor.',
           'The constraint is rarely distance. It is island airport operating hours, permit ' +
@@ -216,7 +216,7 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         items: [
           'Confirmation of the receiving hospital and the accepting physician before departure.',
           'Ground ambulance from the arrival airport to the receiving facility.',
-          'A documented clinical handover at the receiving facility.',
+          'A case report at the receiving facility.',
           'Coordination with the family on arrival timing, so someone can be there.',
         ],
       },
@@ -227,7 +227,7 @@ export const REGION_CONTENT: readonly RegionContent[] = [
         body:
           'The destination is the patient’s, the family’s, or the referring physician’s ' +
           'decision, with input from the insurer where one is involved. We coordinate with the ' +
-          'facility and confirm the bed, but we do not choose it for you — and you should be ' +
+          'facility and confirm the bed, but we do not choose it for you, and you should be ' +
           'cautious of any provider who wants to.',
       },
     ],
@@ -250,7 +250,7 @@ export function findRoute(region: string, slug: string): RouteMarket | undefined
  * Composes a route page from its operational specifics.
  *
  * Written as a generator rather than 12 hand-written pages so that the *shape*
- * of every route page is identical and the *content* is necessarily specific —
+ * of every route page is identical and the *content* is necessarily specific -
  * a route with no distinct airports or receiving corridor cannot produce a page
  * that looks complete, which is exactly the signal page 8 asks for.
  */
@@ -262,7 +262,7 @@ export function buildRouteBlocks(route: RouteMarket, regionName: string): Block[
       paragraphs: [
         `Transports from ${route.name} typically move patients to ${route.commonDestinations}.`,
         'Every case is planned individually. The notes below describe what usually drives the ' +
-          'timeline on this route — your coordinator will tell you which of them apply to your ' +
+          'timeline on this route. Our coordinators will tell you which of them apply to your ' +
           'case.',
       ],
     },
@@ -300,7 +300,7 @@ export function buildRouteBlocks(route: RouteMarket, regionName: string): Block[
       body:
         'You do not need records, insurance information, or a confirmed receiving hospital to ' +
         'make the first call. Those are the things we help you work through. Calling early ' +
-        'lets the slow items — the receiving bed and the insurer authorization — run in ' +
+        'lets the slow items, the receiving bed and the financial clearance, run in ' +
         'parallel instead of in sequence.',
     },
     {

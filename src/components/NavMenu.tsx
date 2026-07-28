@@ -9,7 +9,7 @@ import { localePath, type Locale } from '@/lib/i18n';
  * Desktop navigation dropdown.
  *
  * REPLACES a `<details>`-based menu that only closed when you clicked the
- * trigger again — so menus accumulated open across the header.
+ * trigger again - so menus accumulated open across the header.
  *
  * BEHAVIOUR
  *  - Hover opens after a short delay; moving away closes after a grace period.
@@ -27,7 +27,7 @@ import { localePath, type Locale } from '@/lib/i18n';
  *  - The trigger is a real `<button>` with `aria-expanded` and `aria-controls`.
  *  - The idle timer is suspended while focus is inside the menu. A keyboard or
  *    screen-reader user reading through six links must never have the menu
- *    yanked out from under them mid-read — WCAG 2.2 SC 2.2.1 (Timing
+ *    yanked out from under them mid-read - WCAG 2.2 SC 2.2.1 (Timing
  *    Adjustable) exists for exactly this.
  *  - `prefers-reduced-motion` is respected by using no transition at all.
  */
@@ -173,6 +173,21 @@ export function NavMenu({ groups, locale }: { groups: NavGroup[]; locale: Locale
       {groups.map((group) => {
         const isOpen = openLabel === group.label;
         const menuId = `${baseId}-${group.label.replace(/\W+/g, '-')}`;
+
+        // A group with no children (For Partners, per the AEI handoff) renders
+        // as a plain link: no dropdown, no aria-expanded, no idle timer.
+        if (group.links.length === 0 && group.href !== undefined) {
+          return (
+            <li key={group.label}>
+              <Link
+                href={localePath(locale, group.href)}
+                className="inline-flex min-h-[44px] items-center whitespace-nowrap rounded px-3 py-2 text-sm font-semibold text-navy-900 hover:bg-support-50"
+              >
+                {group.label}
+              </Link>
+            </li>
+          );
+        }
 
         return (
           <li

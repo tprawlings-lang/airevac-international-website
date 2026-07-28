@@ -32,7 +32,7 @@ export const LOCALE_LABEL: Record<Locale, string> = {
 /**
  * Locale-aware path builder.
  *
- * `path` is always the canonical English route (e.g. `/partners/hospitals`).
+ * `path` is always the canonical English route (e.g. `/services/air-ambulance`).
  * Route *slugs* are deliberately not translated: section 3 requires "short,
  * stable URLs", and translated slugs double the redirect map and break inbound
  * links every time a translation is revised.
@@ -57,7 +57,7 @@ export function stripLocale(pathname: string): string {
  * Formats a date for display in the given locale.
  *
  * Always renders in UTC. Credential expiry dates are legal facts, not local
- * events — rendering "Aug 25, 2027" as "Aug 24" for a viewer west of UTC would
+ * events - rendering "Aug 25, 2027" as "Aug 24" for a viewer west of UTC would
  * misstate a certificate.
  */
 export function formatDate(iso: string, locale: Locale): string {

@@ -5,7 +5,7 @@ import { coarsenIp, safeLog } from '@/lib/redact';
 import { recordInquiry } from '@/lib/inquiry-queue';
 
 /**
- * Secure callback endpoint. Blueprint section 6 (stage: Triage) — the website's
+ * Secure callback endpoint. Blueprint section 6 (stage: Triage) - the website's
  * responsibility is to "Collect role, origin, destination, timing, language and
  * callback consent" and the system's responsibility is to "Create an inquiry ID".
  *
@@ -16,7 +16,7 @@ import { recordInquiry } from '@/lib/inquiry-queue';
  *  - It does not write to JetInsight. Page 14: no integration until the BAA
  *    position, API documents, and data-flow answers exist (D7).
  *  - It does not echo submitted data back in any response. Page 16 requires
- *    "never echo submitted data" — the success body carries only an inquiry ID.
+ *    "never echo submitted data" - the success body carries only an inquiry ID.
  *  - It does not set a cookie or fire an analytics event. Page 19 prohibits
  *    pixels, tag managers, and ad cookies on intake.
  *
@@ -31,7 +31,7 @@ const MAX_BODY_BYTES = 8 * 1024;
 
 function clientIp(request: NextRequest): string {
   // Behind the CDN/WAF, the left-most XFF entry is the client. The proxy chain
-  // must be trusted and the header stripped at the edge — recorded in
+  // must be trusted and the header stripped at the edge - recorded in
   // docs/adr/0003-rate-limiting.md as a deployment requirement, because an
   // un-stripped XFF lets a caller forge their own rate-limit bucket.
   const forwarded = request.headers.get('x-forwarded-for');
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const ipBucket = coarsenIp(clientIp(request));
 
   // --- 1. Rate limit before parsing --------------------------------------
-  // Page 16: "Callback creation — 5 per 15 minutes per IP". Checked first so a
+  // Page 16: "Callback creation - 5 per 15 minutes per IP". Checked first so a
   // flood costs us a map lookup rather than a JSON parse.
   const limit = await consume('callbackPerIp', ipBucket);
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         error: 'forbidden_fields',
         message:
           'This form does not accept medical, insurance, identification, or payment ' +
-          'information. A flight coordinator will open a protected channel for those details.',
+          'information. Email records to ops@aeiamericas.com or fax them to (619) 330-4551.',
         fields: forbidden,
       },
       { status: 400, headers: { 'Cache-Control': 'no-store' } },

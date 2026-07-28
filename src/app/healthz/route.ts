@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
  *
  * Deliberately minimal: it reports that the process is serving, and nothing
  * else. It does not disclose the build, the environment, the commit, or any
- * dependency status — a health endpoint is unauthenticated by necessity, so it
+ * dependency status - a health endpoint is unauthenticated by necessity, so it
  * must not become a free reconnaissance surface.
  *
  * Exempt from the preview lock in src/proxy.ts, otherwise the probe would see a

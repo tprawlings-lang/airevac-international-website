@@ -11,7 +11,7 @@ import { publishable, type ClaimRecord } from '@/lib/credential-register';
  *
  * Every render path checks `publishable()` and returns `null` when the record is
  * not cleared. Putting the check here rather than in each page means a new page
- * that renders a credential inherits the launch rule automatically — a page
+ * that renders a credential inherits the launch rule automatically - a page
  * author cannot forget it, and there is no prop that bypasses it.
  *
  * `now` is passed in by the page so the whole page shares one evaluation instant

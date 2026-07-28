@@ -201,10 +201,10 @@ describe('the real credential register', () => {
     expect(publishable(part135!, NOW)).toBe(false);
   });
 
-  it('never publishes Learjet 35 N277MK — fleet status unresolved (D5)', () => {
-    const n277mk = FLEET.find((aircraft) => aircraft.tailNumber === 'N277MK');
-    expect(n277mk).toBeDefined();
-    expect(publishable(n277mk!.claim, NOW)).toBe(false);
+  it('never publishes the reserve Learjet 35, fleet status unresolved (D5)', () => {
+    const reserve = FLEET.find((aircraft) => aircraft.internalRef === 'AC-35-R');
+    expect(reserve).toBeDefined();
+    expect(publishable(reserve!.claim, NOW)).toBe(false);
   });
 
   it('never publishes a 24/7 Spanish staffing promise before D11 closes', () => {
@@ -219,11 +219,20 @@ describe('the real credential register', () => {
     expect(publishable(chat!, NOW)).toBe(false);
   });
 
-  it('publishes both Learjet 31A registrations, which are verified', () => {
+  it('publishes both working Learjet 31As and only those', () => {
+    // The publishable count is what backs the public "two Learjet 31A
+    // aircraft" statement (handoff G-04).
     const published = publishableRecords(FLEET_CLAIMS, NOW).map((record) => record.id);
-    expect(published).toContain('aircraft-n322pr');
-    expect(published).toContain('aircraft-n669md');
-    expect(published).not.toContain('aircraft-n277mk');
+    expect(published).toContain('aircraft-31a-1');
+    expect(published).toContain('aircraft-31a-2');
+    expect(published).not.toContain('aircraft-35-reserve');
+    expect(published).toHaveLength(2);
+  });
+
+  it('never carries a registration or tail number in the fleet register source (G-03)', () => {
+    // Identifying details belong in docs/fleet-register.md, never in src/.
+    const serialized = JSON.stringify(FLEET);
+    expect(serialized).not.toMatch(/\bN[0-9][0-9A-Z]{1,4}\b/);
   });
 
   it('keeps every held and gapped record in the file for the audit trail', () => {
@@ -247,7 +256,7 @@ describe('the real credential register', () => {
     // Page 6 forbids "owned and operated" without leases, OpSpecs, and
     // operating control on file.
     for (const aircraft of FLEET) {
-      expect(aircraft.ownershipLanguageCleared, aircraft.tailNumber).toBe(false);
+      expect(aircraft.ownershipLanguageCleared, aircraft.internalRef).toBe(false);
     }
   });
 });

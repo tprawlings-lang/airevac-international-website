@@ -33,7 +33,7 @@ export const REDACTED = '[redacted]';
  * Recursively replaces sensitive values with `[redacted]`.
  *
  * Non-sensitive scalars pass through so that role, timeframe, language, and
- * status codes remain queryable — those are the fields operations actually needs
+ * status codes remain queryable - those are the fields operations actually needs
  * and none of them identifies a person.
  */
 export function redact(value: unknown, depth = 0): unknown {

@@ -20,7 +20,7 @@ import { REFERRAL_ROLES, type ReferralRole } from '@/lib/intake-schema';
  * manager, ad cookies, session replay, query-string patient data."
  *
  * The phone path is rendered above the form, not below it. A visitor who reaches
- * this page with a time-critical case should see the faster option first — the
+ * this page with a time-critical case should see the faster option first - the
  * conversion hierarchy on page 7 puts the call ahead of the callback, and that
  * ordering is more important here than anywhere else on the site.
  */
@@ -43,9 +43,9 @@ export async function generateMetadata({
     title: dictionary.intake.heading,
     description:
       locale === 'es'
-        ? 'Solicite que un coordinador de vuelo lo llame. Solo información logística — sin ' +
+        ? 'Solicite que un coordinador de vuelo lo llame. Solo información logística, sin ' +
           'datos médicos, de seguro ni de pago.'
-        : 'Ask a flight coordinator to call you back. Logistics only — no medical, insurance, ' +
+        : 'Ask a flight coordinator to call you back. Logistics only, no medical, insurance, ' +
           'or payment information.',
     alternates: {
       canonical: localePath(locale, '/request-transport'),
@@ -89,7 +89,7 @@ export default async function RequestTransportPage({
   /*
    * `?role=hospital` pre-selects the referral path when arriving from a partner
    * page. It is validated against the allowlist and used only to set a radio
-   * default — an unrecognised value is discarded rather than reflected into the
+   * default - an unrecognised value is discarded rather than reflected into the
    * page, which is what makes this safe.
    *
    * Section 13 forbids "query-string patient data" on intake. A role is not

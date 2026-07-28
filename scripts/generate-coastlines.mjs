@@ -33,17 +33,21 @@ const world = feature(topo, topo.objects.countries);
  * airport set and padding.
  */
 const AIRPORTS = [
-  [-80.171, 26.197], // FXE, the base
-  [-86.877, 21.036], [-86.926, 20.522], [-109.721, 23.152], [-105.254, 20.68],
+  [-80.171, 26.197], // KFXE, the base
+  [-86.877, 21.036], [-86.926, 20.522],
   [-77.466, 25.039], [-78.696, 26.558], [-68.363, 18.567], [-69.669, 18.43],
+  [-70.57, 19.758],
   [-77.913, 18.504], [-76.787, 17.936], [-72.266, 21.774], [-81.358, 19.293],
   [-88.308, 17.539], [-84.209, 9.994], [-85.544, 10.593], [-86.523, 16.317],
   [-87.924, 15.453],
 ];
 
+/** Must match EAST_FRAME_LON in src/content/airports.ts (handoff H-10). */
+const EAST_FRAME_LON = -59.0;
+
 const PAD = { x: 3.5, y: 3 };
 const minLon = Math.min(...AIRPORTS.map((a) => a[0])) - PAD.x;
-const maxLon = Math.max(...AIRPORTS.map((a) => a[0])) + PAD.x;
+const maxLon = Math.max(Math.max(...AIRPORTS.map((a) => a[0])) + PAD.x, EAST_FRAME_LON);
 const minLat = Math.min(...AIRPORTS.map((a) => a[1])) - PAD.y;
 const maxLat = Math.max(...AIRPORTS.map((a) => a[1])) + PAD.y;
 

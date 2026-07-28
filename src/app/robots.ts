@@ -6,7 +6,7 @@ import { SITE } from '@/content/site';
  * search results, secure flows and portal pages."
  *
  * STAGING IS BLOCKED BY ORIGIN, NOT BY A FLAG. `SITE.url` comes from the
- * SITE_URL environment variable, whose default is deliberately NOT production —
+ * SITE_URL environment variable, whose default is deliberately NOT production -
  * so a preview or staging deploy that simply omits the variable serves a
  * disallow-all. Indexing is opt-in, and it cannot happen by omission.
  *
@@ -41,7 +41,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          // Secure flow — see the note above about crawling vs indexing.
+          // Secure flow - see the note above about crawling vs indexing.
           '/en/request-transport',
           '/es/request-transport',
           // Not content.

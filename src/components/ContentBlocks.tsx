@@ -5,7 +5,7 @@ import type { Block } from '@/content/blocks';
  * modules).
  *
  * All text arrives as plain strings and is rendered as React children, so it is
- * escaped by React — there is no `dangerouslySetInnerHTML` path for authored
+ * escaped by React - there is no `dangerouslySetInnerHTML` path for authored
  * content anywhere in this component. That is deliberate: the CMS this model
  * describes will eventually be edited by non-developers, and an HTML-accepting
  * field is a stored-XSS vector regardless of who is trusted to use it.
