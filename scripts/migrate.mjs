@@ -65,6 +65,16 @@ try {
   pool = new pg.Pool({
     connectionString: url,
     ssl: sslConfig(url, (message) => console.error(message)),
+    /*
+     * Bounded, because this runs immediately before the web server starts. The
+     * driver's default is to wait indefinitely, so an unreachable database held
+     * the whole site offline for as long as the operating system took to give
+     * up on the socket: minutes of the public site being down over a console
+     * that was not going to work either way. Ten seconds is longer than a
+     * healthy database ever needs and short enough that nobody watching a
+     * deploy assumes it has wedged.
+     */
+    connectionTimeoutMillis: 10_000,
   });
 } catch (error) {
   // Thrown by sslConfig for a refused configuration, e.g. TLS disabled against

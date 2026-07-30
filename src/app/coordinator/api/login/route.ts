@@ -4,7 +4,7 @@ import { authenticate } from '@/server/auth/users';
 import { issueSession } from '@/server/auth/sessions';
 import { csrfValid, setSessionCookie, CSRF_FIELD } from '@/server/auth/guard';
 import { consume } from '@/lib/rate-limit';
-import { coarsenIp } from '@/lib/redact';
+import { coarsenIp, safeLog } from '@/lib/redact';
 import { audit } from '@/server/audit';
 
 /**
@@ -59,16 +59,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return back(request, 'invalid');
   }
 
-  const result = await authenticate(email, password, { ip });
+  let result: Awaited<ReturnType<typeof authenticate>>;
+  let session: Awaited<ReturnType<typeof issueSession>>;
+  try {
+    result = await authenticate(email, password, { ip });
+    if (!result.ok) {
+      return back(request, result.reason);
+    }
 
-  if (!result.ok) {
-    return back(request, result.reason);
+    session = await issueSession(result.user.id, {
+      ip,
+      userAgent: request.headers.get('user-agent'),
+    });
+  } catch (error) {
+    /*
+     * The database is unreachable. Without this the form answered 500, which
+     * tells a coordinator nothing and looks identical to a bug in their own
+     * credentials. `unavailable` says the console is down rather than implying
+     * they typed something wrong, and it must never be reported as `invalid`:
+     * sending someone to re-check a correct password during a live case is a
+     * worse failure than admitting the outage.
+     */
+    safeLog('error', 'auth.database_unavailable', { error: (error as Error).name });
+    return back(request, 'unavailable');
   }
 
-  const session = await issueSession(result.user.id, {
-    ip,
-    userAgent: request.headers.get('user-agent'),
-  });
   await setSessionCookie(session.token, session.absoluteExpiresAt);
 
   /*
