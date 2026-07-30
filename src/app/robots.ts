@@ -108,6 +108,9 @@ export const DISALLOWED_PATHS = [
   // Secure flow - see the note above about crawling vs indexing.
   '/en/request-transport',
   '/es/request-transport',
+  // Staff software, not content. Also `noindex` in its own layout metadata and
+  // linked from nowhere: three independent reasons it should never be indexed.
+  '/coordinator',
   // Not content.
   '/api/',
   // Legacy WordPress paths that now redirect; no reason to crawl them.

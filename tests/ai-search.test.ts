@@ -13,12 +13,57 @@ import { ALL_CONTENT_PAGES } from '@/lib/page-registry';
 import { SERVICE_PAGES } from '@/content/pages/services';
 import { COVERAGE_REGIONS } from '@/content/navigation';
 import { FEATURES } from '@/content/site';
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+/** Every route handler that serves the coordinator console. */
+function filesOnDiskForConsole(): string[] {
+  const found: string[] = [];
+  const walk = (dir: string, prefix: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) walk(join(dir, entry.name), `${prefix}/${entry.name}`);
+      else if (entry.name === 'route.ts') found.push(`${prefix}/${entry.name}`);
+    }
+  };
+  walk(join(process.cwd(), 'src', 'app', 'coordinator'), 'src/app/coordinator');
+  return found;
+}
 
 /**
  * AI search readiness. These enforce the AI Search Coding Handoff's rules that
  * are checkable without a browser; scripts/crawler-access-check.mjs and
  * scripts/web-vitals-check.mjs cover the rest against a running server.
  */
+
+describe('the coordinator console is never published', () => {
+  it('is disallowed to every crawler group', () => {
+    // Staff software. Also `noindex` in its own layout and linked from
+    // nowhere: three independent reasons, because one of them will eventually
+    // be edited by someone who does not know about the other two.
+    expect(DISALLOWED_PATHS).toContain('/coordinator');
+  });
+
+  it('keeps its endpoints under /coordinator so cookies can be path-scoped', () => {
+    /*
+     * REGRESSION TEST. The endpoints were first written at /api/coordinator/*
+     * while the session cookie was scoped to path=/coordinator, so the browser
+     * never sent the cookie to them: every authenticated POST silently behaved
+     * as though signed out, and the unit tests passed because they call the
+     * functions directly rather than over HTTP.
+     *
+     * Keeping them under /coordinator/api/* is what lets both the session and
+     * CSRF cookies stay scoped to the console instead of riding along with
+     * every public marketing request.
+     */
+    const routes = filesOnDiskForConsole();
+    expect(routes.length).toBeGreaterThan(0);
+    for (const route of routes) {
+      expect(route, `${route} must live under src/app/coordinator/api/`).toMatch(
+        /^src\/app\/coordinator\/api\//,
+      );
+    }
+  });
+});
 
 describe('crawler policy (handoff section 4)', () => {
   it('separates search crawlers from training crawlers', () => {

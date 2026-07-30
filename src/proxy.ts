@@ -20,6 +20,9 @@ import { DEFAULT_LOCALE, LOCALES } from '@/lib/i18n';
  * outright, so there is no host to allow.
  */
 
+/** Name shared with src/server/auth/guard.ts, which reads and verifies it. */
+const CSRF_COOKIE = 'aei_csrf';
+
 const PUBLIC_FILE = /\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|css|js|map|txt|xml|webmanifest|woff2?)$/i;
 
 /**
@@ -190,6 +193,15 @@ export default function proxy(request: NextRequest): NextResponse {
     // /healthz is infrastructure, not content. Redirecting it to /en/healthz
     // sends the host's uptime probe to a 404 and the service flaps.
     pathname !== '/healthz' &&
+    // The coordinator console is staff software, not published content. It has
+    // no Spanish edition to route between, and a locale prefix on it would put
+    // a login form inside the public URL space the sitemap and hreflang
+    // describe. It is `noindex` and disallowed in robots.txt for the same
+    // reason: it is not part of the website's audience.
+    pathname !== '/coordinator' &&
+    !pathname.startsWith('/coordinator/') &&
+    // Covers /llms.txt and /indexnow-key.txt, which external systems fetch by
+    // exact URL and which a locale prefix would break.
     !PUBLIC_FILE.test(pathname)
   ) {
     const url = request.nextUrl.clone();
@@ -213,6 +225,35 @@ export default function proxy(request: NextRequest): NextResponse {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', csp);
   response.headers.set('x-nonce', nonce);
+
+  /*
+   * CSRF token for the coordinator console.
+   *
+   * ISSUED HERE BECAUSE A PAGE CANNOT DO IT. Next permits cookie writes only
+   * from a Server Action or a Route Handler, so a server component rendering
+   * the login form cannot mint its own token. Middleware runs before the page
+   * and can set cookies on the response, which makes this the one place the
+   * token can be established for a form that is rendered, not fetched.
+   *
+   * The value carries no authority on its own: it is half of a double-submit
+   * pair, and an attacker on another origin can set neither half. `sameSite:
+   * strict` is the primary defence and this is the backstop.
+   */
+  if (pathname === '/coordinator' || pathname.startsWith('/coordinator/')) {
+    if (request.cookies.get(CSRF_COOKIE) === undefined) {
+      response.cookies.set(CSRF_COOKIE, crypto.randomUUID().replace(/-/g, ''), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        // Scoped to the console, matching the session cookie. The endpoints
+        // live at /coordinator/api/* rather than /api/coordinator/* precisely
+        // so that both cookies can be path-scoped this tightly: a session
+        // cookie on '/' would ride along with every public marketing request
+        // for no benefit.
+        path: '/coordinator',
+      });
+    }
+  }
 
   return response;
 }

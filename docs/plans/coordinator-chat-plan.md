@@ -1,6 +1,6 @@
 # Coordinator chat and console — architecture plan
 
-**Status:** decisions taken 2026-07-30, Phase A in progress.
+**Status:** decisions taken 2026-07-30. **Phase A complete.** Phase B next.
 **Date:** 2026-07-30.
 
 ## Decisions taken
@@ -349,7 +349,7 @@ Each phase is independently shippable and independently reversible.
 
 | Phase | Contents | Proves |
 | --- | --- | --- |
-| **A** | Postgres, migrations, users, sessions, `/coordinator` login, admin user management, password change, audit log. No chat. | Auth and the admin console work, in isolation, before anything touches PHI. |
+| **A** ✅ | Postgres, migrations, users, sessions, `/coordinator` login, admin user management, password change, audit log. No chat. | Auth and the admin console work, in isolation, before anything touches PHI. |
 | **B** | Pre-chat intake, chat transport (SSE), coordinator console, presence, offline fallback. English only. | The conversation path works end to end. |
 | **C** | Translation, both directions, with originals shown. | The hardest UX in the feature, on a working base. |
 | **D** | Transcript notification email, retention job, transcript viewer and export. | Documentation history and the deletion schedule. |

@@ -1,0 +1,84 @@
+import { NextResponse, type NextRequest } from 'next/server';
+
+import { authenticate } from '@/server/auth/users';
+import { issueSession } from '@/server/auth/sessions';
+import { csrfValid, setSessionCookie, CSRF_FIELD } from '@/server/auth/guard';
+import { consume } from '@/lib/rate-limit';
+import { coarsenIp } from '@/lib/redact';
+import { audit } from '@/server/audit';
+
+/**
+ * Sign-in endpoint.
+ *
+ * TWO RATE LIMITS, DOING DIFFERENT JOBS. `authenticate` counts failures per
+ * user and locks that account; this route counts attempts per IP. Neither is
+ * sufficient alone: the per-user counter never trips for an attacker spraying
+ * one common password across many accounts, and the per-IP counter never trips
+ * for a distributed attack on one account. Together they cover both shapes.
+ *
+ * The IP limiter runs BEFORE the password is verified, so an attacker cannot
+ * make the server perform scrypt work by flooding it. That is a denial of
+ * service vector specific to deliberately-slow password hashing.
+ *
+ * Redirects rather than returns JSON, because the form works without
+ * JavaScript. Errors travel as a search parameter and the message lookup lives
+ * on the page, so this handler never puts a user-supplied string in a URL.
+ */
+
+export const dynamic = 'force-dynamic';
+
+function back(request: NextRequest, error: string): NextResponse {
+  const url = new URL('/coordinator', request.nextUrl.origin);
+  url.searchParams.set('error', error);
+  // 303 turns the POST into a GET, so a refresh on the error page does not
+  // resubmit the credentials.
+  return NextResponse.redirect(url, 303);
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const form = await request.formData();
+
+  if (!(await csrfValid(form.get(CSRF_FIELD)))) {
+    return back(request, 'csrf');
+  }
+
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded?.split(',')[0]?.trim() ?? null;
+  const bucket = coarsenIp(ip);
+
+  const limit = await consume('adminLoginFailure', bucket);
+  if (!limit.allowed) {
+    await audit({ action: 'auth.rate_limited', detail: { scope: 'login' }, ipHash: ip });
+    return back(request, 'ratelimited');
+  }
+
+  const email = form.get('email');
+  const password = form.get('password');
+
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return back(request, 'invalid');
+  }
+
+  const result = await authenticate(email, password, { ip });
+
+  if (!result.ok) {
+    return back(request, result.reason);
+  }
+
+  const session = await issueSession(result.user.id, {
+    ip,
+    userAgent: request.headers.get('user-agent'),
+  });
+  await setSessionCookie(session.token, session.absoluteExpiresAt);
+
+  /*
+   * A user who must change their password lands on the password page and
+   * nothing else; `requireUser` enforces that on every other route. This is
+   * what makes the seeded admin/admin credential safe to exist.
+   */
+  const destination = result.user.mustChangePassword
+    ? '/coordinator/password'
+    : '/coordinator/console';
+
+  return NextResponse.redirect(new URL(destination, request.nextUrl.origin), 303);
+}
