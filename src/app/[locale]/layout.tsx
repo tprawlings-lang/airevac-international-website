@@ -11,7 +11,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { MobileCallBar } from '@/components/MobileCallBar';
 import { AnalyticsListener } from '@/components/AnalyticsListener';
 import { ChatMount } from '@/components/chat/ChatMount';
-import { assertChatConfigurationIsSane } from '@/content/site';
+import { assertChatConfigurationIsSane, FEATURES } from '@/content/site';
 import { Analytics } from '@/components/Analytics';
 
 /**
@@ -145,7 +145,7 @@ export default async function LocaleLayout({
 
         {/* Live chat. Renders nothing while the feature flag is off, and never
             on the request form; see ChatMount. */}
-        <ChatMount locale={locale} />
+        <ChatMount locale={locale} enabled={FEATURES.secureChat} />
       </body>
     </html>
   );
