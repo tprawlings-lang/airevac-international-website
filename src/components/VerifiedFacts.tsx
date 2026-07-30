@@ -1,10 +1,8 @@
-import Link from 'next/link';
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
 import { FLEET } from '@/content/fleet';
 import { COVERAGE_REGIONS } from '@/content/navigation';
-import { getDictionary } from '@/content/dictionary';
 import { publishable } from '@/lib/credential-register';
-import { localePath, type Locale } from '@/lib/i18n';
+import type { Locale } from '@/lib/i18n';
 import { Container } from '@/components/ui/Container';
 import { AircraftIcon, ClockIcon, PhoneIcon, VerifiedIcon } from '@/components/graphics/Icons';
 
@@ -32,7 +30,6 @@ import { AircraftIcon, ClockIcon, PhoneIcon, VerifiedIcon } from '@/components/g
  * number drops by itself.
  */
 export function VerifiedFacts({ locale, now }: { locale: Locale; now: Date }) {
-  const dictionary = getDictionary(locale);
   const isSpanish = locale === 'es';
 
   const publishableAircraft = FLEET.filter((aircraft) => publishable(aircraft.claim, now)).length;
@@ -113,16 +110,16 @@ export function VerifiedFacts({ locale, now }: { locale: Locale; now: Date }) {
           ))}
         </dl>
 
+        {/*
+         * The sentence stays, the link does not. AirEvac asked for exactly one
+         * route to the credentials page, the navigation, so the homepage points
+         * at it from nowhere. Saying we publish only what we can evidence is
+         * still worth saying here: it is the reason these figures are small.
+         */}
         <p className="mt-8 border-t border-ink-300 pt-6 text-sm text-ink-500">
           {isSpanish
-            ? 'Publicamos únicamente cifras que podemos respaldar con documentación. '
-            : 'We publish only figures we can evidence. '}
-          <Link
-            href={localePath(locale, '/credentials')}
-            className="font-semibold text-support-700 underline underline-offset-4 hover:text-navy-900"
-          >
-            {dictionary.credentials.heading}
-          </Link>
+            ? 'Publicamos únicamente cifras que podemos respaldar con documentación.'
+            : 'We publish only figures we can evidence.'}
         </p>
       </Container>
     </section>

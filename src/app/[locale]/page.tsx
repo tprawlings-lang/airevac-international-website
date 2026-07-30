@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 import { Container, Section } from '@/components/ui/Container';
 import { CtaLink, PhoneCta } from '@/components/ui/Cta';
 import { ContactBlock } from '@/components/ContactBlock';
-import { CredentialList } from '@/components/CredentialCard';
 import { EmergencyNotice } from '@/components/EmergencyNotice';
 import { ProcessSteps } from '@/components/ProcessSteps';
 import { VerifiedFacts } from '@/components/VerifiedFacts';
@@ -14,7 +13,6 @@ import { HeroBackdrop } from '@/components/graphics/HeroBackdrop';
 import { BackdropPhoto } from '@/components/graphics/Photo';
 import { TranslationPendingNotice } from '@/components/TranslationPendingNotice';
 
-import { CREDENTIAL_REGISTER } from '@/content/credentials';
 import { getDictionary } from '@/content/dictionary';
 import { COVERAGE_REGIONS, PRIORITY_ROUTES } from '@/content/navigation';
 import { SITE } from '@/content/site';
@@ -23,11 +21,26 @@ import { organizationJsonLd, pageGraphJsonLd, serializeJsonLd } from '@/lib/stru
 import { getNonce } from '@/lib/nonce';
 
 /**
- * Homepage, in the AEI handoff's recommended order (Section 04):
+ * Homepage order:
  *
- *   contact bar (header) > hero (phone + email actions) > proof and fleet >
- *   Next Steps > Focused Coverage > featured map > insurance and private pay >
- *   final contact
+ *   contact bar (header) > hero (phone + email actions) > Focused Coverage and
+ *   featured map > Next Steps > insurance and private pay > final contact
+ *
+ * DEPARTS FROM THE AEI HANDOFF'S SECTION 04 ORDER, at AirEvac's request
+ * (2026-07-30). The handoff put a "Verified proof" block second, carrying the
+ * credential list, the fleet statement, and a link to the credentials page.
+ * AirEvac asked for it removed and coverage promoted in its place, so the first
+ * thing below the hero is now where AirEvac flies rather than what it can
+ * evidence.
+ *
+ * Nothing was lost by removing it. The credential register still gates every
+ * claim, still generates the JSON-LD and /llms.txt, and still drives the
+ * credentials page, which the navigation links. The fleet statement is in the
+ * hero card. This changed which page carries the proof, not whether proof
+ * governs the site.
+ *
+ * ONE ROUTE TO THE CREDENTIALS PAGE, the navigation, also at AirEvac's request.
+ * The homepage links it from nowhere.
  *
  * Removed without replacement per H-01: the audience selector section, its
  * cards, and every control that pointed at it. The partner band went with it;
@@ -66,13 +79,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const dictionary = getDictionary(locale);
 
   /*
-   * One evaluation instant for the whole page. Passing a shared `now` into every
-   * gated component means a credential cannot be publishable in the proof block
-   * and expired in the structured data of the same response.
+   * One evaluation instant for the whole page. Passing a shared `now` into
+   * everything gated means a credential cannot be publishable in one place and
+   * expired in the structured data of the same response.
    */
   const now = new Date();
-
-  const proofRecords = CREDENTIAL_REGISTER;
 
   // Nonce for the JSON-LD tag; see src/lib/nonce.ts.
   const nonce = await getNonce();
@@ -245,15 +256,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   </dd>
                 </div>
               </dl>
-
-              <p className="mt-6 border-t border-white/20 pt-4">
-                <Link
-                  href={localePath(locale, '/credentials')}
-                  className="font-semibold text-white underline underline-offset-4"
-                >
-                  {locale === 'es' ? 'Ver credenciales verificadas' : 'View verified credentials'}
-                </Link>
-              </p>
+              {/*
+               * No credentials link here. AirEvac asked for exactly one route
+               * to that page, the navigation, so the homepage does not repeat
+               * it in the hero card or anywhere else.
+               */}
             </aside>
           </div>
 
@@ -269,74 +276,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           register can evidence. See VerifiedFacts for why the numbers are
           deliberately modest. */}
       <VerifiedFacts locale={locale} now={now} />
-
-      {/* ================= VERIFIED PROOF ===============================
-          Page 10: "EURAMI status, two Learjet 31As, 24/7 English and Spanish,
-          Fort Lauderdale base."
-
-          Rendered through the register, so anything not cleared is simply
-          absent, including the "24/7 English and Spanish" claim, which is
-          gated on D11 and therefore does not appear.
-          ============================================================== */}
-      <Section ariaLabelledBy="proof-heading">
-        <Container>
-          <h2 id="proof-heading" className="text-3xl font-bold text-navy-900">
-            {locale === 'es' ? 'Pruebas verificadas' : 'Verified proof'}
-          </h2>
-          <p className="mt-3 max-w-3xl text-lg text-ink-700">
-            {locale === 'es'
-              ? 'Publicamos una credencial únicamente cuando tenemos el certificado, el ' +
-                'alcance exacto y la fecha de vencimiento. Si no aparece aquí, no lo afirmamos.'
-              : 'We publish a credential only when we hold the certificate, the exact scope, ' +
-                'and the expiry date. If it is not shown here, we do not claim it.'}
-          </p>
-
-          <div className="mt-8">
-            <CredentialList records={proofRecords} locale={locale} now={now} />
-          </div>
-
-          {/* Fleet statement: model and quantity only (handoff G-04). */}
-          <p className="mt-6 text-lg font-semibold text-navy-900">{dictionary.fleet.statement}</p>
-
-          <p className="mt-4">
-            <Link
-              href={localePath(locale, '/credentials')}
-              className="font-semibold text-support-700 underline underline-offset-4"
-            >
-              {dictionary.credentials.heading} →
-            </Link>
-          </p>
-        </Container>
-      </Section>
-
-      {/* ================= NEXT STEPS ===================================
-          Handoff Section 04, homepage order item 4: "Next steps - use the
-          revised process below." Case documents move by email or fax, and
-          financial clearance completes before confirmation (H-06, H-07).
-          ============================================================== */}
-      <Section tone="tint" ariaLabelledBy="process-heading">
-        <Container>
-          <h2 id="process-heading" className="text-3xl font-bold text-navy-900">
-            {locale === 'es' ? 'Próximos pasos' : 'Next Steps'}
-          </h2>
-          <p className="mt-3 max-w-3xl text-lg text-ink-700">
-            {locale === 'es'
-              ? 'Seis pasos desde la primera llamada hasta el despegue. Los documentos del ' +
-                'caso se envían por correo electrónico o fax, y la autorización financiera ' +
-                'se completa antes de confirmar el vuelo.'
-              : 'Six steps from first contact to wheels up. Case documents move by email or ' +
-                'fax, and financial clearance is completed before the flight is confirmed.'}
-          </p>
-
-          <div className="mt-8">
-            {locale === 'es' ? (
-              <TranslationPendingNotice locale={locale} englishPath="/" />
-            ) : (
-              <ProcessSteps locale={locale} />
-            )}
-          </div>
-        </Container>
-      </Section>
 
       {/* ================= FOCUSED COVERAGE =============================
           Handoff Section 05, "Concentrated service areas": exact approved copy,
@@ -404,6 +343,35 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 ))}
               </ul>
             </div>
+          </div>
+        </Container>
+      </Section>
+
+      {/* ================= NEXT STEPS ===================================
+          Handoff Section 04, homepage order item 4: "Next steps - use the
+          revised process below." Case documents move by email or fax, and
+          financial clearance completes before confirmation (H-06, H-07).
+          ============================================================== */}
+      <Section tone="tint" ariaLabelledBy="process-heading">
+        <Container>
+          <h2 id="process-heading" className="text-3xl font-bold text-navy-900">
+            {locale === 'es' ? 'Próximos pasos' : 'Next Steps'}
+          </h2>
+          <p className="mt-3 max-w-3xl text-lg text-ink-700">
+            {locale === 'es'
+              ? 'Seis pasos desde la primera llamada hasta el despegue. Los documentos del ' +
+                'caso se envían por correo electrónico o fax, y la autorización financiera ' +
+                'se completa antes de confirmar el vuelo.'
+              : 'Six steps from first contact to wheels up. Case documents move by email or ' +
+                'fax, and financial clearance is completed before the flight is confirmed.'}
+          </p>
+
+          <div className="mt-8">
+            {locale === 'es' ? (
+              <TranslationPendingNotice locale={locale} englishPath="/" />
+            ) : (
+              <ProcessSteps locale={locale} />
+            )}
           </div>
         </Container>
       </Section>
