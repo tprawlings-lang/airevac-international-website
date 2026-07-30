@@ -201,6 +201,22 @@ underlying document or list exists.
 | Route operational detail (F5) | Operations read-through of the twelve route pages. | Content is live but unconfirmed. |
 | Domestic service page (A6) | Whether AirEvac accepts domestic-only transports, and the operational facts. | No page published. |
 
+## Handback documents (revision 2.0, 2026-07-30)
+
+The revision 1.0 pair is superseded. Regenerate both with
+`python3 scripts/generate-handoff-pdfs.py`.
+
+| Document | Audience | Covers |
+| --- | --- | --- |
+| `docs/AirEvac_Facts_and_Approvals.pdf` | Leadership, operations, clinical, legal | The EURAMI certificate (led, because it outweighs everything else), six fact sets, launch-tied approvals, the undelivered form, the domestic-page decision, and the authority-building work no code can do. |
+| `docs/AirEvac_Signups_and_Accounts.pdf` | Whoever owns the accounts | DNS and custom domain, Search Console, Bing Webmaster, Google Business Profile, Bing Places, the GA4 measurement ID, listing consistency, and the access checklist. |
+
+Changes from revision 1.0: Render hosting is complete (paid production
+instance), decisions A1 and A2 are approved and applied so they are no longer
+asks, and the GA4 measurement ID is now an account item rather than a decision.
+`README.md` carries the same content as a "Before launch" section for the
+engineering audience.
+
 ## Open production approvals
 
 - AEI operations approval for the conditional 90-minute response copy.

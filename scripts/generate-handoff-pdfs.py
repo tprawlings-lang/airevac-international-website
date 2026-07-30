@@ -1,11 +1,16 @@
-"""Generates the two companion PDFs for the AI Search Coding Handoff:
+"""Generates the two AirEvac handback PDFs.
 
-  1. AirEvac_Required_Inputs_and_Approvals.pdf  (for AirEvac leadership)
-  2. AirEvac_External_Accounts_Setup.pdf        (Google/Bing/Render/DNS actions)
+  1. AirEvac_Signups_and_Accounts.pdf   what to sign up for and configure
+  2. AirEvac_Facts_and_Approvals.pdf    what only AirEvac can supply
 
-Styled to match the company's existing handoff documents: navy headings,
-uppercase brand header, footer with document title and page number.
+Revision 2.0, 2026-07-30. Supersedes the 1.0 pair: AirEvac approved the AI
+visibility decisions, Render is now on a paid production instance, and the
+remaining asks have narrowed to facts, account access, and one certificate.
+
+Usage: python3 scripts/generate-handoff-pdfs.py [output_dir]
 """
+
+import sys
 
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -13,78 +18,76 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer, Table, TableStyle,
-    KeepTogether,
 )
+
+OUT_DIR = sys.argv[1] if len(sys.argv) > 1 else 'docs'
 
 NAVY = colors.HexColor('#13315C')
 NAVY_DARK = colors.HexColor('#0B2239')
-SUPPORT = colors.HexColor('#1D6FB8')
 INK = colors.HexColor('#26313B')
 LIGHT = colors.HexColor('#EEF3F8')
 RULE = colors.HexColor('#C8D4E0')
+URGENT = colors.HexColor('#B3261E')
+GOOD = colors.HexColor('#1B6B45')
 
 styles = getSampleStyleSheet()
 
+
 def st(name, **kw):
     base = kw.pop('base', 'Normal')
-    s = ParagraphStyle(name, parent=styles[base], **kw)
-    styles.add(s)
-    return s
+    styles.add(ParagraphStyle(name, parent=styles[base], **kw))
 
-st('Brand', fontName='Helvetica-Bold', fontSize=9, textColor=NAVY,
-   spaceAfter=2, tracking=2)
-st('DocTitle', fontName='Helvetica-Bold', fontSize=24, leading=28,
-   textColor=NAVY_DARK, spaceBefore=10, spaceAfter=6)
-st('DocSub', fontName='Helvetica', fontSize=11, leading=15,
-   textColor=INK, spaceAfter=18)
-st('H1', fontName='Helvetica-Bold', fontSize=15, leading=19, textColor=NAVY,
-   spaceBefore=18, spaceAfter=6)
-st('H2', fontName='Helvetica-Bold', fontSize=11.5, leading=15,
-   textColor=NAVY_DARK, spaceBefore=12, spaceAfter=4)
+
+st('Brand', fontName='Helvetica-Bold', fontSize=9, textColor=NAVY, spaceAfter=2)
+st('DocTitle', fontName='Helvetica-Bold', fontSize=23, leading=27,
+   textColor=NAVY_DARK, spaceBefore=10, spaceAfter=4)
+st('DocSub', fontName='Helvetica', fontSize=10.5, leading=14.5, textColor=INK,
+   spaceAfter=16)
+st('H1', fontName='Helvetica-Bold', fontSize=14.5, leading=18, textColor=NAVY,
+   spaceBefore=16, spaceAfter=6)
+st('H2', fontName='Helvetica-Bold', fontSize=11, leading=14, textColor=NAVY_DARK,
+   spaceBefore=11, spaceAfter=3)
 st('Body', fontName='Helvetica', fontSize=9.5, leading=13.5, textColor=INK,
    spaceAfter=6)
-st('BodySmall', fontName='Helvetica', fontSize=8.5, leading=12, textColor=INK)
 st('Cell', fontName='Helvetica', fontSize=8.5, leading=11.5, textColor=INK)
-st('CellBold', fontName='Helvetica-Bold', fontSize=8.5, leading=11.5,
-   textColor=NAVY_DARK)
 st('CellHead', fontName='Helvetica-Bold', fontSize=8.5, leading=11,
    textColor=colors.white)
 st('AeiBullet', fontName='Helvetica', fontSize=9.5, leading=13.5, textColor=INK,
    leftIndent=14, bulletIndent=4, spaceAfter=3)
 st('Note', fontName='Helvetica-Oblique', fontSize=9, leading=12.5,
    textColor=colors.HexColor('#4A5560'), spaceBefore=2, spaceAfter=8)
+st('Flag', fontName='Helvetica-Bold', fontSize=9.5, leading=13.5,
+   textColor=URGENT, spaceAfter=6)
+st('Done', fontName='Helvetica-Bold', fontSize=9.5, leading=13.5,
+   textColor=GOOD, spaceAfter=6)
 
 
 def build(filename, doc_label, story):
     def on_page(canvas, doc):
         canvas.saveState()
-        # Header
         canvas.setFillColor(NAVY)
         canvas.setFont('Helvetica-Bold', 9)
-        canvas.drawString(0.85 * inch, letter[1] - 0.55 * inch,
-                          'AIREVAC INTERNATIONAL')
+        canvas.drawString(0.85 * inch, letter[1] - 0.55 * inch, 'AIREVAC INTERNATIONAL')
         canvas.setStrokeColor(RULE)
         canvas.setLineWidth(0.8)
         canvas.line(0.85 * inch, letter[1] - 0.65 * inch,
                     letter[0] - 0.85 * inch, letter[1] - 0.65 * inch)
-        # Footer
         canvas.setFont('Helvetica', 8)
         canvas.setFillColor(colors.HexColor('#5A6570'))
         canvas.drawString(0.85 * inch, 0.5 * inch, doc_label)
-        canvas.drawRightString(letter[0] - 0.85 * inch, 0.5 * inch,
-                               f'Page {doc.page}')
+        canvas.drawRightString(letter[0] - 0.85 * inch, 0.5 * inch, f'Page {doc.page}')
         canvas.restoreState()
 
     doc = BaseDocTemplate(
-        filename, pagesize=letter,
+        f'{OUT_DIR}/{filename}', pagesize=letter,
         leftMargin=0.85 * inch, rightMargin=0.85 * inch,
         topMargin=0.95 * inch, bottomMargin=0.8 * inch,
         title=doc_label, author='AirEvac International website build team',
     )
-    frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height,
-                  id='main')
-    doc.addPageTemplates([PageTemplate(id='page', frames=[frame],
-                                       onPage=on_page)])
+    doc.addPageTemplates([PageTemplate(
+        id='page',
+        frames=[Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='main')],
+        onPage=on_page)])
     doc.build(story)
 
 
@@ -110,374 +113,367 @@ def bullets(items):
     return [Paragraph(i, styles['AeiBullet'], bulletText='•') for i in items]
 
 
-P = lambda text, style='Body': Paragraph(text, styles[style])
-SP = lambda h=6: Spacer(1, h)
+def P(text, style='Body'):
+    return Paragraph(text, styles[style])
 
-# ============================================================================
-# PDF 1: Required inputs and approvals from AirEvac
-# ============================================================================
 
-s1 = []
-s1.append(P('AI SEARCHABILITY PROGRAM', 'Brand'))
-s1.append(P('Required Inputs and Approvals from AirEvac', 'DocTitle'))
-s1.append(P(
-    'Companion to the AI Search Coding Handoff. Everything in this document '
-    'needs an answer, a fact, or a sign-off from AirEvac leadership, aviation '
-    'operations, clinical leadership, or marketing. Nothing here requires '
-    'technical knowledge. Prepared July 30, 2026 by the website build team.',
-    'DocSub'))
+def SP(h=6):
+    return Spacer(1, h)
 
-s1.append(P('How to use this document', 'H1'))
-s1.append(P(
-    'Each item has an ID. Reply by email with the ID and your answer, '
-    'attachment, or approval. Where a default is listed, the build proceeds '
-    'with that default until you say otherwise, and the default is always the '
-    'cautious option: nothing is claimed, published, or enabled without '
-    'approval. Items marked BLOCKING hold up a visible part of the build.'))
 
-s1.append(P('1. Decisions required', 'H1'))
-s1.append(table(
-    ['ID', 'Decision', 'What we need from you', 'Default until answered'],
-    [
-        ['A1',
-         '<b>AI crawler policy.</b> Search crawlers (Google, Bing, ChatGPT '
-         'search, Claude search) will be allowed so the site can be found and '
-         'cited. Separately, some crawlers collect pages to train AI models.',
-         'Confirm whether to block model-training crawlers: GPTBot (OpenAI), '
-         'Google-Extended (Gemini training), Applebot-Extended. Blocking them '
-         'does not reduce search visibility.',
-         'Allow all search crawlers; block training-only crawlers.'],
-        ['A2',
-         '<b>Analytics. BLOCKING for measurement only.</b> The handoff '
-         'recommends Google Analytics 4 and Tag Manager. The published '
-         'privacy notice currently promises no analytics cookies, so adopting '
-         'them requires a privacy notice update and a consent approach.',
-         'Approve or decline GA4 and Tag Manager. We recommend declining '
-         'Microsoft Clarity session recording entirely: this site handles '
-         'urgent medical contacts.',
-         'Measurement layer is built but disabled. No tracking runs.'],
-        ['A3',
-         '<b>Domain form.</b> The site must live at one address. The AI '
-         'handoff assumes www.airevacinternational.com; the build is currently '
-         'configured for airevacinternational.com without www.',
-         'Choose www or non-www. Either works; it must be one, everywhere, '
-         'forever.',
-         'Non-www, with www redirecting to it.'],
-        ['A4',
-         '<b>Hosting plan.</b> The free Render tier puts the site to sleep '
-         'when idle. A sleeping site answers crawlers and callers slowly or '
-         'not at all.',
-         'Approve a paid Render production instance and log retention.',
-         'Site remains on the current preview instance.'],
-        ['A5',
-         '<b>Structure conflict.</b> The AI handoff lists pages your July 27 '
-         'change handoff removed: commercial medical escort, medical '
-         'equipment, cost and patient-rights content, and separate hospital '
-         'and case-manager sections.',
-         'Confirm the July 27 change handoff remains authoritative. We '
-         'believe the AI document was written against the old site.',
-         'July 27 handoff wins. Removed pages stay removed.'],
-        ['A6',
-         '<b>Domestic service page. BLOCKING for that page.</b> The AI '
-         'handoff proposes a page for domestic United States air ambulance '
-         'service. The site currently lists the United States as a service '
-         'area but has no domestic service page.',
-         'Confirm AirEvac accepts domestic-only transports, and supply the '
-         'facts: typical cases, what is coordinated, limitations.',
-         'No domestic page is published.'],
-        ['A7',
-         '<b>Content management system.</b> The AI handoff recommends a '
-         'headless CMS (Sanity). The site currently keeps all content in '
-         'reviewed, version-controlled records with publication gates that '
-         'block unapproved claims automatically.',
-         'Tell us who at AirEvac needs to edit site content without a '
-         'developer, and how often. That answer decides whether a CMS is '
-         'worth its cost and the loss of the current approval gates.',
-         'No CMS. Content changes go through the build team.'],
-    ],
-    [0.35 * inch, 1.85 * inch, 2.6 * inch, 2.0 * inch]))
+# ===========================================================================
+# PDF 1 - Sign-ups and accounts
+# ===========================================================================
 
-s1.append(P('2. Facts only AirEvac can supply', 'H1'))
-s1.append(P(
-    'The AI handoff is explicit that coding must not invent or carry over '
-    'these facts. Until each arrives, the related content stays unpublished '
-    'or stays limited to what has already been approved.'))
-s1.append(table(
-    ['ID', 'Fact set', 'What is needed', 'Status'],
-    [
-        ['F1', 'Legal and entity facts',
-         'Approved legal name, any DBA wording, operator relationships, and '
-         'which names may appear publicly.',
-         'Needed. Site currently publishes only "AirEvac International".'],
-        ['F2', 'Aviation facts',
-         'Certificate-holder wording, whether the certificate number is '
-         'publishable, operating bases, aircraft range wording, and '
-         'restrictions.',
-         'Needed. Fleet statement ("two Learjet 31A aircraft") is published '
-         'per the July 27 handoff and awaits final operations approval.'],
-        ['F3', 'Clinical facts',
-         'Medical team roles, equipment, supported and excluded patient '
-         'categories, and the names and credentials of clinical reviewers '
-         'willing to be published.',
-         'Needed. BLOCKING for reviewer profiles, equipment content, and '
-         'any medical guide articles.'],
-        ['F4', 'Accreditations',
-         'Current status, scope, expiration, approved logos, exact approved '
-         'language, and public proof links for every accreditation.',
-         'Needed. The site publishes no accreditation until this arrives; '
-         'the launch gate withholds them automatically.'],
-        ['F5', 'Service area',
-         'Confirmation of the twelve route pages’ operational detail '
-         '(ground transfer, hospital and discharge, documents), and routine '
-         'versus case-by-case coverage boundaries.',
-         'Drafted by the build team from regional knowledge. Needs an '
-         'operations read-through; corrections take effect same day.'],
-        ['F6', 'Photography',
-         'Aircraft, crew, and facility images AirEvac has permission to '
-         'publish, with any people identifiable in them cleared.',
-         'Partial. Current images came from the old site; anything better '
-         'improves every page it touches.'],
-        ['F7', 'Old-site records',
-         'Any Google Search Console history, analytics exports, or paid '
-         'listing records from the current site, if they exist.',
-         'The build team already crawled and mapped all 88 old URLs; '
-         'account history would confirm nothing was missed.'],
-    ],
-    [0.35 * inch, 1.3 * inch, 3.05 * inch, 2.1 * inch]))
+s1 = [
+    P('WEBSITE LAUNCH PROGRAM | REVISION 2.0', 'Brand'),
+    P('Sign-Ups and Accounts Required', 'DocTitle'),
+    P('Every account AirEvac needs to create, claim, or grant access to before '
+      'the website can launch. None of this requires technical knowledge, and '
+      'none of it can be done by the build team: each action needs AirEvac to '
+      'own the account. Prepared 30 July 2026.', 'DocSub'),
 
-s1.append(P('3. Approvals already pending from the July 27 handoff', 'H1'))
-s1.append(P(
-    'These were recorded in the coding completion report and remain open. '
-    'They are listed here so one document tracks everything owed.'))
+    P('Status since revision 1.0', 'H1'),
+    P('Render hosting is DONE. The paid production instance is live, so the site '
+      'no longer sleeps between visits. A sleeping site answers search crawlers '
+      'and 2 a.m. callers late or not at all, so this mattered more than its '
+      'cost suggested.', 'Done'),
+    P('The remaining items are ordered by dependency. Sections 1 and 2 unlock '
+      'everything else, because every later step needs the real web address to '
+      'exist first.'),
+
+    P('1. Domain and DNS (everything else waits on this)', 'H1'),
+    P('The site currently answers at a temporary Render address. Search engines '
+      'and AI systems should only ever learn one permanent address, so this '
+      'should happen before the site is submitted anywhere. Attaching the domain '
+      'also permanently resolves the certificate warning a reviewer saw earlier: '
+      'that error is what a browser shows when a domain is visited before it is '
+      'attached to its host.'),
+]
 s1 += bullets([
-    'Operations approval for the conditional 90-minute response copy.',
-    'Pricing and legal approval for the Price Lock Guarantee.',
-    'Privacy approval for the email and fax clinical-document statement.',
-    'Billing and legal decision on required patient and cost notices before '
-    'launch.',
-    'Operations approval for the two Learjet 31A public fleet statement.',
-    'Operations confirmation of the twelve route pages’ detail (item F5 '
-    'above).',
+    '<b>Decide the address form:</b> www.airevacinternational.com, or '
+    'airevacinternational.com without the www. Either is fine. It has to be one '
+    'of them, everywhere, permanently. If you have no preference, tell us and we '
+    'will use the shorter one.',
+    'Sign in to the domain registrar account for airevacinternational.com. If '
+    'nobody knows who holds it, that is the first thing to find out, and it is '
+    'often the longest item on this page.',
+    'In Render, open the web service, then Settings, then Custom Domains, and '
+    'add the chosen address. Render displays the exact DNS records to create.',
+    'Create those records at the registrar exactly as Render displays them.',
+    'Wait for Render to report the domain verified with a certificate issued. '
+    'Usually minutes, occasionally an hour.',
+    '<b>Do not change the DNS for the current WordPress site until you are ready '
+    'to switch over.</b> Changing DNS is the switch-over.',
 ])
+s1 += [
+    P('Send us: the address form you chose, and the date you want to go live.', 'Note'),
 
-s1.append(P('4. Authority only AirEvac can build', 'H1'))
-s1.append(P(
-    'The AI handoff is candid that no code can make ChatGPT, Claude, or '
-    'Google recommend AirEvac. Answer engines weigh what independent sources '
-    'say. These are business actions, not website actions:'))
+    P('2. Google Search Console', 'H1'),
+    P('Free, changes nothing on the website, and is the only way to see what '
+      'Google has actually indexed and what it is failing to reach.'),
+]
 s1 += bullets([
-    '<b>Independent listings.</b> Airport tenant directory at Fort Lauderdale '
-    'Executive, industry directories, and the EURAMI provider listing once '
-    'its status is confirmed.',
-    '<b>References.</b> Hospitals, case managers, cruise lines, and '
-    'assistance companies willing to be named as referring partners, in '
-    'writing.',
-    '<b>Press.</b> Local business coverage, aviation and medical transport '
-    'trade press, and announcements tied to real events.',
-    '<b>Reviews.</b> A policy for inviting genuine client reviews on Google. '
-    'Never gate, filter, or incentivize them; that violates platform rules '
-    'and FTC guidance.',
-    '<b>Consistency.</b> One exact name, address, and phone number everywhere '
-    'AirEvac appears online. Mismatches read as unreliability to both search '
-    'engines and AI systems.',
+    'Go to search.google.com/search-console, signed in with an AirEvac Google '
+    'account that the company controls. Not a personal account, and not an '
+    'employee account that leaves when they do.',
+    'Add a property, choose the <b>Domain</b> type, and enter '
+    'airevacinternational.com.',
+    'Google shows a TXT record. Add it at the registrar, return, and click Verify.',
+    'Open Sitemaps in the left menu and submit: sitemap.xml',
+    'Open Settings, then Users and permissions, and add the build team with Full '
+    'access.',
+    'If a property already exists for the old WordPress site, <b>do not delete '
+    'it.</b> Its history is useful. Grant access to that one as well.',
 ])
+s1 += [
+    P('3. Bing Webmaster Tools', 'H1'),
+    P('Bing matters more than its search share suggests: it supplies Microsoft '
+      'Copilot and feeds results that several AI assistants read.'),
+]
+s1 += bullets([
+    'Go to bing.com/webmasters, signed in with an AirEvac Microsoft account.',
+    'Choose <b>Import from Google Search Console</b>. It copies the verification '
+    'and the sitemap in one step.',
+    'Confirm sitemap.xml appears under Sitemaps, and add the build team as a user.',
+])
+s1 += [
+    P('Nothing needs creating here for IndexNow, the protocol that tells Bing '
+      'immediately when a page changes. It is already built into the site and '
+      'switches on with the key in section 6.', 'Note'),
 
-s1.append(P('5. What the build team will not publish without you', 'H1'))
-s1.append(P(
-    'Per the AI handoff’s stop rules, coding halts and requests verified '
-    'input whenever content involves: patient safety, clinical capability, '
-    'equipment, or staffing; aircraft ownership, operating authority, FAA '
-    'certification, range, bases, or availability; superlatives such as best, '
-    'safest, immediate, guaranteed, worldwide, or insurance-covered; any '
-    'named accreditor, regulator, hospital, government office, partner, or '
-    'insurer; or route-page claims about travel time, pricing, direct-flight '
-    'capability, or customs procedure. This is already enforced by automated '
-    'tests in the codebase, and it will stay enforced.'))
+    P('4. Google Business Profile', 'H1'),
+    P('<b>One profile, for the Fort Lauderdale base only.</b> Do not create '
+      'listings for cities AirEvac flies to. A Cancun listing for a Fort '
+      'Lauderdale company reads as fabricated to Google and to AI systems, and it '
+      'damages exactly the credibility this whole effort is trying to build.'),
+]
+s1 += bullets([
+    'Go to business.google.com with the same AirEvac Google account as section 2.',
+    'Create or claim the profile for: AirEvac International, 2525 NW 55th Court, '
+    'Hangar 24, Fort Lauderdale, FL 33309.',
+    'If a profile already exists from the old site, <b>claim and correct it</b> '
+    'rather than creating a second one. Duplicates split your credibility.',
+    'Category: the closest available to air ambulance service. If that is not '
+    'offered, use a medical transport or emergency service category. Do not pick '
+    'an aviation charter category, which describes a different business.',
+    'Phone: (619) 754-6755. Website: the address from section 1. Hours: open 24 '
+    'hours, seven days.',
+    'Because clients do not visit in person, review the service-area settings '
+    'with the build team before publishing.',
+    'Add only photography AirEvac has permission to publish.',
+    'Complete verification (postcard, phone, or video), then add the build team '
+    'as a manager.',
+])
+s1 += [
+    P('5. Bing Places', 'H1'),
+]
+s1 += bullets([
+    'Go to bingplaces.com and choose Import from Google Business Profile.',
+    'Confirm the imported name, address, phone, and hours match section 4 exactly.',
+])
+s1 += [
+    P('6. Analytics and IndexNow keys', 'H1'),
+    P('Both are built into the site already and are waiting only for an '
+      'identifier. Until each arrives, that feature stays completely switched '
+      'off. Nothing is half-enabled.'),
+    table(
+        ['What', 'How to get it', 'What to send us'],
+        [
+            ['<b>Google Analytics 4</b><br/>Approved, built, inactive',
+             'At analytics.google.com create an account named AirEvac '
+             'International and a web property for the final domain. Do not '
+             'install any code: the site already contains it, configured to '
+             'anonymize addresses and to block advertising use of the data.',
+             'The Measurement ID, which looks like G-XXXXXXXXXX. Also add the '
+             'build team with edit access.'],
+            ['<b>Google Tag Manager</b><br/>Optional',
+             'At tagmanager.google.com create a container for the same domain. '
+             'Only needed if marketing wants to add tracking later without a '
+             'developer.',
+             'The Container ID, which looks like GTM-XXXXXXX.'],
+            ['<b>IndexNow key</b><br/>Built, inactive',
+             'Nothing to sign up for. The build team generates it. It tells Bing '
+             'within minutes when a page changes.',
+             'Nothing. Listed so you know it exists.'],
+        ],
+        [1.5 * inch, 3.0 * inch, 2.3 * inch]),
+    P('We recommend <b>declining</b> session-recording tools such as Microsoft '
+      'Clarity, which record a visitor screen and typing. This site is used by '
+      'people arranging urgent medical transport, and no analysis is worth '
+      'recording that. None is installed.', 'Note'),
 
-build('AirEvac_Required_Inputs_and_Approvals.pdf',
-      'AirEvac International | AI Search Program | Required Inputs and Approvals',
+    P('7. Listing consistency (do this once, then keep it)', 'H1'),
+    P('Everywhere AirEvac appears online must show identical details. Search '
+      'engines and AI systems cross-check them, and a mismatch reads as an '
+      'unreliable business. The correct version is:'),
+    table(
+        ['Field', 'The one correct value'],
+        [
+            ['Name', 'AirEvac International'],
+            ['Address', '2525 NW 55th Court, Hangar 24, Fort Lauderdale, FL 33309'],
+            ['Phone', '(619) 754-6755'],
+            ['Email', 'ops@aeiamericas.com'],
+            ['Fax (clinical records)', '(619) 330-4551'],
+            ['Website', 'The address chosen in section 1'],
+        ],
+        [1.7 * inch, 5.1 * inch]),
+    SP(8),
+    P('Worth updating or creating with exactly these details: the Fort '
+      'Lauderdale Executive Airport tenant directory, the EURAMI provider '
+      'listing, any air ambulance or medical transport directories AirEvac '
+      'already appears in, chamber of commerce membership, and every social '
+      'profile. <b>Old listings showing a previous phone number or the Scottsdale '
+      'address actively work against you</b> and should be corrected or removed.'),
+
+    P('8. Access checklist', 'H1'),
+    table(
+        ['Platform', 'AirEvac action', 'Access for the build team'],
+        [
+            ['Domain registrar', 'Add DNS records (sections 1 and 2)',
+             'None needed if AirEvac adds them'],
+            ['Render', 'Done, paid instance live', 'Team member'],
+            ['Google Search Console', 'Verify domain, submit sitemap', 'Full user'],
+            ['Bing Webmaster Tools', 'Import from Search Console', 'User'],
+            ['Google Business Profile', 'Create or claim, verify', 'Manager'],
+            ['Bing Places', 'Import from Google', 'Shared login or none'],
+            ['Google Analytics 4', 'Create property, send Measurement ID', 'Editor'],
+            ['Tag Manager (optional)', 'Create container', 'Editor'],
+        ],
+        [1.55 * inch, 2.85 * inch, 2.4 * inch]),
+]
+
+build('AirEvac_Signups_and_Accounts.pdf',
+      'AirEvac International | Launch Program | Sign-Ups and Accounts | Rev 2.0',
       s1)
 
-# ============================================================================
-# PDF 2: External accounts and platform setup
-# ============================================================================
+# ===========================================================================
+# PDF 2 - Facts and approvals
+# ===========================================================================
 
-s2 = []
-s2.append(P('AI SEARCHABILITY PROGRAM', 'Brand'))
-s2.append(P('External Accounts and Platform Setup Guide', 'DocTitle'))
-s2.append(P(
-    'Step-by-step actions on Google, Bing, Render, and your domain registrar '
-    'that require AirEvac account ownership. The website build team cannot '
-    'perform these: they must be done by, or under the accounts of, AirEvac. '
-    'Companion to the AI Search Coding Handoff. Prepared July 30, 2026.',
-    'DocSub'))
+s2 = [
+    P('WEBSITE LAUNCH PROGRAM | REVISION 2.0', 'Brand'),
+    P('Facts and Approvals Still Required', 'DocTitle'),
+    P('What the website still needs from AirEvac leadership, aviation '
+      'operations, clinical leadership, and legal. The build work is complete. '
+      'Everything below is information or a sign-off that only AirEvac can give, '
+      'and the site deliberately withholds the related content until it arrives. '
+      'Prepared 30 July 2026.', 'DocSub'),
 
-s2.append(P(
-    'Order matters: complete section 1 (domain) and section 2 (hosting) '
-    'first. Sections 3 through 6 depend on the final domain being live. '
-    'Section 7 waits for the analytics decision (item A2 in the companion '
-    'approvals document).', 'Note'))
+    P('Read this first', 'H1'),
+    P('AirEvac approved "all changes needed to make the site as AI searchable and '
+      'recommendable as possible", and those changes are built and live on the '
+      'development site. That approval covered <b>decisions</b>.'),
+    P('It does not, and cannot, supply <b>facts</b>. The website is built so that '
+      'no claim about an accreditation, an aircraft, a clinical capability, or an '
+      'operating authority can appear unless the supporting document is on file, '
+      'with an owner, an approval date, and an expiry date. That rule is enforced '
+      'by the software itself, not by anyone remembering to check. It is the '
+      'reason the site can be trusted, and it is why a general approval does not '
+      'turn into published claims.'),
+    P('So the items below are not requests for permission. They are requests for '
+      'a document, a name, or a list.', 'Note'),
 
-s2.append(P('1. Domain and DNS (do this first)', 'H1'))
-s2.append(P(
-    'The site currently runs at airevac-international-website.onrender.com. '
-    'Search engines and AI systems should only ever learn one permanent '
-    'address. The certificate warning a reviewer saw earlier is what happens '
-    'when the custom domain is visited before it is attached to the host; '
-    'completing this section makes that error impossible.'))
+    P('1. The single most valuable item on this page', 'H1'),
+    P('EURAMI accreditation certificate', 'H2'),
+    P('<b>The website currently publishes no accreditation at all.</b> Not on the '
+      'credentials page, not in the data search engines read, not in the file '
+      'that AI systems read.'),
+    P('This is not because anything is wrong. The EURAMI record is already in the '
+      'system with the exact accredited scope, the expiry date of 25 August 2027, '
+      'and a public link anyone can verify it against. One field is empty: the '
+      'date a named AirEvac approver confirmed the certificate itself is on file. '
+      'The software will not publish an accreditation on the strength of a '
+      'directory entry alone.'),
+    P('WHAT THIS COSTS RIGHT NOW: an accreditation from a named body, with a '
+      'verifiable third-party link, is the strongest credibility signal this '
+      'website could carry. It is exactly what an AI system weighs when deciding '
+      'whether to recommend a medical transport provider, and exactly what a '
+      'hospital case manager looks for when choosing between providers. It is '
+      'currently invisible.', 'Flag'),
+    P('<b>What we need:</b> the EURAMI certificate document, and confirmation of '
+      'who at AirEvac approves its publication. Publication follows the same day.'),
+
+    P('2. Facts that unlock withheld content', 'H1'),
+    table(
+        ['#', 'What we need', 'What is happening without it'],
+        [
+            ['F1', '<b>Clinical reviewers.</b> The names, roles, and credentials '
+                   'of the medical staff who will be publicly named as having '
+                   'reviewed the medical pages, and their agreement to be named.',
+             'Every medical page displays a visible "Under review, not yet signed '
+             'off by a qualified reviewer" banner. Search engines and AI systems '
+             'see no named medical authority behind the clinical content, which '
+             'is a significant credibility gap in this industry.'],
+            ['F2', '<b>Online profiles.</b> The exact current web addresses of '
+                   'AirEvac own profiles and directory listings: social accounts, '
+                   'industry directories, airport tenant listing.',
+             'Search engines cannot confirm that the website, the business '
+             'profile, and the directory entries are the same organization. This '
+             'is one of the strongest signals available and it is currently '
+             'empty. We did not guess from the old website, because pointing at a '
+             'defunct account is worse than pointing at nothing.'],
+            ['F3', '<b>Route detail confirmation.</b> An operations read-through '
+                   'of the twelve route pages: Cancun, Cozumel, Los Cabos, Puerto '
+                   'Vallarta, Bahamas, Dominican Republic, Jamaica, Turks and '
+                   'Caicos, Cayman, Belize, Costa Rica, Honduras.',
+             'Each page describes ground transfer times, local hospital and '
+             'discharge realities, and border paperwork. It was drafted from '
+             'general regional knowledge, not from AirEvac case files. It is live '
+             'and hedged throughout, but an operations lead should confirm it. '
+             'Corrections take effect the same day.'],
+            ['F4', '<b>Aviation facts.</b> Certificate-holder wording, whether '
+                   'the certificate number may be published, operating bases, and '
+                   'aircraft range wording.',
+             'The site describes AirEvac as coordinating transport directly with '
+             'no broker in between, and says nothing about operating authority. '
+             'That is accurate and deliberately limited.'],
+            ['F5', '<b>Photography.</b> Aircraft, crew, and facility images '
+                   'AirEvac has permission to publish, with anyone identifiable '
+                   'in them cleared.',
+             'Current images came from the existing website. Better photography '
+             'improves every page it appears on, and it is one of the few '
+             'remaining things that would visibly lift the site.'],
+            ['F6', '<b>Service area boundaries.</b> Confirmation of which '
+                   'countries and regions are routine coverage versus '
+                   'case-by-case.',
+             'The site publishes four regions and states that other destinations '
+             'are reviewed case by case.'],
+        ],
+        [0.35 * inch, 2.5 * inch, 3.95 * inch]),
+
+    P('3. Approvals tied to launch', 'H1'),
+    P('These do not block the development site. They block going public.'),
+]
 s2 += bullets([
-    'Decide www.airevacinternational.com or airevacinternational.com (item '
-    'A3). Every later step uses that choice.',
-    'Sign in at the domain registrar for airevacinternational.com.',
-    'In Render, open the web service, choose Settings, then Custom Domains, '
-    'and add the chosen domain. Render shows the exact DNS records to create.',
-    'Create those records at the registrar: a CNAME for www, or A/ALIAS '
-    'records for the bare domain, exactly as Render displays them.',
-    'Wait for Render to show the domain as verified with a certificate '
-    'issued. This usually takes minutes, occasionally up to an hour.',
-    'Keep the old WordPress hosting untouched until the new site is approved '
-    'for cutover; changing DNS is the cutover.',
+    '<b>Legal sign-off on the privacy notice, the Notice of Privacy Practices, '
+    'and the terms of use.</b> All three are written and all three currently '
+    'display an "under review" banner. That banner is correct and should not be '
+    'removed to make the site look finished.',
+    '<b>A billing and legal decision on patient cost notices.</b> The previous '
+    'Patient Rights and Cost Information page was removed by the July change '
+    'handoff. Its content is archived and can be restored. Someone should '
+    'confirm no notice is legally required before launch.',
+    '<b>Operations approval of the 90-minute response wording</b> in the service '
+    'questions, and of the <b>Price Lock Guarantee</b> wording on the private pay '
+    'page. Both are published as written in the July handoff.',
+    '<b>Privacy approval of the email and fax route for clinical documents.</b> '
+    'The site instructs people to email records to ops@aeiamericas.com or fax '
+    'them. Someone should confirm how those are handled and retained once '
+    'received.',
+    '<b>Operations approval of the public fleet statement</b>, "two Learjet 31A '
+    'aircraft". No registration numbers appear anywhere on the site.',
 ])
-s2.append(P(
-    'Send the build team: confirmation of the chosen domain form, and the '
-    'date you intend to cut over.', 'Note'))
-
-s2.append(P('2. Render production settings', 'H1'))
+s2 += [
+    P('4. Two things the website itself still needs before launch', 'H1'),
+    P('Listed here because they are business decisions, not build work:'),
+]
 s2 += bullets([
-    'Upgrade the web service from the free tier to a paid instance so the '
-    'site never sleeps. A sleeping site answers crawlers and 2 a.m. callers '
-    'late or not at all.',
-    'Confirm the health check path is set to /healthz.',
-    'Turn on log retention, or add a log stream, so crawler visits '
-    '(Googlebot, Bingbot, ChatGPT and Claude search bots) can be inspected '
-    'for blocks or errors.',
-    'Add the build team’s account to the Render team so deploys and logs '
-    'are visible to them.',
+    '<b>The transport request form does not deliver anywhere yet.</b> It issues a '
+    'reference number and records that a request arrived, but it does not send '
+    'the request to anyone, because no approved system has been chosen to receive '
+    'it. Today the phone line is the real channel. Before launch, either choose '
+    'that system or remove the form and lead with phone and email. A form that '
+    'silently reaches nobody is worse than no form.',
+    '<b>Domestic United States service page.</b> The site lists the United States '
+    'as a service area but has no page describing domestic-only transport, '
+    'because we do not know whether AirEvac accepts those cases. If you do, tell '
+    'us the typical case, what is coordinated, and any limits, and we will build '
+    'the page. If not, we leave it out. It is meaningful search demand either '
+    'way.',
 ])
-
-s2.append(P('3. Google Search Console', 'H1'))
-s2.append(P(
-    'This is how Google tells you what it has indexed and what is broken. It '
-    'is free and does not change the website.'))
+s2 += [
+    P('5. What no website can do', 'H1'),
+    P('The AI searchability specification is honest about this and so are we. The '
+      'website can be found, understood, and cited. It cannot manufacture the '
+      'reasons an AI system or a hospital chooses to recommend AirEvac. Those come '
+      'from outside the website:'),
+]
 s2 += bullets([
-    'Go to search.google.com/search-console signed in with an AirEvac Google '
-    'account that leadership controls (not a personal account).',
-    'Add a property. Choose the Domain property type and enter '
-    'airevacinternational.com.',
-    'Google shows a TXT record. Add it at the domain registrar, return, and '
-    'click Verify.',
-    'Open Sitemaps in the left menu and submit sitemap.xml.',
-    'Open Settings, then Users and permissions, and add the build team’s '
-    'email with Full access.',
+    '<b>Independent listings</b> that confirm AirEvac exists where it says it '
+    'does: the airport tenant directory, industry directories, the accrediting '
+    'body provider listing.',
+    '<b>References.</b> Hospitals, case managers, cruise lines, and assistance '
+    'companies willing to be named in writing as referring partners.',
+    '<b>Press.</b> Local business coverage and medical transport trade press, tied '
+    'to real events.',
+    '<b>Reviews.</b> A policy for inviting genuine client reviews on Google. Never '
+    'filter them, never offer anything in exchange: both violate platform rules '
+    'and federal advertising guidance, and both are detectable.',
+    '<b>Answering the phone well.</b> A fast, clear 24/7 response remains part of '
+    'whether an enquiry becomes a transport, and no amount of website work '
+    'substitutes for it.',
 ])
-s2.append(P(
-    'If a Search Console property already exists for the old WordPress site, '
-    'do not delete it: its history is useful. Grant the build team access to '
-    'it as well (item F7).', 'Note'))
+s2 += [
+    P('6. How to respond', 'H1'),
+    P('Reply by email with the item number and your answer, document, or list. '
+      'Items can come back one at a time; nothing waits on the others. The EURAMI '
+      'certificate in section 1 has more effect than everything else on this page '
+      'combined, so if only one thing gets done, make it that one.'),
+]
 
-s2.append(P('4. Bing Webmaster Tools', 'H1'))
-s2 += bullets([
-    'Go to bing.com/webmasters signed in with an AirEvac Microsoft account.',
-    'Choose Import from Google Search Console; it copies the verification '
-    'and sitemap in one step. Otherwise verify with a DNS record as in '
-    'section 3.',
-    'Confirm sitemap.xml appears under Sitemaps.',
-    'Add the build team as a user.',
-])
-s2.append(P(
-    'Bing powers Microsoft Copilot and supplies results some AI assistants '
-    'read, so this account matters more than Bing’s search share '
-    'suggests. The IndexNow protocol the handoff requires is implemented in '
-    'code; nothing needs to be created here for it.', 'Note'))
-
-s2.append(P('5. Google Business Profile', 'H1'))
-s2.append(P(
-    'One profile, for the real staffed base only. The AI handoff is explicit: '
-    'do not create listings for destinations served. A Cancun listing for a '
-    'Fort Lauderdale company reads as fake to Google and to AI systems.'))
-s2 += bullets([
-    'Go to business.google.com with the same AirEvac Google account.',
-    'Create or claim the profile for: AirEvac International, 2525 NW 55th '
-    'Court, Hangar 24, Fort Lauderdale, FL 33309.',
-    'If a profile already exists from the old site, claim and correct it '
-    'rather than creating a second one.',
-    'Category: choose the closest available to air ambulance service; if '
-    'unavailable, use a medical transport or emergency-related category. Do '
-    'not pick an aviation charter category: it describes a different '
-    'business.',
-    'Phone: (619) 754-6755. Website: the final domain from section 1. '
-    'Hours: open 24 hours, all seven days.',
-    'Because clients do not walk in, review the service-area settings with '
-    'the build team before publishing the profile.',
-    'Add only photography AirEvac has confirmed permission to publish '
-    '(item F6).',
-    'Verification is usually by postcard, phone, or video; complete it, then '
-    'add the build team as a manager.',
-])
-
-s2.append(P('6. Bing Places', 'H1'))
-s2 += bullets([
-    'Go to bingplaces.com and choose Import from Google Business Profile.',
-    'Confirm the imported name, address, phone, and hours match section 5 '
-    'exactly.',
-])
-
-s2.append(P('7. Google Analytics 4 and Tag Manager (only if approved)', 'H1'))
-s2.append(P(
-    'Skip this section unless item A2 in the approvals document is approved, '
-    'because the site’s privacy notice must change first.'))
-s2 += bullets([
-    'At analytics.google.com create an account named AirEvac International '
-    'and a web property for the final domain.',
-    'At tagmanager.google.com create a container for the same domain.',
-    'Do not install any code snippets; the build team wires both in with the '
-    'privacy-safe event layer once approval and the notice update are done.',
-    'Add the build team with edit access to both.',
-])
-
-s2.append(P('8. Listing and citation consistency', 'H1'))
-s2.append(P(
-    'Everywhere AirEvac appears online must show the identical name, address, '
-    'and phone number. Search engines and AI systems cross-check these; '
-    'mismatches cost trust. The canonical version is:'))
-s2.append(table(
-    ['Field', 'Canonical value'],
-    [
-        ['Name', 'AirEvac International'],
-        ['Address', '2525 NW 55th Court, Hangar 24, Fort Lauderdale, FL 33309'],
-        ['Phone', '(619) 754-6755'],
-        ['Email', 'ops@aeiamericas.com'],
-        ['Website', 'Final domain from section 1'],
-    ],
-    [1.2 * inch, 5.6 * inch]))
-s2.append(SP(6))
-s2.append(P(
-    'Worth updating or creating with these exact details: the Fort Lauderdale '
-    'Executive Airport tenant directory, the EURAMI provider listing (once '
-    'status is confirmed), medical transport and air ambulance directories '
-    'AirEvac already appears in, any chamber of commerce membership, and '
-    'social profiles. Fix old listings showing the previous phone number or '
-    'the Scottsdale address; those actively harm verification.'))
-
-s2.append(P('9. Access checklist', 'H1'))
-s2.append(table(
-    ['Platform', 'Action', 'Access to grant the build team'],
-    [
-        ['Domain registrar', 'DNS records from sections 1 and 3',
-         'None needed if AirEvac adds records; otherwise delegated DNS '
-         'access'],
-        ['Render', 'Paid plan, custom domain, logs', 'Team member'],
-        ['Google Search Console', 'Verify domain, submit sitemap',
-         'Full user'],
-        ['Bing Webmaster Tools', 'Import from Search Console', 'User'],
-        ['Google Business Profile', 'Create or claim, verify', 'Manager'],
-        ['Bing Places', 'Import from Google profile', 'Shared login or none'],
-        ['GA4 / Tag Manager', 'Create only if A2 approved', 'Editor'],
-    ],
-    [1.55 * inch, 2.8 * inch, 2.45 * inch]))
-
-build('AirEvac_External_Accounts_Setup.pdf',
-      'AirEvac International | AI Search Program | External Accounts Setup',
+build('AirEvac_Facts_and_Approvals.pdf',
+      'AirEvac International | Launch Program | Facts and Approvals | Rev 2.0',
       s2)
 
-print('done')
+print('generated 2 PDFs in', OUT_DIR)
