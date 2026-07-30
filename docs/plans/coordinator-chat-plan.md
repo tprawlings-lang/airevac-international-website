@@ -370,10 +370,9 @@ vendor: the console, users, and audit log are reusable.
 
 Nothing past Phase A should be built until each of these is answered.
 
-1. **BAA with the host.** Confirm whether the current Render plan can be covered
-   by a Business Associate Agreement. If it cannot, PHI must not land in a
-   Render Postgres, and either the plan changes or the feature moves to a vendor.
-   *This is the first call to make, because it can invalidate the whole plan.*
+1. **BAA with the host.** See §7.1 for the exact questions and what each answer
+   changes. *This is the first call to make, because it can invalidate the whole
+   plan.*
 2. **BAA with the translation provider**, and which provider.
 3. **Retention schedule (D9).** How long a transcript lives, what attaches it to
    a case, and what the legal-hold path is. Deletion must be automatic.
@@ -386,6 +385,70 @@ Nothing past Phase A should be built until each of these is answered.
    describe a site that receives no clinical information through the website.
    Chat changes that, and both documents must be revised and re-approved before
    it goes live — the same rule that governed analytics.
+
+### 7.1 The hosting BAA: what to actually ask
+
+Send this to Render support. The wording matters, because the common failure is
+getting a "yes" that covers less than the system does.
+
+> We operate a website for an air ambulance company. A feature we are building
+> will store protected health information (PHI) under US HIPAA: patients and
+> hospital staff will type clinical details into a live chat, and those
+> conversations will be stored.
+>
+> 1. Can Render sign a Business Associate Agreement with us, and on which plan?
+> 2. Does that BAA cover **both** the web service that processes the data **and**
+>    the managed Postgres database that stores it? We need coverage for the
+>    compute, not only the database, because the application handles the text in
+>    memory before it is written.
+> 3. Are managed Postgres backups encrypted, and how long are they retained?
+>    If we delete a record to satisfy a retention schedule, how long does it
+>    persist in your backups, and can that window be shortened?
+> 4. Do Render platform logs capture HTTP request bodies or query parameters at
+>    any tier? If so, can that be disabled for our service?
+> 5. Who are your subprocessors for the services above, and are they covered by
+>    the same agreement?
+> 6. What is your breach notification commitment and timeline?
+
+**Why question 2 is the one that decides the architecture.** A BAA that covers
+the database and not the web service is not sufficient, and it is the answer a
+casual enquiry is most likely to produce. Under HIPAA a business associate is
+anyone who *creates, receives, maintains, or transmits* PHI on a covered
+entity's behalf. Our web service does all four: it receives the message, holds
+it in memory, translates it, and writes it. Database-only coverage would leave
+the part of the system that actually handles the text uncovered.
+
+**Why question 3 matters more than it looks.** The retention sweep in
+`sweepChats()` deletes a transcript on schedule. If Render's backups keep a copy
+for another 30 days, the retention promise in the privacy notice is not true,
+and it is not true in exactly the way that gets noticed during an audit rather
+than before one. The answer does not have to be zero; it has to be known and
+stated.
+
+**What each outcome changes:**
+
+| Answer | What happens |
+| --- | --- |
+| Yes, on the current plan | Proceed. Nothing in this plan changes. |
+| Yes, on a higher plan | A cost decision for AirEvac, then proceed unchanged. |
+| Yes, but database only | Not sufficient. Treat as a no. |
+| No | PHI cannot live on Render. Either move the whole application to a provider that will sign (AWS, Google Cloud, and Azure all do), or drop the build and buy a HIPAA-eligible chat vendor. Splitting the database out while leaving the app on Render does **not** work, for the reason in question 2. |
+
+**Who else needs one, and who does not:**
+
+- **Translation provider: yes.** Message text leaves our systems and goes to
+  theirs. Google Cloud Translation and AWS Translate both offer HIPAA-eligible
+  configurations under their cloud BAAs; consumer translation endpoints and most
+  standalone translation APIs do not. Confirm before selecting, not after.
+- **Mail provider: probably not, and that is by design.** Because the
+  notification carries a reference and a link rather than any conversation, no
+  PHI reaches the mail path. `assertNoPhiShape` in `src/server/mail.ts` enforces
+  it. This is a concrete payoff of the notify-don't-send decision: it removes an
+  entire vendor from the compliance surface. If AirEvac later wants full
+  transcripts emailed, the mail provider joins the list and the recipient
+  mailbox has to be covered too.
+- **Nothing else.** No analytics runs on the chat, and no third-party script
+  loads anywhere near it.
 
 ---
 
