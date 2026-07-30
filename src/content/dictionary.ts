@@ -50,6 +50,64 @@ export interface Dictionary {
     notice: string;
   };
 
+  /**
+   * Live chat. Copy rules that apply to every string here:
+   *  - Never state or imply a response time. None is published anywhere.
+   *  - Never present chat as the fastest route. The phone is, and it is
+   *    answered 24 hours a day; chat is only answered while a coordinator is
+   *    signed in.
+   *  - Say plainly when nobody is available. A visitor who waits on an
+   *    unattended chat instead of calling is the failure this feature must
+   *    not have.
+   */
+  chat: {
+    launch: string;
+    close: string;
+    heading: string;
+    unavailableHeading: string;
+    unavailableBody: string;
+    intakeIntro: string;
+    roleLabel: string;
+    roleFamily: string;
+    roleHospital: string;
+    roleCruise: string;
+    roleInsurer: string;
+    nameLabel: string;
+    phoneLabel: string;
+    phoneHelp: string;
+    organizationLabel: string;
+    originLabel: string;
+    destinationLabel: string;
+    timeframeLabel: string;
+    timeframeImmediate: string;
+    timeframe24: string;
+    timeframe72: string;
+    timeframePlanning: string;
+    languageLabel: string;
+    start: string;
+    starting: string;
+    waitingHeading: string;
+    waitingBody: string;
+    connectedHeading: string;
+    composerLabel: string;
+    composerPlaceholder: string;
+    send: string;
+    endedHeading: string;
+    endedBody: string;
+    endChat: string;
+    reference: string;
+    youLabel: string;
+    coordinatorLabel: string;
+    machineTranslated: string;
+    translationUnavailable: string;
+    originalLabel: string;
+    noRecordsNotice: string;
+    errorGeneric: string;
+    errorNobodyAvailable: string;
+    errorRateLimited: string;
+    reconnecting: string;
+  };
+
   nav: {
     services: string;
     partners: string;
@@ -161,6 +219,66 @@ const en: Dictionary = {
     optional: 'optional',
   },
 
+  chat: {
+    launch: 'Chat with a coordinator',
+    close: 'Close chat',
+    heading: 'Chat with a flight coordinator',
+    unavailableHeading: 'No coordinator is signed in to chat',
+    unavailableBody:
+      'Chat is answered only while a coordinator is signed in, and nobody is right now. ' +
+      'The phone line is answered 24 hours a day, every day. Please call.',
+    intakeIntro:
+      'A few details before you are connected, so the coordinator does not have to ask. ' +
+      'Please do not include medical details here; you can describe the situation in the ' +
+      'conversation.',
+    roleLabel: 'You are contacting us as',
+    roleFamily: 'A patient, family member, or friend',
+    roleHospital: 'A hospital or case manager',
+    roleCruise: 'A cruise or maritime team',
+    roleInsurer: 'An insurer or assistance company',
+    nameLabel: 'Your name',
+    phoneLabel: 'Phone number',
+    phoneHelp: 'So a coordinator can call you back if the chat disconnects.',
+    organizationLabel: 'Organization',
+    originLabel: 'Where is the patient now? (city or facility)',
+    destinationLabel: 'Where do they need to go?',
+    timeframeLabel: 'How soon',
+    timeframeImmediate: 'As soon as possible',
+    timeframe24: 'Within 24 hours',
+    timeframe72: 'Within 3 days',
+    timeframePlanning: 'Still planning',
+    languageLabel: 'Preferred language',
+    start: 'Start chat',
+    starting: 'Starting...',
+    waitingHeading: 'Waiting for a coordinator',
+    waitingBody:
+      'You are in the queue. If this is urgent, call rather than wait: the phone is ' +
+      'answered 24 hours a day.',
+    connectedHeading: 'A coordinator has joined',
+    composerLabel: 'Your message',
+    composerPlaceholder: 'Type your message',
+    send: 'Send',
+    endedHeading: 'This chat has ended',
+    endedBody:
+      'Call the number below if you need anything else. A record of this conversation is ' +
+      'kept for our coordinators.',
+    endChat: 'End chat',
+    reference: 'Reference',
+    youLabel: 'You',
+    coordinatorLabel: 'Coordinator',
+    machineTranslated: 'Machine translated. The original is shown below it.',
+    translationUnavailable:
+      'This message could not be translated automatically. It is shown as written.',
+    originalLabel: 'Original',
+    noRecordsNotice:
+      'Do not send records or documents here. Email them to ops@aeiamericas.com or fax ' +
+      '(619) 330-4551.',
+    errorGeneric: 'Something went wrong. Please call instead.',
+    errorNobodyAvailable:
+      'A coordinator signed off while you were filling this in. Please call.',
+    errorRateLimited: 'Too many attempts from this connection. Please call instead.',
+    reconnecting: 'Reconnecting...',
+  },
   emergency: {
     notice:
       'For an immediate local emergency, call your local emergency services first. ' +
@@ -305,6 +423,67 @@ const es: Dictionary = {
     optional: 'opcional',
   },
 
+  chat: {
+    launch: 'Chatear con un coordinador',
+    close: 'Cerrar el chat',
+    heading: 'Chatee con un coordinador de vuelo',
+    unavailableHeading: 'No hay ningún coordinador conectado al chat',
+    unavailableBody:
+      'El chat se atiende solo mientras hay un coordinador conectado, y en este momento no ' +
+      'hay ninguno. La línea telefónica se atiende las 24 horas, todos los días. Por favor ' +
+      'llame.',
+    intakeIntro:
+      'Algunos datos antes de conectarle, para que el coordinador no tenga que preguntarlos. ' +
+      'Por favor no incluya datos médicos aquí; podrá describir la situación en la ' +
+      'conversación.',
+    roleLabel: 'Usted nos contacta como',
+    roleFamily: 'Paciente, familiar o amistad',
+    roleHospital: 'Hospital o gestor de casos',
+    roleCruise: 'Equipo de crucero o marítimo',
+    roleInsurer: 'Aseguradora o compañía de asistencia',
+    nameLabel: 'Su nombre',
+    phoneLabel: 'Número de teléfono',
+    phoneHelp: 'Para que un coordinador pueda llamarle si el chat se desconecta.',
+    organizationLabel: 'Organización',
+    originLabel: '¿Dónde está el paciente ahora? (ciudad o centro)',
+    destinationLabel: '¿A dónde necesita ir?',
+    timeframeLabel: 'Con qué urgencia',
+    timeframeImmediate: 'Lo antes posible',
+    timeframe24: 'Dentro de 24 horas',
+    timeframe72: 'Dentro de 3 días',
+    timeframePlanning: 'Aún en planificación',
+    languageLabel: 'Idioma preferido',
+    start: 'Iniciar el chat',
+    starting: 'Iniciando...',
+    waitingHeading: 'Esperando a un coordinador',
+    waitingBody:
+      'Está en la fila. Si es urgente, llame en lugar de esperar: el teléfono se atiende las ' +
+      '24 horas.',
+    connectedHeading: 'Un coordinador se ha unido',
+    composerLabel: 'Su mensaje',
+    composerPlaceholder: 'Escriba su mensaje',
+    send: 'Enviar',
+    endedHeading: 'Este chat ha finalizado',
+    endedBody:
+      'Llame al número de abajo si necesita algo más. Nuestros coordinadores conservan un ' +
+      'registro de esta conversación.',
+    endChat: 'Finalizar el chat',
+    reference: 'Referencia',
+    youLabel: 'Usted',
+    coordinatorLabel: 'Coordinador',
+    machineTranslated: 'Traducido automáticamente. El texto original aparece debajo.',
+    translationUnavailable:
+      'Este mensaje no se pudo traducir automáticamente. Se muestra tal como se escribió.',
+    originalLabel: 'Original',
+    noRecordsNotice:
+      'No envíe expedientes ni documentos por aquí. Envíelos por correo a ops@aeiamericas.com ' +
+      'o por fax al (619) 330-4551.',
+    errorGeneric: 'Algo salió mal. Por favor llame.',
+    errorNobodyAvailable:
+      'Un coordinador se desconectó mientras usted completaba el formulario. Por favor llame.',
+    errorRateLimited: 'Demasiados intentos desde esta conexión. Por favor llame.',
+    reconnecting: 'Reconectando...',
+  },
   emergency: {
     notice:
       'Si se trata de una emergencia local inmediata, llame primero a los servicios de ' +

@@ -297,3 +297,56 @@ describe.runIf(HAS_DB)('closing and housekeeping', () => {
     expect(rows[0]!.delete_after.getTime()).toBeGreaterThan(Date.now());
   });
 });
+
+describe('pre-chat intake allowlist', () => {
+  /*
+   * The intake is `.strict()`, so an unknown key is a validation error rather
+   * than an ignored extra. This asserts the error names the offending field,
+   * which is the part that regressed: Zod reports an unrecognized key with an
+   * empty `path` and the names in `keys`, so reading `path[0]` alone produced
+   * "undefined" and threw away the one useful signal. A posted `diagnosis`
+   * field is something trying to send clinical data into an endpoint that does
+   * not accept it, and the log should say which field it was.
+   */
+  it('names unknown fields without echoing their values', async () => {
+    const { StartSchema } = await import('@/app/api/chat/start/route');
+    const result = StartSchema.safeParse({
+      role: 'family',
+      contactName: 'Test Person',
+      phone: '+15551234567',
+      preferredLanguage: 'en',
+      diagnosis: 'sepsis',
+      patientName: 'J Doe',
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const fields = result.error.issues.flatMap((issue) =>
+      issue.code === 'unrecognized_keys'
+        ? issue.keys
+        : issue.path.length > 0
+          ? [String(issue.path[0])]
+          : [],
+    );
+
+    expect(fields).toContain('diagnosis');
+    expect(fields).toContain('patientName');
+    expect(fields).not.toContain('undefined');
+    // The values must never appear anywhere in what we would return.
+    expect(JSON.stringify(fields)).not.toContain('sepsis');
+    expect(JSON.stringify(fields)).not.toContain('J Doe');
+  });
+
+  it('accepts a valid intake', async () => {
+    const { StartSchema } = await import('@/app/api/chat/start/route');
+    expect(
+      StartSchema.safeParse({
+        role: 'hospital',
+        contactName: 'Ana Ruiz',
+        phone: '+52 998 555 0100',
+        preferredLanguage: 'es',
+      }).success,
+    ).toBe(true);
+  });
+});

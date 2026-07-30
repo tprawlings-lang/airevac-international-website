@@ -30,7 +30,7 @@ import { coarsenIp } from '@/lib/redact';
  * returned call.
  */
 
-const StartSchema = z
+export const StartSchema = z
   .object({
     role: z.enum(['family', 'hospital', 'cruise', 'insurer']),
     contactName: z.string().trim().min(2).max(120),
@@ -84,12 +84,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const parsed = StartSchema.safeParse(body);
   if (!parsed.success) {
+    /*
+     * Field names only, never the submitted values, and the unknown-key case
+     * needs handling separately: Zod reports an unrecognized key with an empty
+     * `path` and the offending names in `keys`, so reading `path[0]` alone
+     * reports "undefined" and loses exactly the information worth having. If
+     * someone posts a `diagnosis` field, the response should name it, because
+     * that is the signal that something is trying to send clinical data through
+     * an endpoint that does not accept it.
+     */
+    const fields = parsed.error.issues.flatMap((issue) =>
+      issue.code === 'unrecognized_keys'
+        ? issue.keys
+        : issue.path.length > 0
+          ? [String(issue.path[0])]
+          : [],
+    );
+
     return NextResponse.json(
-      {
-        error: 'invalid',
-        // Field names only. Never the submitted values.
-        fields: [...new Set(parsed.error.issues.map((issue) => String(issue.path[0])))],
-      },
+      { error: 'invalid', fields: [...new Set(fields)] },
       { status: 400 },
     );
   }

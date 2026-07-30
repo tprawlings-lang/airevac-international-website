@@ -10,6 +10,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { MobileCallBar } from '@/components/MobileCallBar';
 import { AnalyticsListener } from '@/components/AnalyticsListener';
+import { ChatMount } from '@/components/chat/ChatMount';
 import { Analytics } from '@/components/Analytics';
 
 /**
@@ -136,6 +137,10 @@ export default async function LocaleLayout({
             configured; see src/components/Analytics.tsx. */}
         <Analytics />
         <AnalyticsListener />
+
+        {/* Live chat. Renders nothing while the feature flag is off, and never
+            on the request form; see ChatMount. */}
+        <ChatMount locale={locale} />
       </body>
     </html>
   );
