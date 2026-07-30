@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { adminResetPassword, createUser, listUsers, setUserStatus } from '@/server/auth/users';
 import { csrfValid, currentUser, CSRF_FIELD } from '@/server/auth/guard';
+import { seeOther } from '@/server/http/redirect';
 
 /**
  * Admin user management.
@@ -21,21 +22,19 @@ import { csrfValid, currentUser, CSRF_FIELD } from '@/server/auth/guard';
 
 export const dynamic = 'force-dynamic';
 
-function back(request: NextRequest, params: Record<string, string>): NextResponse {
-  const url = new URL('/coordinator/users', request.nextUrl.origin);
-  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-  return NextResponse.redirect(url, 303);
+function back(params: Record<string, string>): NextResponse {
+  return seeOther('/coordinator/users', params);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const actor = await currentUser();
 
   if (actor === null || actor.role !== 'admin' || actor.mustChangePassword) {
-    return NextResponse.redirect(new URL('/coordinator', request.nextUrl.origin), 303);
+    return seeOther('/coordinator');
   }
 
   const form = await request.formData();
-  if (!(await csrfValid(form.get(CSRF_FIELD)))) return back(request, { error: 'csrf' });
+  if (!(await csrfValid(form.get(CSRF_FIELD)))) return back({ error: 'csrf' });
 
   const action = form.get('action');
 
@@ -54,14 +53,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         createdBy: actor.id,
       });
 
-      return back(request, {
+      return back({
         created: created.user.email,
         temp: created.temporaryPassword,
       });
     }
 
     const targetId = String(form.get('user_id') ?? '');
-    if (targetId === '') return back(request, { error: 'invalid' });
+    if (targetId === '') return back({ error: 'invalid' });
 
     if (action === 'disable' || action === 'enable') {
       /*
@@ -69,28 +68,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
        * last one. Checked here rather than hidden in the UI, because the UI is
        * not the security boundary.
        */
-      if (targetId === actor.id) return back(request, { error: 'self' });
+      if (targetId === actor.id) return back({ error: 'self' });
 
       if (action === 'disable') {
         const admins = (await listUsers()).filter(
           (u) => u.role === 'admin' && u.status === 'active',
         );
         if (admins.length <= 1 && admins[0]?.id === targetId) {
-          return back(request, { error: 'lastadmin' });
+          return back({ error: 'lastadmin' });
         }
       }
 
       await setUserStatus(targetId, action === 'disable' ? 'disabled' : 'active', actor.id);
-      return back(request, { notice: action === 'disable' ? 'disabled' : 'enabled' });
+      return back({ notice: action === 'disable' ? 'disabled' : 'enabled' });
     }
 
     if (action === 'reset') {
       const temp = await adminResetPassword(targetId, actor.id);
-      return back(request, { reset: targetId, temp });
+      return back({ reset: targetId, temp });
     }
 
-    return back(request, { error: 'invalid' });
+    return back({ error: 'invalid' });
   } catch (error) {
-    return back(request, { error: 'failed', message: (error as Error).message });
+    return back({ error: 'failed', message: (error as Error).message });
   }
 }

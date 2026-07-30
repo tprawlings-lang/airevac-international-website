@@ -6,6 +6,7 @@ import { csrfValid, setSessionCookie, CSRF_FIELD } from '@/server/auth/guard';
 import { consume } from '@/lib/rate-limit';
 import { coarsenIp, safeLog } from '@/lib/redact';
 import { audit } from '@/server/audit';
+import { seeOther } from '@/server/http/redirect';
 
 /**
  * Sign-in endpoint.
@@ -27,19 +28,17 @@ import { audit } from '@/server/audit';
 
 export const dynamic = 'force-dynamic';
 
-function back(request: NextRequest, error: string): NextResponse {
-  const url = new URL('/coordinator', request.nextUrl.origin);
-  url.searchParams.set('error', error);
+function back(error: string): NextResponse {
   // 303 turns the POST into a GET, so a refresh on the error page does not
   // resubmit the credentials.
-  return NextResponse.redirect(url, 303);
+  return seeOther('/coordinator', { error });
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const form = await request.formData();
 
   if (!(await csrfValid(form.get(CSRF_FIELD)))) {
-    return back(request, 'csrf');
+    return back('csrf');
   }
 
   const forwarded = request.headers.get('x-forwarded-for');
@@ -49,14 +48,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const limit = await consume('adminLoginFailure', bucket);
   if (!limit.allowed) {
     await audit({ action: 'auth.rate_limited', detail: { scope: 'login' }, ipHash: ip });
-    return back(request, 'ratelimited');
+    return back('ratelimited');
   }
 
   const email = form.get('email');
   const password = form.get('password');
 
   if (typeof email !== 'string' || typeof password !== 'string') {
-    return back(request, 'invalid');
+    return back('invalid');
   }
 
   let result: Awaited<ReturnType<typeof authenticate>>;
@@ -64,7 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     result = await authenticate(email, password, { ip });
     if (!result.ok) {
-      return back(request, result.reason);
+      return back(result.reason);
     }
 
     session = await issueSession(result.user.id, {
@@ -81,7 +80,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
      * worse failure than admitting the outage.
      */
     safeLog('error', 'auth.database_unavailable', { error: (error as Error).name });
-    return back(request, 'unavailable');
+    return back('unavailable');
   }
 
   await setSessionCookie(session.token, session.absoluteExpiresAt);
@@ -95,5 +94,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     ? '/coordinator/password'
     : '/coordinator/console';
 
-  return NextResponse.redirect(new URL(destination, request.nextUrl.origin), 303);
+  return seeOther(destination);
 }

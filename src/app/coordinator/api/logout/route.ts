@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { clearSessionCookie, csrfValid, CSRF_FIELD } from '@/server/auth/guard';
 import { currentUser } from '@/server/auth/guard';
 import { audit } from '@/server/audit';
+import { seeOther } from '@/server/http/redirect';
 
 /**
  * Sign-out.
@@ -27,7 +28,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  const url = new URL('/coordinator', request.nextUrl.origin);
-  url.searchParams.set('notice', 'loggedout');
-  return NextResponse.redirect(url, 303);
+  return seeOther('/coordinator', { notice: 'loggedout' });
 }

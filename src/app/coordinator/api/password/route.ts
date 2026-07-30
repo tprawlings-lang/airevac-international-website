@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { changeOwnPassword } from '@/server/auth/users';
 import { clearSessionCookie, csrfValid, currentUser, CSRF_FIELD } from '@/server/auth/guard';
+import { seeOther } from '@/server/http/redirect';
 
 /**
  * Password change, for the signed-in user only.
@@ -19,43 +20,39 @@ import { clearSessionCookie, csrfValid, currentUser, CSRF_FIELD } from '@/server
 
 export const dynamic = 'force-dynamic';
 
-function back(request: NextRequest, error: string, problems?: string[]): NextResponse {
-  const url = new URL('/coordinator/password', request.nextUrl.origin);
-  url.searchParams.set('error', error);
-  if (problems !== undefined && problems.length > 0) {
-    url.searchParams.set('problems', problems.join('|'));
-  }
-  return NextResponse.redirect(url, 303);
+function back(error: string, problems?: string[]): NextResponse {
+  return seeOther('/coordinator/password', {
+    error,
+    problems: problems !== undefined && problems.length > 0 ? problems.join('|') : undefined,
+  });
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await currentUser();
   if (user === null) {
-    return NextResponse.redirect(new URL('/coordinator', request.nextUrl.origin), 303);
+    return seeOther('/coordinator');
   }
 
   const form = await request.formData();
-  if (!(await csrfValid(form.get(CSRF_FIELD)))) return back(request, 'csrf');
+  if (!(await csrfValid(form.get(CSRF_FIELD)))) return back('csrf');
 
   const current = form.get('current_password');
   const next = form.get('new_password');
   const confirm = form.get('confirm_password');
 
   if (typeof current !== 'string' || typeof next !== 'string' || typeof confirm !== 'string') {
-    return back(request, 'invalid');
+    return back('invalid');
   }
-  if (next !== confirm) return back(request, 'mismatch');
+  if (next !== confirm) return back('mismatch');
 
   const result = await changeOwnPassword(user.id, current, next);
 
   if (!result.ok) {
     return result.reason === 'policy'
-      ? back(request, 'policy', result.problems)
-      : back(request, 'wrong_current');
+      ? back('policy', result.problems)
+      : back('wrong_current');
   }
 
   await clearSessionCookie();
-  const url = new URL('/coordinator', request.nextUrl.origin);
-  url.searchParams.set('notice', 'passwordchanged');
-  return NextResponse.redirect(url, 303);
+  return seeOther('/coordinator', { notice: 'passwordchanged' });
 }
