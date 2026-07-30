@@ -9,6 +9,11 @@ below. **All of them are required before the site is public.**
 
 Last updated 2026-07-30.
 
+A printable, signable version of this file is
+[AirEvac_Executive_Sign_Off_Register.pdf](AirEvac_Executive_Sign_Off_Register.pdf).
+This file is the source of truth; regenerate the PDF with
+`python3 scripts/generate-signoff-pdf.py` whenever an item here changes.
+
 ---
 
 ## How to read this

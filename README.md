@@ -261,7 +261,10 @@ by AirEvac, and the site should not go public until each is closed.
 the authoritative list**: twenty-five numbered items, each with a named signer,
 what they are approving, and what the site does while it is unsigned. It also
 states plainly what is safe to demonstrate today, which is everything, because
-the preview is `noindex` and disallowed to crawlers.
+the preview is `noindex` and disallowed to crawlers. The printable version to
+put in front of a signer is
+[AirEvac_Executive_Sign_Off_Register.pdf](docs/AirEvac_Executive_Sign_Off_Register.pdf)
+(regenerate with `python3 scripts/generate-signoff-pdf.py`).
 
 Two handback documents track the same ground in non-technical language:
 [Facts and Approvals Still Required](docs/AirEvac_Facts_and_Approvals.pdf) and
@@ -426,6 +429,7 @@ must actually be in the repository.
 | | |
 |---|---|
 | [Executive sign-off register](docs/executive-sign-off-register.md) | **Every approval required before the site is public**, with named signers |
+| [Sign-off register (PDF)](docs/AirEvac_Executive_Sign_Off_Register.pdf) | The same register, printable and signable |
 | [Readiness matrix](docs/readiness-matrix.md) | Scored status, severity, evidence, owner |
 | [Open decisions](docs/open-decisions.md) | D1–D14, what the code does while each is open |
 | [Handoff completion report](docs/handoff-completion-report.md) | Sign-off matrix for both handoffs, conflicts, open approvals |
