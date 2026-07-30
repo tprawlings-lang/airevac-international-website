@@ -23,7 +23,8 @@
     "test:vitals": "node scripts/web-vitals-check.mjs",
     "test:screenshots": "node scripts/screenshot-check.mjs",
     "indexnow": "node scripts/indexnow-submit.mjs",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "check:translate": "node scripts/check-translate.mjs"
   },
   "repository": {
     "type": "git",
