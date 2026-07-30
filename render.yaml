@@ -65,6 +65,24 @@ services:
           name: airevac-db
           property: connectionString
 
+      # Render's managed Postgres presents a self-signed certificate, which
+      # full verification correctly refuses. 'no-verify' keeps the connection
+      # encrypted while skipping the certificate check, and announces itself in
+      # the log on every boot.
+      #
+      # NOT THE FINAL ANSWER. Set DATABASE_CA_CERT to Render's CA certificate
+      # instead, and this variable becomes unnecessary: a supplied CA takes
+      # precedence, so the strong setting wins without anyone having to
+      # remember to remove the weak one. Required before the database holds
+      # anything real. See docs/executive-sign-off-register.md item L6.
+      - key: DATABASE_SSL
+        value: no-verify
+
+      # Provider CA certificate, in PEM. When present, the connection is both
+      # encrypted and verified, and DATABASE_SSL above is ignored.
+      - key: DATABASE_CA_CERT
+        sync: false
+
       # ---------------------------------------------------------------
       # Coordinator console and chat. See docs/testing-on-render.md.
       # ---------------------------------------------------------------

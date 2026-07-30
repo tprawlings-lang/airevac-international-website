@@ -52,9 +52,21 @@ paste it into email, chat, or a ticket. If it leaks, rotate it in Render.
 | Key | Value |
 | --- | --- |
 | `DATABASE_URL` | the Internal Database URL from step 7 |
+| `DATABASE_SSL` | `no-verify` |
 | `SITE_URL` | the service's own `https://....onrender.com` address |
 | `ALLOW_BOOTSTRAP_ADMIN` | `true` |
 | `OPS_NOTIFICATION_EMAIL` | the address that should receive notifications |
+
+`DATABASE_SSL=no-verify` is needed because Render's Postgres presents a
+self-signed certificate, and the default setting refuses certificates it cannot
+trace to a trusted authority. Without it the deploy fails with
+`DEPTH_ZERO_SELF_SIGNED_CERT`. The connection is still encrypted; what is
+skipped is the check on who is at the other end.
+
+That is acceptable for a preview and **not** acceptable for a launch. The fix is
+to set `DATABASE_CA_CERT` to Render's CA certificate, which makes the connection
+both encrypted and verified. A supplied CA takes precedence, so adding it is
+enough on its own; nobody has to remember to remove `DATABASE_SSL`.
 
 10. Leave `NODE_VERSION` alone. Add nothing else.
 11. **Save.**
@@ -132,5 +144,7 @@ What to try, and what each attempt proves, is in
 | No chat button anywhere | No `DATABASE_URL`, or `CHAT_ENABLED=false`. Chat is refused without a database whatever else is set. |
 | Button opens, says nobody is signed in | Correct. No coordinator has clicked **Go available**. |
 | Canonical links point at `localhost` | `SITE_URL` is unset. |
+| `DEPTH_ZERO_SELF_SIGNED_CERT` in the deploy log | `DATABASE_SSL=no-verify` is missing. See Part 3. |
+| `db.migrations_failed` in the log, but the site is up | Intended. The database could not be reached, so the console and chat are unavailable while the public site keeps serving. Fix the database; no redeploy of the site is needed beyond a restart. |
 | Sign-in fails with a server error | The database is attached but migrations have not run. Check the deploy log for the two `applied` lines. |
 | `admin` / `admin` is rejected | `ALLOW_BOOTSTRAP_ADMIN` was not `true` when the service started, so no account was seeded. Set it and redeploy. |

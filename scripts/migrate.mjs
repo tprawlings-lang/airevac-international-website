@@ -9,6 +9,7 @@
 import pg from 'pg';
 
 import { runMigrations } from '../src/server/db/migrate.mjs';
+import { sslConfig } from '../src/server/db/ssl.mjs';
 
 const url = process.env.DATABASE_URL;
 
@@ -26,19 +27,50 @@ if (!url) {
   process.exit(0);
 }
 
-const sslDisabled = process.env.DATABASE_SSL === 'disable';
-const host = new URL(url).hostname;
-const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+/*
+ * --boot marks the invocation that runs from `npm start`, immediately before
+ * the web server. In that mode a failure here must not stop the server, for the
+ * same reason a missing DATABASE_URL does not: the marketing site does not need
+ * a database, and the phone number on every page is the thing that must never
+ * go down. Failing loudly and serving beats failing silently, but both beat a
+ * crash loop that takes the whole site off the internet over the coordinator
+ * console.
+ *
+ * Run without the flag, by CI or by hand, it stays strict and exits non-zero,
+ * because there the exit code is the entire point.
+ */
+const bootMode = process.argv.includes('--boot');
 
-if (sslDisabled && !isLocal) {
-  console.error('DATABASE_SSL=disable is only permitted for a local database.');
+function fail(message, error) {
+  console.error(
+    JSON.stringify({
+      level: 'error',
+      event: 'db.migrations_failed',
+      message,
+      error: error === undefined ? undefined : String(error.message ?? error),
+    }),
+  );
+  if (bootMode) {
+    console.error(
+      'Starting the web server anyway. The public site will serve normally; the ' +
+        'coordinator console and chat will be unavailable until this is fixed.',
+    );
+    process.exit(0);
+  }
   process.exit(1);
 }
 
-const pool = new pg.Pool({
-  connectionString: url,
-  ssl: sslDisabled ? undefined : { rejectUnauthorized: true },
-});
+let pool;
+try {
+  pool = new pg.Pool({
+    connectionString: url,
+    ssl: sslConfig(url, (message) => console.error(message)),
+  });
+} catch (error) {
+  // Thrown by sslConfig for a refused configuration, e.g. TLS disabled against
+  // a remote host. Never a reason to serve nothing.
+  fail('Database TLS configuration refused.', error);
+}
 
 try {
   const result = await runMigrations(pool, (message) => console.log(message));
@@ -47,6 +79,9 @@ try {
       ? `No pending migrations. ${result.alreadyApplied.length} already applied.`
       : `Applied ${result.applied.length} migration(s).`,
   );
+} catch (error) {
+  await pool.end().catch(() => {});
+  fail('Could not apply migrations.', error);
 } finally {
-  await pool.end();
+  await pool.end().catch(() => {});
 }

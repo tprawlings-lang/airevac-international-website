@@ -98,6 +98,7 @@ above is the whole list.
 | B3 | **The custom domain is not attached.** | The site answers on an `onrender.com` address. Indexing it would teach search engines a URL that is going to change. |
 | B4 | **Manual accessibility testing has not been done.** Automated axe checks pass on 17 pages; screen-reader, keyboard-matrix, and 400% zoom review by a human have not happened. | Automated tooling catches roughly a third of WCAG failures. The accessibility statement says so rather than claiming conformance nobody verified. |
 | B5 | **Chat runs on one instance only.** Messages fan out through an in-process bus. | A second instance would leave each side of a conversation seeing only their own messages, which looks like the other person stopped replying. Lifting this is a known change to Postgres `LISTEN`/`NOTIFY`. |
+| B6 | **The database connection is encrypted but unverified.** The preview runs with `DATABASE_SSL=no-verify`, because Render's Postgres presents a self-signed certificate. | Traffic is protected from a passive observer but not from an active attacker between the application and the database. Setting `DATABASE_CA_CERT` to the provider CA fixes it and takes precedence automatically. Must be closed before the database holds real conversations, alongside L6. |
 
 ---
 

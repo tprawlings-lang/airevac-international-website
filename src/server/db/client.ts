@@ -1,5 +1,7 @@
 import { Pool, type PoolClient, type QueryResultRow } from 'pg';
 
+import { sslConfig } from './ssl.mjs';
+
 /**
  * Postgres access.
  *
@@ -13,8 +15,9 @@ import { Pool, type PoolClient, type QueryResultRow } from 'pg';
  * a build that never touches the database, does not open a connection.
  *
  * TLS IS REQUIRED IN PRODUCTION. This database will hold patient conversations.
- * `DATABASE_SSL=disable` exists for local development only, and the production
- * guard below refuses to start without TLS on a non-local host.
+ * `DATABASE_SSL=disable` exists for local development only and is refused
+ * against any non-local host. The modes and what each one actually protects
+ * against are documented in `src/server/db/ssl.mjs`.
  */
 
 let pool: Pool | undefined;
@@ -30,31 +33,18 @@ function connectionString(): string {
   return url;
 }
 
-function isLocalHost(url: string): boolean {
-  try {
-    const host = new URL(url).hostname;
-    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  } catch {
-    return false;
-  }
-}
-
 export function getPool(): Pool {
   if (pool !== undefined) return pool;
 
   const url = connectionString();
-  const sslDisabled = process.env.DATABASE_SSL === 'disable';
-
-  if (sslDisabled && !isLocalHost(url)) {
-    throw new Error(
-      'DATABASE_SSL=disable is only permitted for a local database. Refusing to ' +
-        'connect to a remote host without TLS.',
-    );
-  }
 
   pool = new Pool({
     connectionString: url,
-    ssl: sslDisabled ? undefined : { rejectUnauthorized: true },
+    // Shared with the migration CLI so the two cannot disagree about what they
+    // will accept. See src/server/db/ssl.mjs.
+    ssl: sslConfig(url, (message) =>
+      console.error(JSON.stringify({ level: 'warn', event: 'db.tls_mode', message })),
+    ),
     // Small: this is a handful of coordinators, not a public API. A large pool
     // on a small Postgres plan is a way to hit the server's limit rather than
     // the pool's, which fails far less gracefully.
