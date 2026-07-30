@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { FEATURES } from '@/content/site';
+import { safeLog } from '@/lib/redact';
 import { availableCoordinators, chatIsStaffed } from '@/server/chat/presence';
 import { translationConfigured } from '@/server/chat/translate';
 
@@ -29,10 +30,27 @@ export async function GET(): Promise<NextResponse> {
     );
   }
 
-  const [staffed, coordinators] = await Promise.all([
-    chatIsStaffed(),
-    availableCoordinators(),
-  ]);
+  let staffed: boolean;
+  let coordinators: Awaited<ReturnType<typeof availableCoordinators>>;
+  try {
+    [staffed, coordinators] = await Promise.all([chatIsStaffed(), availableCoordinators()]);
+  } catch (error) {
+    /*
+     * A database that is unreachable, mid-failover, or missing its schema means
+     * we cannot know whether anyone is on shift. The honest answer is then the
+     * same as nobody being on shift, because the visitor's next step is
+     * identical either way: the phone number, which does not depend on this.
+     *
+     * Answering 200 with staffed:false rather than 500 is the point. A 500 is
+     * an outage the widget has to interpret; this is a plain, correct "not
+     * right now" that every client already handles.
+     */
+    safeLog('error', 'chat.availability_unavailable', { error: (error as Error).name });
+    return NextResponse.json(
+      { enabled: false, staffed: false, languages: [], translation: false },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
 
   /*
    * Languages actually covered by someone on shift, not languages the company

@@ -100,6 +100,21 @@ export const FEATURES = {
    * is ever explicitly enabled on production.
    */
   get secureChat(): boolean {
+    /*
+     * NO DATABASE, NO CHAT, and this outranks CHAT_ENABLED=true.
+     *
+     * Every part of the feature reads or writes Postgres: presence, the
+     * session, the messages, the audit trail. Without DATABASE_URL there is
+     * nowhere for a conversation to exist, so offering one produces a launcher
+     * that opens onto a failing endpoint. The marketing site is designed to run
+     * without a database and must keep doing so; what it must not do is
+     * advertise a chat it cannot hold.
+     *
+     * This is checked first because it is a fact about the deployment rather
+     * than a preference, and no preference should be able to override it.
+     */
+    if ((process.env.DATABASE_URL ?? '') === '') return false;
+
     const explicit = process.env.CHAT_ENABLED;
     if (explicit === 'true') return true;
     if (explicit === 'false') return false;
