@@ -28,6 +28,18 @@ import { categoryOf, track, type AnalyticsEventName } from '@/lib/analytics';
 export function AnalyticsListener() {
   const pathname = usePathname();
 
+  /*
+   * Explicit page view. GA4 is configured with `send_page_view: false` so the
+   * tag never reports on its own, which is what lets `track` apply the
+   * unmeasured-path rule to page views as well as to clicks. Sending it here
+   * also makes client-side navigations countable, which an automatic page view
+   * would miss in an App Router site.
+   */
+  useEffect(() => {
+    if (!FEATURES.analytics) return;
+    track({ name: 'page_view', path: pathname, category: categoryOf(pathname) });
+  }, [pathname]);
+
   useEffect(() => {
     if (!FEATURES.analytics) return;
 

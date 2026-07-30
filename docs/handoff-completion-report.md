@@ -144,6 +144,63 @@ confirmation as item A5. A headless CMS is deferred pending item A7: content
 currently lives behind publication gates that block unapproved claims
 automatically, and moving it to a CMS moves it outside those gates.
 
+## Follow-up: approvals applied (2026-07-30)
+
+AirEvac approved the changes needed to maximize AI searchability and
+recommendability. Applied:
+
+- **A1, crawler policy.** Model-training crawlers are now allowed alongside
+  search crawlers (`GPTBot`, `Google-Extended`, `Applebot-Extended`, plus
+  `CCBot` and `meta-externalagent`), on the reasoning that a model trained on
+  these pages can describe AirEvac without searching at the moment it is asked.
+  The two groups stay separately listed in `src/app/robots.ts` because they
+  answer different questions. **Recorded trade-off:** content collected into a
+  training corpus cannot be withdrawn from a model already trained on it;
+  re-blocking later stops future collection only. Acceptable because every
+  published page is gated marketing copy and the secure flow stays disallowed
+  to every agent.
+- **A2, measurement.** GA4 is wired and activates on the presence of
+  `NEXT_PUBLIC_GA4_MEASUREMENT_ID`, rather than on a hardcoded boolean, so the
+  code, the CSP, and the privacy notice cannot drift apart. Configured with
+  `anonymize_ip`, Google signals and ad personalization off, and
+  `send_page_view: false`. The CSP relaxes `connect-src` and `img-src` only
+  when an ID is present; `script-src` is untouched because the nonce and
+  `strict-dynamic` carry the loader without any host allowlist. Session replay
+  is not implemented and should not be. The privacy notice was rewritten to
+  describe this accurately, and `UNMEASURED_PATHS` enforces its promise that
+  nothing is measured on the transport request form.
+
+New work in service of AI retrieval, built only from already-published,
+already-gated content:
+
+- **`/llms.txt`** generated from the same registries the pages render from,
+  including a "notes for answer engines" section that states plainly what must
+  not be said on AirEvac's behalf: no response time, no price, no insurance
+  outcome, no operating-authority claim. Accreditations pass through
+  `publishable()` here exactly as on the page.
+- **`/resources/glossary`** with `DefinedTermSet` markup and a resolvable
+  `@id` per term. Twenty definitions of the vocabulary the site uses in passing
+  and explains only in context (bed acceptance, financial clearance, fit to
+  fly, technical stop, ground leg). Definitional content carries no capability
+  claim, so it can be quoted in full without misrepresenting AirEvac, which
+  makes it the most safely citable page on the site.
+- **Organization schema enriched** with `description`, `knowsAbout`,
+  `areaServed`, and `faxNumber`. `sameAs` is deliberately absent: see below.
+
+### Still blocked, and why approval does not unblock it
+
+A blanket approval authorizes changes. It does not supply facts, and the
+following cannot be published without them. Each is a one-line change once the
+underlying document or list exists.
+
+| Item | What is missing | Effect |
+| --- | --- | --- |
+| **EURAMI accreditation** | `approvedOn` is null pending D2: the certificate PDF itself, not the public directory entry. The scope, expiry (2027-08-25), and a public verification URL are already on file. | **The single largest AI-trust unlock available.** An accreditation from a named body with a verifiable URL is the strongest corroboration signal this site could carry, and it currently renders nowhere: not on the page, not in JSON-LD, not in llms.txt. |
+| `sameAs` profiles | Confirmed current URLs for AirEvac's own profiles and directory listings. | Removes the strongest entity-corroboration property from Organization schema. |
+| Clinical reviewer identities (F3) | Named reviewers willing to be published, with credentials. | Medical pages render "under review" banners; no `Person` schema; guide articles are not worth publishing without a reviewer per handoff §13. |
+| Route operational detail (F5) | Operations read-through of the twelve route pages. | Content is live but unconfirmed. |
+| Domestic service page (A6) | Whether AirEvac accepts domestic-only transports, and the operational facts. | No page published. |
+
 ## Open production approvals
 
 - AEI operations approval for the conditional 90-minute response copy.

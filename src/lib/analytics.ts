@@ -24,6 +24,7 @@ import { FEATURES } from '@/content/site';
 
 /** The qualified actions worth measuring, per handoff section 9. */
 export type AnalyticsEventName =
+  | 'page_view'
   | 'click_phone'
   | 'click_email'
   | 'start_transport_request'
@@ -31,6 +32,25 @@ export type AnalyticsEventName =
   | 'download_checklist'
   | 'view_credentials'
   | 'route_inquiry';
+
+/**
+ * Paths where nothing is measured, at all.
+ *
+ * The privacy notice states: "No measurement of any kind runs on the transport
+ * request form or on any page carrying sensitive information." That sentence is
+ * a commitment, and this constant is what keeps it true. GA4 is additionally
+ * configured with `send_page_view: false`, so the tag reports nothing on its
+ * own either; both halves are needed, because either one alone would leave the
+ * notice depending on the other staying correct.
+ */
+const UNMEASURED_PATHS = ['/request-transport'];
+
+/** False on any page the privacy notice promises is unmeasured. */
+export function isMeasurablePath(path: string): boolean {
+  return !UNMEASURED_PATHS.some(
+    (excluded) => path === excluded || path.endsWith(excluded) || path.includes(`${excluded}/`),
+  );
+}
 
 export interface AnalyticsEvent {
   name: AnalyticsEventName;
@@ -88,6 +108,7 @@ const FORBIDDEN_KEYS = new Set([
 export function track(event: AnalyticsEvent): void {
   if (!FEATURES.analytics) return;
   if (typeof window === 'undefined') return;
+  if (!isMeasurablePath(event.path)) return;
 
   const payload: Record<string, unknown> = {
     event: event.name,

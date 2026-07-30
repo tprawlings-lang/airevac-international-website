@@ -1,6 +1,7 @@
 import type { PageContent } from '@/content/blocks';
 import { ABOUT_PAGES } from '@/content/pages/about';
 import { FLEET_PAGES } from '@/content/pages/fleet';
+import { GLOSSARY_PAGE } from '@/content/pages/glossary';
 import { LEGAL_PAGES } from '@/content/pages/legal';
 import { FOR_PARTNERS_PAGE } from '@/content/pages/partners';
 import { PATIENT_PAGES } from '@/content/pages/patients';
@@ -20,6 +21,7 @@ export const ALL_CONTENT_PAGES: readonly PageContent[] = [
   ...PATIENT_PAGES,
   ...ABOUT_PAGES,
   ...FLEET_PAGES,
+  GLOSSARY_PAGE,
   ...LEGAL_PAGES,
 ];
 

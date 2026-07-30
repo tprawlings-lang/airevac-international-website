@@ -22,7 +22,31 @@ import { DEFAULT_LOCALE, LOCALES } from '@/lib/i18n';
 
 const PUBLIC_FILE = /\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|css|js|map|txt|xml|webmanifest|woff2?)$/i;
 
+/**
+ * Hosts the analytics beacon needs, added to `connect-src` and `img-src` ONLY
+ * when a GA4 measurement ID is configured.
+ *
+ * The relaxation is conditional on purpose. AirEvac approved analytics
+ * (decision A2), but approval is not a reason to widen the policy on a
+ * deployment that is not actually running analytics: a preview build, or
+ * production before the measurement ID is supplied, keeps the strict policy it
+ * has today. The allowance appears the moment the ID does and not before.
+ *
+ * `script-src` is untouched. The GTM loader is a nonced script and
+ * 'strict-dynamic' lets it load its own dependencies, so no script host needs
+ * listing. Trust flows from the nonce rather than from a hostname allowlist,
+ * which is the stronger arrangement and the reason it was built this way.
+ */
+const ANALYTICS_HOSTS = [
+  'https://www.googletagmanager.com',
+  'https://www.google-analytics.com',
+  'https://analytics.google.com',
+  'https://region1.google-analytics.com',
+];
+
 function buildCsp(nonce: string, isDev: boolean): string {
+  const analyticsEnabled = (process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? '').length > 0;
+
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
 
@@ -35,14 +59,16 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // does not weaken script protection; styles carry no script capability.
     'style-src': ["'self'", `'nonce-${nonce}'`, "'unsafe-inline'"],
 
-    // data: is needed for inline SVG data URIs used by the icon set.
-    'img-src': ["'self'", 'data:', 'blob:'],
+    // data: is needed for inline SVG data URIs used by the icon set. GA4 falls
+    // back to an image beacon in some browsers, hence the same conditional.
+    'img-src': ["'self'", 'data:', 'blob:', ...(analyticsEnabled ? ANALYTICS_HOSTS : [])],
     'font-src': ["'self'"],
 
-    // Same-origin only. Section 8: no advertising trackers in the public layer,
-    // and the secure contact layer is a separately controlled origin that the
-    // public pages link to rather than call from the browser.
-    'connect-src': ["'self'"],
+    // Same-origin only, plus the analytics beacon when and only when a
+    // measurement ID is configured. Section 8 forbids advertising trackers in
+    // the public layer, and nothing here permits one: these hosts carry the
+    // GA4 event beacon and no ad network.
+    'connect-src': ["'self'", ...(analyticsEnabled ? ANALYTICS_HOSTS : [])],
 
     'form-action': ["'self'"],
     'frame-ancestors': ["'none'"],

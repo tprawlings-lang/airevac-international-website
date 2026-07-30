@@ -6,7 +6,7 @@ import robots, {
   SEARCH_CRAWLERS,
   TRAINING_CRAWLERS,
 } from '@/app/robots';
-import { categoryOf, referralSource, track } from '@/lib/analytics';
+import { categoryOf, isMeasurablePath, referralSource, track } from '@/lib/analytics';
 import { indexNowEnabled } from '@/lib/indexnow';
 import { faqPageJsonLd, pageGraphJsonLd, serviceJsonLd } from '@/lib/structured-data';
 import { ALL_CONTENT_PAGES } from '@/lib/page-registry';
@@ -42,13 +42,23 @@ describe('crawler policy (handoff section 4)', () => {
     }
   });
 
-  it('blocks training-only crawlers without touching their search counterparts', () => {
+  it('keeps training agents distinct from their search counterparts', () => {
+    // Both groups are allowed since decision A1, but they must stay separately
+    // listed: Google-Extended is training and Googlebot is search, and
+    // confusing them is how a site accidentally removes itself from Google.
     expect(TRAINING_CRAWLERS).toContain('GPTBot');
-    // Google-Extended is training; Googlebot is search. Confusing them is how a
-    // site accidentally removes itself from Google.
     expect(TRAINING_CRAWLERS).toContain('Google-Extended');
     expect(SEARCH_CRAWLERS).toContain('Googlebot');
     expect(TRAINING_CRAWLERS).not.toContain('Googlebot');
+  });
+
+  it('keeps the secure flow disallowed even for training crawlers', () => {
+    // Allowing training collection must not widen what any agent can reach.
+    const groups = productionRules() ?? [];
+    const training = (Array.isArray(groups) ? groups : [groups]).find(
+      (rule) => JSON.stringify(rule.userAgent) === JSON.stringify(TRAINING_CRAWLERS),
+    );
+    expect(training?.disallow).toEqual(DISALLOWED_PATHS);
   });
 
   it('repeats the disallow list in every allow group', () => {
@@ -94,7 +104,7 @@ describe('structured data (handoff section 7)', () => {
   };
 
   it('emits WebSite, WebPage, and BreadcrumbList in one graph', () => {
-    const graph = pageGraphJsonLd('en', page) as { '@graph': { '@type': string }[] };
+    const graph = pageGraphJsonLd('en', page) as unknown as { '@graph': { '@type': string }[] };
     const types = graph['@graph'].map((node) => node['@type']);
     expect(types).toContain('WebSite');
     expect(types).toContain('WebPage');
@@ -102,7 +112,7 @@ describe('structured data (handoff section 7)', () => {
   });
 
   it('links the nodes by @id rather than repeating them', () => {
-    const graph = pageGraphJsonLd('en', page) as {
+    const graph = pageGraphJsonLd('en', page) as unknown as {
       '@graph': Record<string, unknown>[];
     };
     const webPage = graph['@graph'].find((node) => node['@type'] === 'WebPage');
@@ -116,21 +126,22 @@ describe('structured data (handoff section 7)', () => {
       path: '/',
       title: 'Home',
       description: 'Homepage',
-    }) as { '@graph': { '@type': string }[] };
+    }) as unknown as { '@graph': { '@type': string }[] };
 
     expect(graph['@graph'].map((node) => node['@type'])).not.toContain('BreadcrumbList');
   });
 
   it('never claims a review date the page does not display', () => {
-    const withoutReview = pageGraphJsonLd('en', page) as {
+    const withoutReview = pageGraphJsonLd('en', page) as unknown as {
       '@graph': Record<string, unknown>[];
     };
     const node = withoutReview['@graph'].find((n) => n['@type'] === 'WebPage');
     expect(node).not.toHaveProperty('dateModified');
 
-    const withReview = pageGraphJsonLd('en', { ...page, reviewedOn: '2026-07-27' }) as {
-      '@graph': Record<string, unknown>[];
-    };
+    const withReview = pageGraphJsonLd('en', {
+      ...page,
+      reviewedOn: '2026-07-27',
+    }) as unknown as { '@graph': Record<string, unknown>[] };
     expect(withReview['@graph'].find((n) => n['@type'] === 'WebPage')).toHaveProperty(
       'dateModified',
       '2026-07-27',
@@ -138,7 +149,7 @@ describe('structured data (handoff section 7)', () => {
   });
 
   it('marks the locale on every graph so hreflang and schema agree', () => {
-    const es = pageGraphJsonLd('es', page) as { '@graph': Record<string, unknown>[] };
+    const es = pageGraphJsonLd('es', page) as unknown as { '@graph': Record<string, unknown>[] };
     for (const node of es['@graph']) {
       if (node['@type'] === 'WebSite' || node['@type'] === 'WebPage') {
         expect(node.inLanguage).toBe('es-419');
@@ -162,7 +173,7 @@ describe('structured data (handoff section 7)', () => {
   });
 
   it('claims only service areas the site actually publishes', () => {
-    const published = new Set(COVERAGE_REGIONS.map((region) => region.name));
+    const published = new Set<string>(COVERAGE_REGIONS.map((region) => region.name));
     const service = serviceJsonLd(
       'en',
       { path: '/services/air-ambulance', title: 'Air Ambulance', description: 'Description.' },
@@ -188,9 +199,11 @@ describe('structured data (handoff section 7)', () => {
       const visible = page.blocks.flatMap((block) =>
         block.type === 'faq' ? block.items.map((item) => item.question) : [],
       );
-      const graph = faqPageJsonLd('en', page.path, page.blocks.flatMap((block) =>
-        block.type === 'faq' ? block.items : [],
-      )) as { mainEntity: { name: string }[] } | null;
+        const graph = faqPageJsonLd(
+        'en',
+        page.path,
+        page.blocks.flatMap((block) => (block.type === 'faq' ? block.items : [])),
+      ) as unknown as { mainEntity: { name: string }[] } | null;
 
       if (graph === null) {
         expect(visible).toEqual([]);
@@ -238,8 +251,18 @@ describe('opening answer (handoff section 6)', () => {
 });
 
 describe('analytics layer (handoff section 9)', () => {
-  it('is disabled until the privacy notice is revised (approvals item A2)', () => {
+  it('activates only when a measurement ID is configured', () => {
+    // Approved (A2), but driven by configuration so the code, the CSP, and the
+    // privacy notice can never disagree about whether measurement is running.
     expect(FEATURES.analytics).toBe(false);
+    expect(process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? '').toBe('');
+  });
+
+  it('never measures the transport request form, as the privacy notice promises', () => {
+    expect(isMeasurablePath('/en/request-transport')).toBe(false);
+    expect(isMeasurablePath('/es/request-transport')).toBe(false);
+    expect(isMeasurablePath('/en/contact')).toBe(true);
+    expect(isMeasurablePath('/en/coverage/mexico/cancun')).toBe(true);
   });
 
   it('does nothing at all while disabled', () => {

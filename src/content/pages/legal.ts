@@ -91,10 +91,10 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         type: 'list',
         heading: 'What this website does not do',
         items: [
-          'It does not run advertising trackers, retargeting pixels, or tag managers.',
-          'It does not use session replay or record your interactions with the page.',
-          'It does not build a profile of you, and it does not create medical-interest audiences.',
-          'It does not send anything you enter to an advertising platform.',
+          'It does not run advertising trackers or retargeting pixels.',
+          'It does not use session replay and does not record your screen, your typing, or your mouse movements.',
+          'It does not build a profile of you, and it does not create medical-interest audiences. Where analytics is used, the settings that would allow this are switched off.',
+          'It does not send anything you enter into a form to an advertising platform.',
           'It does not accept payment card details anywhere.',
           'It does not set advertising or profiling cookies.',
         ],
@@ -103,12 +103,19 @@ export const LEGAL_PAGES: readonly PageContent[] = [
         type: 'prose',
         heading: 'Cookies and measurement',
         paragraphs: [
-          'This website does not currently set analytics or advertising cookies. Where ' +
-            'aggregate measurement is used on public information pages, it is limited to page ' +
-            'views, referrer category, page performance, and broad geography, with no ' +
-            'identifier tied to you.',
-          'No measurement of any kind runs on the callback form or on any page carrying ' +
-            'sensitive information.',
+          'We use aggregate website measurement to understand which pages people find ' +
+            'useful and where the site is failing them. It records the page visited, how ' +
+            'you arrived, broad geography, and whether you used the phone or email links. ' +
+            'It does not record your name, your phone number, your email address, the ' +
+            'cities involved in a transport, or anything you type.',
+          'The settings that would turn this into advertising data are switched off. Your ' +
+            'address is truncated before it is stored, the measurement is not linked to ' +
+            'any advertising audience, and the specific route or destination page you read ' +
+            'is deliberately recorded only as a broad category, because a single family’s ' +
+            'transport could otherwise be identifiable from it.',
+          'No measurement of any kind runs on the transport request form or on any page ' +
+            'carrying sensitive information, and no session replay or screen recording is ' +
+            'used anywhere on this site.',
         ],
       },
       {

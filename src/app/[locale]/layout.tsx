@@ -10,6 +10,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { MobileCallBar } from '@/components/MobileCallBar';
 import { AnalyticsListener } from '@/components/AnalyticsListener';
+import { Analytics } from '@/components/Analytics';
 
 /**
  * Root layout.
@@ -131,8 +132,9 @@ export default async function LocaleLayout({
 
         <MobileCallBar locale={locale} />
 
-        {/* Qualified-action measurement. Renders nothing while the analytics
-            feature flag is off, which is its current state. */}
+        {/* Measurement. Both render nothing unless a GA4 measurement ID is
+            configured; see src/components/Analytics.tsx. */}
+        <Analytics />
         <AnalyticsListener />
       </body>
     </html>

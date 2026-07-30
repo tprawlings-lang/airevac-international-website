@@ -93,14 +93,24 @@ export const FEATURES = {
   hostedPayments: false,
 
   /**
-   * PENDING approvals-document item A2: GA4 and Tag Manager.
+   * Measurement. APPROVED by AirEvac (decision A2, 2026-07-30).
    *
-   * The measurement layer in src/lib/analytics.ts is written and tested but
-   * inert while this is false. Enabling it requires more than this flag: the
-   * privacy notice states the site sets no analytics cookies, and the Notice
-   * of Privacy Practices describes a site running no measurement on pages
-   * carrying sensitive information. Both must be revised and re-approved
-   * first, or the site's own privacy notice becomes untrue.
+   * DRIVEN BY CONFIGURATION RATHER THAN BY A HARDCODED BOOLEAN. Analytics is
+   * active exactly when a GA4 measurement ID is present in the environment,
+   * which means three things are true at once and cannot drift apart: the
+   * measurement layer runs, the CSP permits the beacon host (src/proxy.ts),
+   * and the privacy notice's conditional wording describes what is actually
+   * happening. Flipping a boolean while no ID existed would have produced a
+   * site that claimed to measure and did not; setting an ID while a boolean
+   * stayed false would have produced the reverse.
+   *
+   * WHAT IS STILL DELIBERATELY OFF, and is not covered by decision A2:
+   * session replay and heatmap recording. The approvals document recommended
+   * declining Microsoft Clarity, and nothing here loads a replay tool. A page
+   * where someone types a patient's situation into a form is not a page to
+   * record.
    */
-  analytics: false,
+  get analytics(): boolean {
+    return (process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? '').length > 0;
+  },
 } as const;

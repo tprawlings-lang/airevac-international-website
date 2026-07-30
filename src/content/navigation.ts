@@ -63,6 +63,7 @@ export function buildNavigation(dictionary: Dictionary): NavGroup[] {
         { href: '/patients-families/how-it-works', label: 'How It Works' },
         { href: '/patients-families/insurance-and-payment', label: 'Insurance and Payment' },
         { href: '/patients-families/private-pay', label: 'Private Pay' },
+        { href: '/resources/glossary', label: 'Glossary of Terms' },
       ],
     },
     {

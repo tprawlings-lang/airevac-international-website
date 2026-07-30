@@ -48,6 +48,47 @@ export function organizationJsonLd(locale: Locale, now: Date): JsonLd {
     url: `${SITE.url}${localePath(locale, '/')}`,
     telephone: SITE.phone.display,
     email: SITE.email.display,
+    faxNumber: SITE.fax.display,
+
+    /*
+     * Entity description and topics.
+     *
+     * `knowsAbout` is how an answer engine decides whether this organization is
+     * relevant to a question at all. Every entry is a subject the site actually
+     * publishes a page about, so the list is a claim about coverage of content
+     * rather than a claim about capability. Nothing here asserts a clinical
+     * capability, an operating authority, or a service level: those live in the
+     * credential register and are gated.
+     */
+    description:
+      'Air ambulance transport coordination from Mexico, the Caribbean, Central ' +
+      'America, and the United States, operating from Fort Lauderdale Executive ' +
+      'Airport.',
+    knowsAbout: [
+      'Air ambulance transport',
+      'Medical repatriation',
+      'Critical care transport',
+      'Hospital to hospital patient transfer',
+      'Cruise ship medical disembarkation',
+      'International medical transport documentation',
+    ],
+    areaServed: [
+      { '@type': 'Country', name: 'Mexico' },
+      { '@type': 'Place', name: 'Caribbean' },
+      { '@type': 'Place', name: 'Central America' },
+      { '@type': 'Country', name: 'United States' },
+    ],
+    /*
+     * `sameAs` is deliberately empty and therefore omitted.
+     *
+     * It is the property that links this entity to its profiles elsewhere, and
+     * it is one of the strongest corroboration signals an answer engine has.
+     * Populating it requires the real, current profile URLs for AirEvac, and no
+     * verified set exists in this repository: the social links found on the old
+     * WordPress site were not confirmed as current, and asserting a profile that
+     * turns out to belong to a different or defunct account is worse than
+     * asserting none. This unblocks as soon as AirEvac supplies the list.
+     */
     address: {
       '@type': 'PostalAddress',
       streetAddress: SITE.base.street,
@@ -222,6 +263,60 @@ export function faqPageJsonLd(
       acceptedAnswer: { '@type': 'Answer', text: item.answer },
     })),
   };
+}
+
+/**
+ * DefinedTermSet for the glossary, generated from its own definition blocks.
+ *
+ * Schema.org has a type built for exactly this shape, and using it rather than
+ * a generic Article is the difference between an answer engine being handed a
+ * page and being handed a resolvable term. Each term gets a URL fragment so a
+ * single definition can be cited on its own.
+ *
+ * Generated from the page content, so a term cannot be marked up unless it is
+ * rendered, the same rule the FAQ markup follows.
+ */
+export function definedTermSetJsonLd(
+  locale: Locale,
+  page: {
+    path: string;
+    title: string;
+    description: string;
+    blocks: readonly { type: string; items?: readonly unknown[] }[];
+  },
+): JsonLd {
+  const url = `${SITE.url}${localePath(locale, page.path)}`;
+
+  const terms = page.blocks
+    .filter((block) => block.type === 'definitions')
+    .flatMap((block) => (block.items ?? []) as { term: string; detail: string }[])
+    .map((item) => ({
+      '@type': 'DefinedTerm',
+      '@id': `${url}#${slugifyTerm(item.term)}`,
+      name: item.term,
+      description: item.detail,
+      inDefinedTermSet: `${url}#glossary`,
+    }));
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    '@id': `${url}#glossary`,
+    name: page.title,
+    description: page.description,
+    url,
+    hasDefinedTerm: terms,
+  };
+}
+
+/** URL fragment for a glossary term. Stable, so a citation keeps working. */
+function slugifyTerm(term: string): string {
+  return term
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 /** Breadcrumb, per section 19. Paths are locale-prefixed to match canonicals. */

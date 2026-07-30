@@ -11,9 +11,22 @@ import { SITE } from '@/content/site';
  *   ChatGPT search, Claude search, and Perplexity results. All are allowed.
  *
  *   MODEL-TRAINING CRAWLERS collect pages into training corpora. Blocking them
- *   has no effect on search visibility. All are disallowed, per the handoff's
- *   default and decision A1 in the approvals document. Reversing that is a
- *   one-line change: move the agent from TRAINING_CRAWLERS to SEARCH_CRAWLERS.
+ *   has no effect on search visibility, which is why the handoff's default was
+ *   to block them.
+ *
+ * AIREVAC APPROVED ALLOWING BOTH (decision A1, 2026-07-30), on the goal of
+ * being as discoverable and citable by AI systems as possible. The reasoning
+ * is that a model trained on these pages can describe AirEvac without needing
+ * to search at the moment it is asked, which is a different and longer-lived
+ * path to being recommended than live retrieval.
+ *
+ * THE TRADE-OFF THAT COMES WITH IT, recorded because it is not reversible in
+ * the way most settings are: content collected into a training corpus cannot be
+ * withdrawn from a model already trained on it. Re-blocking these agents later
+ * stops future collection and does not undo past collection. That is acceptable
+ * here specifically because every published page is already public marketing
+ * copy that passes the claim gates; no page carries patient information, and
+ * the secure flow is disallowed to every agent below.
  *
  * STAGING IS BLOCKED BY ORIGIN, NOT BY A FLAG. `SITE.url` comes from the
  * SITE_URL environment variable, whose default is deliberately NOT production -
@@ -61,17 +74,25 @@ export const SEARCH_CRAWLERS = [
 ];
 
 /**
- * Training-corpus crawlers. Disallowed by default (handoff section 4, decision
- * A1). None of these affects whether AirEvac appears in search or in an AI
- * answer with a citation.
+ * Model-training crawlers, allowed per decision A1. See the trade-off note at
+ * the top of this file before changing this list.
+ *
+ * Kept as a separate array rather than merged into SEARCH_CRAWLERS because the
+ * two groups answer different questions and carry different risks. Anyone
+ * revisiting the policy needs to see which agents affect search visibility and
+ * which affect training, and a single flat list hides exactly that.
  */
 export const TRAINING_CRAWLERS = [
   // OpenAI model training.
   'GPTBot',
-  // Google model training (Gemini). Separate from Googlebot, which stays allowed.
+  // Google model training (Gemini). Separate from Googlebot, which is search.
   'Google-Extended',
   // Apple model training. Separate from Applebot, which is search.
   'Applebot-Extended',
+  // Common Crawl, the corpus most open models are trained from.
+  'CCBot',
+  // Meta model training.
+  'meta-externalagent',
 ];
 
 /**
@@ -115,7 +136,7 @@ export const dynamic = 'force-dynamic';
 export function productionRules(): MetadataRoute.Robots['rules'] {
   return [
     { userAgent: SEARCH_CRAWLERS, allow: '/', disallow: DISALLOWED_PATHS },
-    { userAgent: TRAINING_CRAWLERS, disallow: '/' },
+    { userAgent: TRAINING_CRAWLERS, allow: '/', disallow: DISALLOWED_PATHS },
     { userAgent: '*', allow: '/', disallow: DISALLOWED_PATHS },
   ];
 }
