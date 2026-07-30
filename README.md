@@ -419,6 +419,7 @@ must actually be in the repository.
 | [Facts and Approvals](docs/AirEvac_Facts_and_Approvals.pdf) | Handback: documents, names, and sign-offs AirEvac owes |
 | [Sign-Ups and Accounts](docs/AirEvac_Signups_and_Accounts.pdf) | Handback: Google, Bing, DNS, and profile actions |
 | [Fleet register](docs/fleet-register.md) | Internal registration mapping. Not published. |
+| [Coordinator chat plan](docs/plans/coordinator-chat-plan.md) | **Proposal, nothing built.** Live chat, coordinator console, translation |
 | [ADR 0001](docs/adr/0001-framework.md) | Next.js App Router |
 | [ADR 0002](docs/adr/0002-content-model.md) | Typed block content, CMS-shaped |
 | [ADR 0003](docs/adr/0003-rate-limiting.md) | Rate limits and their known limits |
