@@ -1,5 +1,7 @@
 import { Pool, type PoolClient, type QueryResultRow } from 'pg';
 
+import { safeLog } from '@/lib/redact';
+
 import { sslConfig } from './ssl.mjs';
 
 /**
@@ -42,9 +44,17 @@ export function getPool(): Pool {
     connectionString: url,
     // Shared with the migration CLI so the two cannot disagree about what they
     // will accept. See src/server/db/ssl.mjs.
-    ssl: sslConfig(url, (message) =>
-      console.error(JSON.stringify({ level: 'warn', event: 'db.tls_mode', message })),
-    ),
+    /*
+     * Reported at info, on stdout, deliberately.
+     *
+     * It is a statement of the configuration in force, once per process, for a
+     * condition that is intentional and tracked as a launch blocker in
+     * docs/executive-sign-off-register.md. Writing it to the error stream made
+     * a healthy deploy look like a failing one, and a log that cries wolf on
+     * every boot is a log people stop reading. The gate that actually prevents
+     * this reaching production is the register, not a console line.
+     */
+    ssl: sslConfig(url, (message) => safeLog('info', 'db.tls_mode', { message })),
     // Small: this is a handful of coordinators, not a public API. A large pool
     // on a small Postgres plan is a way to hit the server's limit rather than
     // the pool's, which fails far less gracefully.

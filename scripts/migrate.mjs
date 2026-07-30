@@ -64,7 +64,9 @@ let pool;
 try {
   pool = new pg.Pool({
     connectionString: url,
-    ssl: sslConfig(url, (message) => console.error(message)),
+    // stdout, not stderr: an intentional configuration is not a failure, and a
+    // deploy log that shows red for a healthy boot teaches people to ignore it.
+    ssl: sslConfig(url, (message) => console.log(message)),
     /*
      * Bounded, because this runs immediately before the web server starts. The
      * driver's default is to wait indefinitely, so an unreachable database held
