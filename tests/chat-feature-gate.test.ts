@@ -77,3 +77,52 @@ describe('chat feature gate', () => {
     expect(await secureChat()).toBe(true);
   });
 });
+
+describe('SITE_URL normalisation', () => {
+  const original = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...original };
+  });
+
+  async function siteUrl(): Promise<string> {
+    vi.resetModules();
+    const { SITE } = await import('@/content/site');
+    return SITE.url;
+  }
+
+  it('strips a trailing slash', async () => {
+    /*
+     * `SITE.url` is concatenated with paths that already start with a slash, so
+     * an unstripped one produces `https://host//sitemap.xml` everywhere at once.
+     * A dashboard field is exactly where a trailing slash gets pasted.
+     */
+    process.env.SITE_URL = 'https://example.onrender.com/';
+
+    expect(await siteUrl()).toBe('https://example.onrender.com');
+  });
+
+  it('strips whitespace picked up by copy and paste', async () => {
+    process.env.SITE_URL = '  https://example.onrender.com  ';
+
+    expect(await siteUrl()).toBe('https://example.onrender.com');
+  });
+
+  it('falls back to localhost when unset or blank, keeping a preview noindex', async () => {
+    process.env.SITE_URL = '   ';
+    expect(await siteUrl()).toBe('http://localhost:3000');
+
+    delete process.env.SITE_URL;
+    expect(await siteUrl()).toBe('http://localhost:3000');
+  });
+
+  it('still recognises production when it arrives with a trailing slash', async () => {
+    // Otherwise the live site would serve noindex over a punctuation mark.
+    process.env.SITE_URL = 'https://airevacinternational.com/';
+    process.env.DATABASE_URL = 'postgres://example/db';
+    delete process.env.CHAT_ENABLED;
+
+    expect(await siteUrl()).toBe('https://airevacinternational.com');
+    expect(await secureChat()).toBe(false);
+  });
+});

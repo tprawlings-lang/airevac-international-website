@@ -3,6 +3,25 @@
  * and the Fort Lauderdale contact record confirmed by the airport directory [S4].
  */
 
+/**
+ * Normalises the configured origin.
+ *
+ * `SITE.url` is concatenated with paths that already begin with a slash, in the
+ * sitemap, the structured data, `llms.txt`, and the robots host. A trailing
+ * slash on the environment variable therefore produces `https://host//sitemap.xml`
+ * throughout, and the production comparison stops matching, which would silently
+ * leave the live site serving `noindex`.
+ *
+ * A dashboard field is exactly where a trailing slash gets pasted, so the
+ * tolerant thing is to accept it and strip it here rather than to be right and
+ * broken. Whitespace goes too: copying a value out of a terminal picks it up.
+ */
+function normalizeOrigin(value: string | undefined, fallback: string): string {
+  const trimmed = (value ?? '').trim();
+  if (trimmed === '') return fallback;
+  return trimmed.replace(/\/+$/, '');
+}
+
 export const SITE = {
   name: 'AirEvac International',
 
@@ -17,7 +36,7 @@ export const SITE = {
    * `IS_PRODUCTION` false in robots.ts - so it serves a disallow-all robots.txt
    * and `noindex`, instead of advertising itself with production canonicals.
    */
-  url: process.env.SITE_URL ?? 'http://localhost:3000',
+  url: normalizeOrigin(process.env.SITE_URL, 'http://localhost:3000'),
 
   /**
    * The primary conversion. Blueprint page 7: "Primary: Call a Flight
