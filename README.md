@@ -438,6 +438,7 @@ must actually be in the repository.
 | [Fleet register](docs/fleet-register.md) | Internal registration mapping. Not published. |
 | [Coordinator chat plan](docs/plans/coordinator-chat-plan.md) | Live chat and console. Phases A, B, and C built and exercised end to end |
 | [AWS Translate setup](docs/aws-translate-setup.md) | **Ready to action.** BAA, IAM policy, env vars, verification |
+| [Render first-time setup](docs/render-first-time-setup.md) | **Start here on a fresh service.** Database and variables, in plain language |
 | [Testing on Render](docs/testing-on-render.md) | **Start here to try the chat.** Works without AWS |
 | [ADR 0001](docs/adr/0001-framework.md) | Next.js App Router |
 | [ADR 0002](docs/adr/0002-content-model.md) | Typed block content, CMS-shaped |

@@ -31,6 +31,11 @@ What needs a named signature before any of this faces the public is in
 
 ---
 
+> **Starting from nothing?** This page assumes the service is already running
+> with a database attached. If it is not, follow
+> [docs/render-first-time-setup.md](render-first-time-setup.md) first: it covers
+> creating the database and setting the four variables, in plain language.
+
 ## 1. Add the database
 
 The blueprint in `render.yaml` declares `airevac-db` and wires `DATABASE_URL`
