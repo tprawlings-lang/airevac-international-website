@@ -39,6 +39,23 @@
   --color-urgent-600: #c1272d; /* on white: 6.0:1 */
   --color-urgent-50: #fdf0f0;
 
+  /*
+   * --- Signal yellow: the chat entry point, and nothing else. --------------
+   *
+   * Reserved in the same way red is reserved, and for the same reason: a colour
+   * that means one thing keeps meaning it. Red is the phone. Yellow is chat.
+   *
+   * Text on it must be navy-900 or ink-900, never white. White on this is
+   * 1.6:1 and illegible; navy-900 is 10.6:1.
+   *
+   * AGAINST WHITE IT IS 1.6:1, which is below the 3:1 WCAG 1.4.11 needs for a
+   * control's own boundary, so anything using it MUST carry a dark border. The
+   * border is not decoration; without it the button has no discernible edge
+   * for a low-vision user and the yellow is doing no work.
+   */
+  --color-signal-500: #ffc72c; /* navy-900 text on this: 10.6:1 */
+  --color-signal-600: #e5a800; /* hover; navy-900 on this: 7.8:1 */
+
   /* --- Neutrals ----------------------------------------------------------- */
   --color-ink-900: #14181f; /* body text on white: 15.9:1 */
   --color-ink-700: #333c49; /* on white: 10.4:1 */

@@ -269,7 +269,15 @@ export function ChatWidget({ locale }: { locale: Locale }) {
         }}
         aria-expanded={open}
         aria-controls="chat-panel"
-        className="fixed bottom-24 right-4 z-40 min-h-[44px] rounded-panel bg-navy-900 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-navy-950 sm:bottom-6"
+        /*
+         * Signal yellow, with a navy border and navy text. The border is
+         * required rather than stylistic: yellow on white is 1.6:1, which
+         * gives the control no discernible edge, and WCAG 1.4.11 wants 3:1
+         * for a control's own boundary. Navy on white is 16.5:1.
+         *
+         * Text is navy, never white. White on this yellow is unreadable.
+         */
+        className="fixed bottom-24 right-4 z-40 min-h-[44px] rounded-panel border-2 border-navy-900 bg-signal-500 px-4 py-3 text-sm font-bold text-navy-900 shadow-lg hover:bg-signal-600 sm:bottom-6"
       >
         {open ? t.close : t.launch}
       </button>

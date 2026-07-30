@@ -4,6 +4,7 @@ import { csrfToken, requireUser, CSRF_FIELD } from '@/server/auth/guard';
 import { activeChatsFor, queuedChats } from '@/server/chat/sessions';
 import { MAX_CONCURRENT_CHATS } from '@/lib/chat-constants';
 import { PresenceToggle } from '@/components/chat/PresenceToggle';
+import { AutoRefresh } from '@/components/chat/AutoRefresh';
 import { availableCoordinators } from '@/server/chat/presence';
 
 /**
@@ -67,6 +68,10 @@ export default async function ChatsPage({
           {ERRORS[error] ?? 'That did not work.'}
         </p>
       )}
+
+      {/* The queue changes when a visitor arrives or another coordinator
+          claims one, neither of which this page would otherwise notice. */}
+      <AutoRefresh seconds={5} />
 
       <div className="mt-6">
         <PresenceToggle initial={isAvailable} />
