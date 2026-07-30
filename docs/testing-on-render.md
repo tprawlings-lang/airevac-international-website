@@ -17,13 +17,17 @@ domain): everything below. The site serves `noindex` and a disallow-all
 **Not safe on the production domain.** Two things are blocked or shouted about
 in code rather than left to memory:
 
-- `TRANSLATION_MODE=stub` is **ignored** on `https://airevacinternational.com`.
-  Showing marked placeholder text to a family arranging a medical transport
-  would be worse than showing nothing.
-- `CHAT_ENABLED=true` on the production origin logs a loud startup error. It is
-  not blocked, because after the Business Associate Agreement is executed it is
-  exactly what you want. Before then, a chat receives patient details within
-  the first minute and there is no agreement covering where they land.
+- `TRANSLATION_MODE=stub` is **ignored** on `https://airevacinternational.com`,
+  and the stub is never the default there. Showing marked placeholder text to a
+  family arranging a medical transport would be worse than showing nothing.
+- Chat is **off by default** on the production origin, and setting
+  `CHAT_ENABLED=true` there logs a loud startup error. It is not blocked,
+  because after the Business Associate Agreement is executed it is exactly what
+  you want. Before then, a chat receives patient details within the first
+  minute and there is no agreement covering where they land.
+
+What needs a named signature before any of this faces the public is in
+[docs/executive-sign-off-register.md](executive-sign-off-register.md).
 
 ---
 
@@ -41,15 +45,28 @@ Without `DATABASE_URL` the site still runs; the console is simply unavailable.
 
 ## 2. Set the environment
 
+**Almost nothing is required.** A preview deploy turns chat on and uses stub
+translation by default, so the demo works out of the box. Only the first
+sign-in needs a variable set.
+
 Render dashboard, the web service, **Environment**:
 
 | Key | Value for testing | Note |
 | --- | --- | --- |
-| `CHAT_ENABLED` | `true` | Turns on the widget and the endpoints |
-| `ALLOW_BOOTSTRAP_ADMIN` | `true` | Lets you sign in the first time |
-| `TRANSLATION_MODE` | `stub` | Marked fake translations, no AWS needed |
-| `OPS_NOTIFICATION_EMAIL` | your address | Where transcript notices go |
-| `SITE_URL` | your `.onrender.com` URL | Keeps the deploy `noindex` |
+| `ALLOW_BOOTSTRAP_ADMIN` | `true` | **Required.** Lets you sign in the first time. Set it back to `false` afterwards. |
+| `SITE_URL` | your `.onrender.com` URL | Keeps the deploy `noindex`, and keeps the preview defaults below in force |
+| `OPS_NOTIFICATION_EMAIL` | your address | Where transcript notices go. Defaults to the ops address. |
+
+Two defaults do the rest, and they are asymmetric on purpose — a preview opts
+*out*, production opts *in*, so a demo configuration cannot become a launch
+configuration by being forgotten:
+
+- **Chat is on** unless `SITE_URL` is `https://airevacinternational.com`. Set
+  `CHAT_ENABLED=false` to turn it off anywhere, or `true` to force it on.
+- **Stub translation is on** whenever AWS is not fully configured and the
+  origin is not production. The moment real AWS credentials appear they take
+  over; nobody has to remember to remove a variable. `TRANSLATION_MODE=off`
+  disables the stub and leaves chat running untranslated.
 
 Leave `RESEND_API_KEY` unset to begin with. Mail is then logged rather than
 sent, which is a working state and lets you confirm *what would have been sent*

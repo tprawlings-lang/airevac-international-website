@@ -51,8 +51,8 @@ Two optional variables change behaviour when set:
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | Activates measurement, and only then does the CSP admit the analytics beacon host. Absent, no third-party request is made and the strict policy stands. |
 | `INDEXNOW_KEY` | Enables IndexNow submission, and only on the production origin. |
 | `DATABASE_URL` | Enables the coordinator console. Absent, the site runs without one and migrations skip. |
-| `CHAT_ENABLED` | `true` turns on the chat widget and endpoints. Must stay off on production until the BAA is executed. |
-| `TRANSLATION_MODE` | `stub` gives visibly marked placeholder translations for testing. Refused on the production origin. |
+| `CHAT_ENABLED` | Overrides the default. Chat is **on** by default on any preview and **off** by default on the production origin, so it stays off there until the BAA is executed and someone opts in deliberately. |
+| `TRANSLATION_MODE` | `off` disables translation; `stub` forces visibly marked placeholder translations. The stub is the default on a preview whenever AWS is unconfigured, and is refused outright on the production origin. |
 
 ---
 
@@ -255,8 +255,15 @@ this reaches Bing and, through it, Microsoft Copilot.
 ## Before launch
 
 Everything the build team owns is complete and verified. What follows is owned
-by AirEvac, and the site should not go public until each is closed. Two
-handback documents track them in non-technical language:
+by AirEvac, and the site should not go public until each is closed.
+
+**[docs/executive-sign-off-register.md](docs/executive-sign-off-register.md) is
+the authoritative list**: twenty-five numbered items, each with a named signer,
+what they are approving, and what the site does while it is unsigned. It also
+states plainly what is safe to demonstrate today, which is everything, because
+the preview is `noindex` and disallowed to crawlers.
+
+Two handback documents track the same ground in non-technical language:
 [Facts and Approvals Still Required](docs/AirEvac_Facts_and_Approvals.pdf) and
 [Sign-Ups and Accounts Required](docs/AirEvac_Signups_and_Accounts.pdf)
 (revision 2.0, regenerate with `python3 scripts/generate-handoff-pdfs.py`).
@@ -270,6 +277,8 @@ handback documents track them in non-technical language:
 | **No legal page is approved** | D10: legal sign-off on privacy, NPP, and terms, plus the billing and legal decision on patient cost notices. | All three render an "under review" banner today. That banner is correct and must not be removed to look finished. |
 | **Custom domain not attached** | DNS records at the registrar pointing at Render, and a decision between `www` and non-`www`. | The site is on an `onrender.com` address. Until the real domain is live and canonical, indexing it would train search engines on a URL that is going to change. |
 | **Manual accessibility testing not done** | Screen-reader, keyboard-matrix, and 400% zoom review by a human. | axe covers roughly a third of WCAG failures. The accessibility statement says so rather than claiming conformance nobody verified. |
+| **Chat has no BAA and no matching privacy notice** | An executed Business Associate Agreement covering the database (L6), and a privacy notice rewritten to describe a site that receives clinical information (L4). | Chat is on by default on previews and off by default on production for exactly this reason. The published privacy notice currently says the site receives no clinical information, which a chat makes false in the first minute. |
+| **Chat runs on one instance only** | Move fan-out from the in-process bus to Postgres `LISTEN`/`NOTIFY` before scaling past `numInstances: 1`. | A second instance would leave each side of a conversation seeing only their own messages, which reads as the other person having stopped replying. |
 
 ### Unblocks that materially change the result
 
@@ -416,13 +425,14 @@ must actually be in the repository.
 
 | | |
 |---|---|
+| [Executive sign-off register](docs/executive-sign-off-register.md) | **Every approval required before the site is public**, with named signers |
 | [Readiness matrix](docs/readiness-matrix.md) | Scored status, severity, evidence, owner |
 | [Open decisions](docs/open-decisions.md) | D1–D14, what the code does while each is open |
 | [Handoff completion report](docs/handoff-completion-report.md) | Sign-off matrix for both handoffs, conflicts, open approvals |
 | [Facts and Approvals](docs/AirEvac_Facts_and_Approvals.pdf) | Handback: documents, names, and sign-offs AirEvac owes |
 | [Sign-Ups and Accounts](docs/AirEvac_Signups_and_Accounts.pdf) | Handback: Google, Bing, DNS, and profile actions |
 | [Fleet register](docs/fleet-register.md) | Internal registration mapping. Not published. |
-| [Coordinator chat plan](docs/plans/coordinator-chat-plan.md) | Live chat and console. Phase A done, Phase B in progress |
+| [Coordinator chat plan](docs/plans/coordinator-chat-plan.md) | Live chat and console. Phases A, B, and C built and exercised end to end |
 | [AWS Translate setup](docs/aws-translate-setup.md) | **Ready to action.** BAA, IAM policy, env vars, verification |
 | [Testing on Render](docs/testing-on-render.md) | **Start here to try the chat.** Works without AWS |
 | [ADR 0001](docs/adr/0001-framework.md) | Next.js App Router |

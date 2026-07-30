@@ -83,20 +83,27 @@ export const FEATURES = {
   /**
    * Live coordinator chat.
    *
-   * DRIVEN BY CONFIGURATION so the feature can be exercised on a test deploy
-   * without a code change, the same way analytics is. `CHAT_ENABLED=true`
-   * turns on the public widget and every chat endpoint; absent, none of it is
-   * reachable and the endpoints return 404.
+   * THE DEFAULT DEPENDS ON THE ORIGIN, which is the arrangement that makes a
+   * demo effortless and a mistake hard:
    *
-   * IT MUST STAY OFF ON THE PRODUCTION ORIGIN UNTIL THE BUSINESS ASSOCIATE
-   * AGREEMENT IS EXECUTED. A chat receives patient details within the first
-   * minute, and the executed agreement is what makes storing them lawful.
-   * `assertChatConfigurationIsSane()` logs a loud warning when this is enabled
-   * on the production origin, because a misconfiguration that quietly starts
-   * collecting patient conversations is the worst failure this system has.
+   *   Preview origin, nothing set   -> ON. The demo works on a fresh deploy
+   *                                    with no environment variables at all.
+   *   Production origin, nothing set-> OFF. Chat cannot reach the public by
+   *                                    someone forgetting a variable.
+   *   CHAT_ENABLED set explicitly   -> that value, either way.
+   *
+   * The asymmetry is deliberate and is the same principle as `SITE_URL`
+   * defaulting to localhost: the state that needs care is the one you have to
+   * ask for. Turning chat on for the public means a transcript store receiving
+   * patient details, and the executed Business Associate Agreement is what
+   * makes holding them lawful. `assertChatConfigurationIsSane()` shouts if it
+   * is ever explicitly enabled on production.
    */
   get secureChat(): boolean {
-    return (process.env.CHAT_ENABLED ?? '') === 'true';
+    const explicit = process.env.CHAT_ENABLED;
+    if (explicit === 'true') return true;
+    if (explicit === 'false') return false;
+    return SITE.url !== 'https://airevacinternational.com';
   },
 
   /** PENDING D8: protected clinical intake vendor. */

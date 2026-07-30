@@ -65,11 +65,14 @@ describe('translateMessage', () => {
     });
   });
 
-  it('treats missing credentials as unavailable, not as an error', async () => {
+  it('treats missing credentials as unavailable when the stub is off', async () => {
     /*
      * This is what lets chat ship before the AWS account exists. Both sides
      * see the original with a notice; nothing breaks and nothing is lost.
+     * TRANSLATION_MODE=off is set explicitly because a preview origin now
+     * defaults to the stub, which is the behaviour the next test covers.
      */
+    process.env.TRANSLATION_MODE = 'off';
     delete process.env.AWS_ACCESS_KEY_ID;
     delete process.env.AWS_SECRET_ACCESS_KEY;
     delete process.env.AWS_REGION;
@@ -81,14 +84,62 @@ describe('translateMessage', () => {
     });
   });
 
-  it('needs all three credentials before it considers itself configured', async () => {
+  it('needs all three credentials before it uses the real service', async () => {
+    // A half-configured deployment must not attempt real calls that fail on
+    // every message. On a preview it falls back to the stub; the assertion
+    // that matters is that it does not reach AWS.
+    process.env.TRANSLATION_MODE = 'off';
     process.env.AWS_REGION = 'us-east-1';
     delete process.env.AWS_ACCESS_KEY_ID;
     delete process.env.AWS_SECRET_ACCESS_KEY;
-    // A half-configured deployment must behave as unconfigured rather than
-    // failing on every message at runtime.
     expect(translationConfigured()).toBe(false);
   });
+
+  it('defaults to the stub on a preview when AWS is not configured', async () => {
+    /*
+     * So a demo shows the translated view working with no setup at all. The
+     * output is unmistakably marked, and production is excluded separately.
+     */
+    delete process.env.TRANSLATION_MODE;
+    delete process.env.AWS_REGION;
+    delete process.env.AWS_ACCESS_KEY_ID;
+    delete process.env.AWS_SECRET_ACCESS_KEY;
+    process.env.SITE_URL = 'https://airevac-preview.onrender.com';
+
+    const result = await translateMessage('hola', 'es', 'en');
+    expect(result.status).toBe('translated');
+    if (result.status === 'translated') expect(result.engine).toBe('stub');
+  });
+
+  it('never defaults to the stub on the production origin', async () => {
+    delete process.env.TRANSLATION_MODE;
+    delete process.env.AWS_REGION;
+    delete process.env.AWS_ACCESS_KEY_ID;
+    delete process.env.AWS_SECRET_ACCESS_KEY;
+    process.env.SITE_URL = 'https://airevacinternational.com';
+
+    expect(translationConfigured()).toBe(false);
+    expect(await translateMessage('hola', 'es', 'en')).toEqual({
+      status: 'failed',
+      reason: 'translation_unavailable',
+    });
+  });
+
+  it('prefers real credentials over the stub', async () => {
+    // The stub must never shadow a working configuration; it exists only to
+    // fill the gap before one arrives.
+    delete process.env.TRANSLATION_MODE;
+    process.env.SITE_URL = 'https://airevac-preview.onrender.com';
+    process.env.AWS_REGION = 'us-east-1';
+    process.env.AWS_ACCESS_KEY_ID = 'test';
+    process.env.AWS_SECRET_ACCESS_KEY = 'test';
+    __resetTranslateClient();
+
+    // Reaches the real client, which fails without valid credentials rather
+    // than quietly returning stub text.
+    const result = await translateMessage('hola', 'es', 'en');
+    expect(result.status).toBe('failed');
+  }, 30_000);
 
   it('never throws, whatever the service does', async () => {
     process.env.AWS_REGION = 'us-east-1';

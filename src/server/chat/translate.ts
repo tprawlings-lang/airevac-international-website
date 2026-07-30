@@ -74,9 +74,23 @@ let client: TranslateClient | undefined;
  * `stubAllowed`.
  */
 function stubAllowed(): boolean {
-  if (process.env.TRANSLATION_MODE !== 'stub') return false;
   // Never on production, whatever the environment says.
-  return (process.env.SITE_URL ?? '') !== 'https://airevacinternational.com';
+  if ((process.env.SITE_URL ?? '') === 'https://airevacinternational.com') return false;
+
+  if (process.env.TRANSLATION_MODE === 'stub') return true;
+  if (process.env.TRANSLATION_MODE === 'off') return false;
+
+  /*
+   * Default on a preview: stub in, but only when AWS is not configured. So a
+   * demo shows the translated view working with no setup, and the moment real
+   * credentials appear they take over without anyone remembering to remove a
+   * variable. Real translation always wins over the stub.
+   */
+  return (
+    (process.env.AWS_REGION ?? '') === '' ||
+    (process.env.AWS_ACCESS_KEY_ID ?? '') === '' ||
+    (process.env.AWS_SECRET_ACCESS_KEY ?? '') === ''
+  );
 }
 
 function stubTranslate(text: string, from: string, to: string): TranslationOutcome {
