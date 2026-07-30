@@ -32,5 +32,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   publish({ kind: 'claimed', chatId });
   publish({ kind: 'queue' });
 
-  return seeOther('/coordinator/chats/${chatId}');
+  return seeOther(`/coordinator/chats/${chatId}`);
 }

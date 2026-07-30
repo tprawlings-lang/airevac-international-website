@@ -28,6 +28,18 @@ const config = [
        */
       'no-console': ['error', { allow: ['error'] }],
 
+      /**
+       * `'/chats/${id}'` in single quotes is a literal, not an interpolation,
+       * and TypeScript is perfectly happy with it: the type is string either
+       * way. It shipped once, in a redirect, and sent coordinators to a URL
+       * containing the characters `${chatId}` immediately after they claimed a
+       * conversation.
+       *
+       * The rule has false positives on strings that legitimately contain
+       * `${`, which in this codebase is nothing, so it stays an error.
+       */
+      'no-template-curly-in-string': 'error',
+
       // A stray `debugger` in a production bundle is both a security and a
       // performance problem.
       'no-debugger': 'error',

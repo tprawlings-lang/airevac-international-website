@@ -7,10 +7,13 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
  * route's own logic - authenticate, check the role, open a presence window -
  * runs for real against a real database.
  */
+const session = vi.hoisted(() => ({ user: null as { id: string; role: string } | null }));
+
 vi.mock('@/server/auth/guard', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/server/auth/guard')>()),
   csrfValid: async () => true,
   setSessionCookie: async () => {},
+  currentUser: async () => session.user,
 }));
 
 import { __closePool, getPool, query } from '@/server/db/client';
@@ -42,7 +45,9 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   if (!HAS_DB) return;
-  await query('TRUNCATE coordinator_presence, sessions, audit_log, users RESTART IDENTITY CASCADE');
+  await query(
+    'TRUNCATE chat_messages, chat_sessions, coordinator_presence, sessions, audit_log, users RESTART IDENTITY CASCADE',
+  );
 });
 
 async function aCoordinator(email = 'coord@aeiamericas.com'): Promise<string> {
@@ -200,6 +205,60 @@ describe.skipIf(!HAS_DB)('auto-available on sign-in', () => {
 
     await signIn('shift2@aeiamericas.com', 'the wrong password entirely');
     expect(await chatIsStaffed()).toBe(false);
+  });
+});
+
+
+describe.skipIf(!HAS_DB)('claiming a conversation', () => {
+  /*
+   * Guards the destination, not just the status code.
+   *
+   * A redirect that returns 303 to the wrong place looks correct from the
+   * server's side and is completely broken from the coordinator's. This shipped
+   * once: the path was built in single quotes, so the literal characters
+   * `${chatId}` went into the URL and the page 500ed on a chat id that could
+   * not exist. Lint now rejects that shape; this asserts the behaviour it
+   * protects, because a valid-but-wrong path would still pass lint.
+   */
+  it('redirects to the conversation that was actually claimed', async () => {
+    const { POST } = await import('@/app/coordinator/api/chat/claim/route');
+    const { startChat } = await import('@/server/chat/sessions');
+    const { NextRequest } = await import('next/server');
+
+    const coordinatorId = await aCoordinator('claimer@aeiamericas.com');
+    await heartbeat(coordinatorId, true);
+    session.user = { id: coordinatorId, role: 'coordinator' };
+
+    const started = await startChat({
+      role: 'hospital',
+      contactName: 'Case Manager Ruiz',
+      phone: '+1 555 0100',
+      timeframe: 'immediate',
+      preferredLanguage: 'en',
+    });
+    const chat = started.record;
+
+    const form = new URLSearchParams();
+    form.set('chat_id', chat.id);
+    form.set('csrf_token', 'test-token');
+
+    const response = await POST(
+      new NextRequest('https://preview.example.com/coordinator/api/chat/claim', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          cookie: 'aei_csrf=test-token',
+        },
+        body: form.toString(),
+      }),
+    );
+
+    const location = response.headers.get('location');
+
+    expect(response.status).toBe(303);
+    expect(location).toBe(`/coordinator/chats/${chat.id}`);
+    // The failure that shipped: an uninterpolated literal.
+    expect(location).not.toContain('$');
   });
 });
 
