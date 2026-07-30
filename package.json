@@ -30,6 +30,7 @@
     "url": "http://local_proxy@127.0.0.1:41729/git/tprawlings-lang/airevac-international-website"
   },
   "dependencies": {
+    "@aws-sdk/client-translate": "^3.1098.0",
     "next": "^16.2.12",
     "pg": "^8.22.0",
     "react": "^19.2.8",

@@ -1,0 +1,121 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import {
+  __resetTranslateClient,
+  targetLanguageFor,
+  translateMessage,
+  translationConfigured,
+} from '@/server/chat/translate';
+
+/**
+ * Translation routing and failure behaviour.
+ *
+ * The AWS call itself is not exercised here: it needs credentials and a
+ * Business Associate Addendum, and a mocked SDK would only prove the mock
+ * works. What is tested is everything around it, which is where the decisions
+ * that matter live.
+ */
+
+describe('targetLanguageFor', () => {
+  it('does not translate when the coordinator already speaks the language', () => {
+    // The case worth getting right. A Spanish speaker who reaches a
+    // Spanish-speaking coordinator should not be told a machine is translating
+    // them, and their words should not make a round trip through one.
+    expect(targetLanguageFor('es', ['en', 'es'])).toBeNull();
+    expect(targetLanguageFor('en', ['en'])).toBeNull();
+  });
+
+  it('translates into the coordinator language when they do not share one', () => {
+    expect(targetLanguageFor('es', ['en'])).toBe('en');
+    expect(targetLanguageFor('en', ['es'])).toBe('es');
+  });
+
+  it('returns null rather than guessing when no supported language is on offer', () => {
+    expect(targetLanguageFor('es', [])).toBeNull();
+    expect(targetLanguageFor('es', ['fr'])).toBeNull();
+  });
+});
+
+describe('translateMessage', () => {
+  const original = { ...process.env };
+
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    __resetTranslateClient();
+  });
+
+  afterEach(() => {
+    process.env = { ...original };
+    vi.restoreAllMocks();
+    __resetTranslateClient();
+  });
+
+  it('reports not_needed for a same-language message', async () => {
+    expect(await translateMessage('hello', 'en', 'en')).toEqual({ status: 'not_needed' });
+  });
+
+  it('reports not_needed for empty text rather than calling out', async () => {
+    expect(await translateMessage('   ', 'es', 'en')).toEqual({ status: 'not_needed' });
+  });
+
+  it('refuses a language the site does not support', async () => {
+    expect(await translateMessage('bonjour', 'fr', 'en')).toEqual({
+      status: 'failed',
+      reason: 'unsupported_language',
+    });
+  });
+
+  it('treats missing credentials as unavailable, not as an error', async () => {
+    /*
+     * This is what lets chat ship before the AWS account exists. Both sides
+     * see the original with a notice; nothing breaks and nothing is lost.
+     */
+    delete process.env.AWS_ACCESS_KEY_ID;
+    delete process.env.AWS_SECRET_ACCESS_KEY;
+    delete process.env.AWS_REGION;
+
+    expect(translationConfigured()).toBe(false);
+    expect(await translateMessage('hola', 'es', 'en')).toEqual({
+      status: 'failed',
+      reason: 'translation_unavailable',
+    });
+  });
+
+  it('needs all three credentials before it considers itself configured', async () => {
+    process.env.AWS_REGION = 'us-east-1';
+    delete process.env.AWS_ACCESS_KEY_ID;
+    delete process.env.AWS_SECRET_ACCESS_KEY;
+    // A half-configured deployment must behave as unconfigured rather than
+    // failing on every message at runtime.
+    expect(translationConfigured()).toBe(false);
+  });
+
+  it('never throws, whatever the service does', async () => {
+    process.env.AWS_REGION = 'us-east-1';
+    process.env.AWS_ACCESS_KEY_ID = 'test';
+    process.env.AWS_SECRET_ACCESS_KEY = 'test';
+    __resetTranslateClient();
+
+    // A translation failure must not lose a message. The caller stores the
+    // original either way and records the failure alongside it.
+    const result = await translateMessage('hola', 'es', 'en');
+    expect(result.status).toBe('failed');
+    if (result.status === 'failed') expect(typeof result.reason).toBe('string');
+  }, 30_000);
+
+  it('never logs the message text on failure', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    process.env.AWS_REGION = 'us-east-1';
+    process.env.AWS_ACCESS_KEY_ID = 'test';
+    process.env.AWS_SECRET_ACCESS_KEY = 'test';
+    __resetTranslateClient();
+
+    await translateMessage('mi hijo tiene una fractura', 'es', 'en');
+
+    // Logging what failed to translate would put a patient's details in the
+    // application logs, which is the one place this system keeps them out of.
+    const logged = warn.mock.calls.map((call) => String(call[0])).join(' ');
+    expect(logged).not.toContain('fractura');
+    expect(logged).not.toContain('hijo');
+  }, 30_000);
+});
