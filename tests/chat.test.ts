@@ -151,9 +151,48 @@ describe.runIf(HAS_DB)('chat sessions', () => {
       claimChat(record.id, b.id),
     ]);
 
-    const winners = [first, second].filter((result) => result !== undefined);
+    const winners = [first, second].filter((result) => result.ok);
     expect(winners).toHaveLength(1);
-    expect(winners[0]!.status).toBe('active');
+    expect([first, second].find((r) => !r.ok)).toEqual({ ok: false, reason: 'taken' });
+  });
+
+  it('stops a coordinator holding more than three conversations', async () => {
+    /*
+     * Enforced in the domain rather than the console, so a coordinator who
+     * opens a fourth by URL gets the same answer as one who clicks the button.
+     */
+    const user = await makeCoordinator('a@aeiamericas.com', ['en']);
+
+    for (let i = 0; i < 3; i += 1) {
+      const { record } = await startChat(INTAKE);
+      expect((await claimChat(record.id, user.id)).ok).toBe(true);
+    }
+
+    const fourth = await startChat(INTAKE);
+    expect(await claimChat(fourth.record.id, user.id)).toEqual({
+      ok: false,
+      reason: 'at_capacity',
+    });
+
+    // And it stays claimable by someone else, rather than being stuck.
+    const other = await makeCoordinator('b@aeiamericas.com', ['en']);
+    expect((await claimChat(fourth.record.id, other.id)).ok).toBe(true);
+  });
+
+  it('frees capacity when a conversation is closed', async () => {
+    const user = await makeCoordinator('a@aeiamericas.com', ['en']);
+    const first = await startChat(INTAKE);
+    await claimChat(first.record.id, user.id);
+    for (let i = 0; i < 2; i += 1) {
+      const { record } = await startChat(INTAKE);
+      await claimChat(record.id, user.id);
+    }
+
+    const blocked = await startChat(INTAKE);
+    expect((await claimChat(blocked.record.id, user.id)).ok).toBe(false);
+
+    await closeChat(first.record.id, 'coordinator_ended', user.id);
+    expect((await claimChat(blocked.record.id, user.id)).ok).toBe(true);
   });
 
   it('removes a claimed chat from the queue', async () => {
@@ -161,7 +200,7 @@ describe.runIf(HAS_DB)('chat sessions', () => {
     const { record } = await startChat(INTAKE);
     expect(await queuedChats()).toHaveLength(1);
 
-    await claimChat(record.id, user.id);
+    expect((await claimChat(record.id, user.id)).ok).toBe(true);
     expect(await queuedChats()).toHaveLength(0);
   });
 

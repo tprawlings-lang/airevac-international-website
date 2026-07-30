@@ -41,11 +41,17 @@ export default async function ConsolePage() {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <div className="rounded-panel border border-ink-300 bg-white p-5">
-          <h2 className="text-lg font-bold text-navy-900">Chat queue</h2>
+          <h2 className="text-lg font-bold text-navy-900">Chat</h2>
           <p className="mt-2 text-sm text-ink-700">
-            Not built yet. Live chat arrives in Phase B, and stays behind a feature flag until
-            the Business Associate Agreement covering the database is signed.
+            Go available, claim waiting conversations, and reply. The public widget stays
+            hidden until the Business Associate Agreement is signed.
           </p>
+          <Link
+            href="/coordinator/chats"
+            className="mt-3 inline-flex min-h-[44px] items-center font-semibold text-support-700 underline underline-offset-4"
+          >
+            Open chat queue
+          </Link>
         </div>
 
         <div className="rounded-panel border border-ink-300 bg-white p-5">

@@ -25,8 +25,13 @@ import { query, queryOne } from '@/server/db/client';
  */
 const PRESENCE_TTL_SECONDS = 75;
 
-/** How often the console should renew. Comfortably inside the TTL. */
-export const HEARTBEAT_INTERVAL_SECONDS = 30;
+/**
+ * How often the console should renew. Defined in src/lib/chat-constants.ts and
+ * re-exported here, because the client component that runs the heartbeat
+ * cannot import this module: it would pull the Postgres client into the
+ * browser bundle.
+ */
+export { HEARTBEAT_INTERVAL_SECONDS } from '@/lib/chat-constants';
 
 export interface AvailableCoordinator {
   userId: string;

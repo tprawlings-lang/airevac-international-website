@@ -28,6 +28,18 @@ const RETENTION_DAYS = Number(process.env.CHAT_RETENTION_DAYS ?? 30);
 /** Queued chats with no coordinator and no activity are given up on. */
 const ABANDON_AFTER_MINUTES = 30;
 
+/**
+ * Conversations one coordinator may hold at once.
+ *
+ * Three, per AirEvac's decision. Realistic because most chats have long gaps
+ * while the coordinator is on the phone arranging the thing being discussed.
+ * Enforced here rather than in the console, because the console is presentation
+ * and this is the rule: a coordinator who opens a fourth chat by URL gets the
+ * same answer as one who clicks the button.
+ */
+export { MAX_CONCURRENT_CHATS } from '@/lib/chat-constants';
+import { MAX_CONCURRENT_CHATS as CHAT_CAP } from '@/lib/chat-constants';
+
 export type ChatStatus = 'intake' | 'queued' | 'active' | 'closed' | 'abandoned';
 export type MessageSender = 'visitor' | 'coordinator' | 'system';
 
@@ -180,19 +192,31 @@ export async function activeChatsFor(userId: string): Promise<ChatSessionRecord[
   return rows.map(toRecord);
 }
 
+export type ClaimOutcome =
+  | { ok: true; record: ChatSessionRecord }
+  | { ok: false; reason: 'taken' | 'at_capacity' };
+
 /**
  * Claims a queued chat.
  *
  * The UPDATE filters on `status = 'queued'`, which makes the claim atomic: two
- * coordinators clicking the same conversation at the same moment produce one
- * winner and one `undefined`, without a lock. First version of routing is
- * deliberately manual, because automatic assignment is not worth building for
- * a team this size.
+ * coordinators clicking the same conversation in the same moment produce one
+ * winner and one `taken`, without a lock. Routing is deliberately manual in
+ * this first version; automatic assignment is not worth building for a team
+ * this size.
+ *
+ * The capacity check is not atomic with the claim, which is a knowing
+ * trade-off. Racing yourself requires clicking two conversations in the same
+ * instant from two tabs, and the cost of losing that race is holding four
+ * conversations rather than three. Serialising it would mean a lock on every
+ * claim to prevent something a person cannot practically do to themselves.
  */
-export async function claimChat(
-  chatId: string,
-  userId: string,
-): Promise<ChatSessionRecord | undefined> {
+export async function claimChat(chatId: string, userId: string): Promise<ClaimOutcome> {
+  const open = await activeChatsFor(userId);
+  if (open.length >= CHAT_CAP) {
+    return { ok: false, reason: 'at_capacity' };
+  }
+
   const row = await queryOne<SessionRow>(
     `UPDATE chat_sessions
         SET status = 'active', assigned_user_id = $2,
@@ -202,16 +226,16 @@ export async function claimChat(
     [chatId, userId],
   );
 
-  if (row !== undefined) {
-    await audit({
-      actorUserId: userId,
-      action: 'chat.claimed',
-      targetType: 'chat',
-      targetId: chatId,
-    });
-  }
+  if (row === undefined) return { ok: false, reason: 'taken' };
 
-  return row === undefined ? undefined : toRecord(row);
+  await audit({
+    actorUserId: userId,
+    action: 'chat.claimed',
+    targetType: 'chat',
+    targetId: chatId,
+  });
+
+  return { ok: true, record: toRecord(row) };
 }
 
 export interface ChatMessageRecord {

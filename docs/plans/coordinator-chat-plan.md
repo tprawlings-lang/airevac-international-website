@@ -398,8 +398,8 @@ Each phase is independently shippable and independently reversible.
 | Phase | Contents | Proves |
 | --- | --- | --- |
 | **A** ✅ | Postgres, migrations, users, sessions, `/coordinator` login, admin user management, password change, audit log. No chat. | Auth and the admin console work, in isolation, before anything touches PHI. |
-| **B** | Pre-chat intake, chat transport (SSE), coordinator console, presence, offline fallback. English only. | The conversation path works end to end. |
-| **C** | Translation, both directions, with originals shown. | The hardest UX in the feature, on a working base. |
+| **B** ✅ | Pre-chat intake, chat transport (SSE), coordinator console, presence, offline fallback. | The conversation path works end to end. Verified two-sided against a real database. |
+| **C** ✅ (code) | Translation, both directions, with originals shown. | Built and wired. Inert until the AWS account and Business Associate Addendum exist; see docs/aws-translate-setup.md. |
 | **D** | Transcript notification email, retention job, transcript viewer and export. | Documentation history and the deletion schedule. |
 
 Phase A is worth building even if the chat is later dropped in favour of a
