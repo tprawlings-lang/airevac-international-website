@@ -1,7 +1,32 @@
 # Coordinator chat and console — architecture plan
 
-**Status:** proposal, not approved, nothing built.
+**Status:** decisions taken 2026-07-30, Phase A in progress.
 **Date:** 2026-07-30.
+
+## Decisions taken
+
+| Question | Decision |
+| --- | --- |
+| PHI posture | **Treat the transcript store as a PHI system** from the first message. Encryption, access control, audit-logged reads, automatic retention deletion, BAAs across the chain. |
+| Hosting BAA | **Assume obtainable; build Phases A through C.** See the risk this carries, below. |
+| Transcript delivery | **Notify by email, transcript stays in the console.** No patient information leaves the controlled system. |
+| Login placement | **`/coordinator`, unlinked and `noindex`.** No navigation entry, disallowed in `robots.txt`. |
+
+### The risk carried by assuming the BAA
+
+Building Phases A through C before the Business Associate Agreement is
+confirmed means real transcripts can accumulate on infrastructure whose
+coverage is unverified. That is an accepted risk, not an oversight, and it comes
+with two conditions that must hold:
+
+1. **Chat stays behind its feature flag until the BAA is signed.** The code
+   ships; the public entry point does not appear. This is the same pattern
+   analytics uses, and it is what makes the risk survivable.
+2. **If the BAA cannot be obtained, every transcript is purged** and the feature
+   moves to a vendor. `chat_sessions.delete_after` and the deletion job exist
+   partly so that this is one command rather than a project.
+
+Until the BAA is confirmed, the only data in the database should be test data.
 
 A live chat that connects a visitor to a flight coordinator, with a pre-chat
 intake, English/Spanish translation, a coordinator console behind a login, admin
@@ -255,7 +280,15 @@ that transcripts then live outside the retention schedule.
 
 ### 4.6 Authentication
 
-- **Hashing:** argon2id. Not bcrypt, not SHA-anything.
+- **Hashing:** scrypt from `node:crypto`, at the OWASP parameters
+  (N=2^17, r=8, p=1, 64-byte key, 16-byte random salt). Argon2id is the
+  first preference in the OWASP guidance and scrypt is the accepted second;
+  scrypt wins here because it is in the Node standard library. Every argon2
+  binding for Node is a native module, and a native module is a build that can
+  fail on the host and a supply-chain dependency in the one part of this system
+  where a compromise is worst. The parameters are recorded in the hash string,
+  so raising them later is a per-user upgrade on next login rather than a
+  migration.
 - **Sessions:** opaque random token, stored hashed, in an `httpOnly`, `Secure`,
   `SameSite=Strict` cookie. Idle timeout 30 minutes, absolute 12 hours.
 - **CSRF:** double-submit token on every state-changing request.

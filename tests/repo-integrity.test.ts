@@ -66,9 +66,12 @@ describe('every source file the build needs is committed', () => {
 
   it('tracks every module under src, public, tests, and scripts', () => {
     const sources = [
-      ...filesOnDisk('src', /\.(ts|tsx|css)$/),
+      // .sql is in scope for the same reason the coverage tree was: a
+      // migration that exists locally and is not committed produces a database
+      // that works on one machine and is missing a table everywhere else.
+      ...filesOnDisk('src', /\.(ts|tsx|mts|mjs|css|sql)$/),
       ...filesOnDisk('tests', /\.(ts|tsx)$/),
-      ...filesOnDisk('scripts', /\.(mjs|ts)$/),
+      ...filesOnDisk('scripts', /\.(mjs|mts|ts)$/),
       ...filesOnDisk('public', /\.(svg|png|jpg|jpeg|webp|ico|txt|json)$/),
     ];
     const untracked = sources.filter((file) => !tracked.has(file));
