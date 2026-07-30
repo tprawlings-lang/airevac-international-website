@@ -11,6 +11,34 @@
 | Hosting BAA | **Available on the current Render plan** (AirEvac, 2026-07-30). Build Phases A through C. One step outstanding: see below. |
 | Transcript delivery | **Notify by email, transcript stays in the console.** No patient information leaves the controlled system. |
 | Login placement | **`/coordinator`, unlinked and `noindex`.** No navigation entry, disallowed in `robots.txt`. |
+| Chat hours | **24/7, matching the phone line.** See the staffing consequence below. |
+| Widget placement | **Every page except `/request-transport`**, which the privacy notice promises is unmeasured and where a second contact path would compete with the form. |
+| Concurrency | **Up to three conversations per coordinator**, with the count visible in the console. |
+| Translation | **AWS Translate**, behind a provider-agnostic interface. |
+
+### What "24/7 chat" commits AirEvac to
+
+Presence is a heartbeat: the widget offers chat only while a coordinator is
+signed into the console. So a 24/7 chat is a 24/7 *staffing* commitment, not a
+configuration setting. There is no way to make the widget available at 03:00
+without someone actually being there, and that is deliberate.
+
+The failure mode to watch is an inconsistency the site would be creating about
+itself. Every page states the phone line is answered 24 hours a day, which is
+true. If chat is presented as equally always-on and is frequently unattended
+overnight, a visitor learns that AirEvac's stated availability is unreliable,
+and they learn it at the moment they most need to trust it.
+
+Two ways to keep it honest, and either is fine:
+
+1. **Staff it.** Whoever covers the phone overnight stays signed into the
+   console. The heartbeat then reflects reality and nothing needs saying.
+2. **Let the widget speak for itself.** It never claims hours. When nobody is
+   signed in it says so plainly and puts the phone number first. The phone
+   keeps the 24/7 claim, because the phone can keep it.
+
+The build supports both without changes. What it will not do is show an
+available chat that nobody is watching.
 
 ### Hosting coverage: available, not yet executed
 
