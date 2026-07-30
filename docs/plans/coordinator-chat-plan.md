@@ -8,25 +8,38 @@
 | Question | Decision |
 | --- | --- |
 | PHI posture | **Treat the transcript store as a PHI system** from the first message. Encryption, access control, audit-logged reads, automatic retention deletion, BAAs across the chain. |
-| Hosting BAA | **Assume obtainable; build Phases A through C.** See the risk this carries, below. |
+| Hosting BAA | **Available on the current Render plan** (AirEvac, 2026-07-30). Build Phases A through C. One step outstanding: see below. |
 | Transcript delivery | **Notify by email, transcript stays in the console.** No patient information leaves the controlled system. |
 | Login placement | **`/coordinator`, unlinked and `noindex`.** No navigation entry, disallowed in `robots.txt`. |
 
-### The risk carried by assuming the BAA
+### Hosting coverage: available, not yet executed
 
-Building Phases A through C before the Business Associate Agreement is
-confirmed means real transcripts can accumulate on infrastructure whose
-coverage is unverified. That is an accepted risk, not an oversight, and it comes
-with two conditions that must hold:
+AirEvac has confirmed the current Render plan supports a Business Associate
+Agreement. That clears the architectural question and this plan proceeds
+unchanged.
 
-1. **Chat stays behind its feature flag until the BAA is signed.** The code
-   ships; the public entry point does not appear. This is the same pattern
-   analytics uses, and it is what makes the risk survivable.
-2. **If the BAA cannot be obtained, every transcript is purged** and the feature
-   moves to a vendor. `chat_sessions.delete_after` and the deletion job exist
-   partly so that this is one command rather than a project.
+**One step remains, and it is a real one.** A BAA is a signed contract, not a
+plan feature. Providers generally require it to be requested and executed
+rather than granting it automatically with a tier, so "our plan supports it"
+and "we have one" are different states. Until the executed agreement exists,
+the condition below still holds.
 
-Until the BAA is confirmed, the only data in the database should be test data.
+**The condition:** chat stays behind `FEATURES.secureChat` until the agreement
+is signed. The code ships; the public entry point does not appear. Only test
+data goes in the database before then. This is the same pattern analytics
+follows, and it costs nothing because the build is not waiting on it.
+
+**If coverage later proves narrower than expected** (database but not the web
+service, per §7.1 question 2), `sweepChats()` and `chat_sessions.delete_after`
+make purging every transcript a single statement rather than a project. That is
+part of why they were built before there was anything to purge.
+
+**On moving to AWS later:** viable, and cheaper to keep viable than to retrofit.
+Nothing in this design is Render-specific: the database is plain Postgres with
+hand-written SQL and no vendor extensions, the migration runner is sixty lines
+of standard JavaScript, and the application is a normal Node process. A move
+would be a database dump, a restore, and an environment variable. That is worth
+protecting, so no Render-only feature should be adopted without noticing.
 
 A live chat that connects a visitor to a flight coordinator, with a pre-chat
 intake, English/Spanish translation, a coordinator console behind a login, admin
