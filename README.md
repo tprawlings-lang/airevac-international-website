@@ -11,6 +11,13 @@ content, contact model, and fleet language, and the **AI Searchability Coding
 Handoff** (2026-07-30), which added crawler policy, structured data, and
 retrieval content.
 
+It now also carries a **coordinator console and live chat**: visitor intake,
+queueing, claiming, English and Spanish machine translation, and an emailed
+transcript notification. Built, deployed, and exercised end to end on a preview
+with a real database. See
+[docs/plans/coordinator-chat-plan.md](docs/plans/coordinator-chat-plan.md) for
+the design and [docs/testing-on-render.md](docs/testing-on-render.md) to try it.
+
 **This site is not ready to launch.** Everything coding owns is done. What
 remains is facts, approvals, and account access that only AirEvac can supply.
 See [Before launch](#before-launch) below, and
@@ -27,7 +34,7 @@ npm run dev            # http://localhost:3000 → redirects to /en
 
 ```bash
 npm run check          # typecheck + tests + build (run this before pushing)
-npm run test           # 234 unit and integration tests across 8 files
+npm run test           # 340 unit and integration tests across 16 files
 npm run test:coverage  # enforces 100% coverage on the security decision paths
 npx eslint .
 ```
@@ -50,7 +57,9 @@ Two optional variables change behaviour when set:
 |---|---|
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | Activates measurement, and only then does the CSP admit the analytics beacon host. Absent, no third-party request is made and the strict policy stands. |
 | `INDEXNOW_KEY` | Enables IndexNow submission, and only on the production origin. |
-| `DATABASE_URL` | Enables the coordinator console. Absent, the site runs without one and migrations skip. |
+| `DATABASE_URL` | Enables the coordinator console and chat. Absent, the site runs without one, migrations skip, and chat is refused rather than offered. |
+| `DATABASE_SSL` | `no-verify` keeps TLS but skips certificate verification, which managed Postgres commonly requires. `disable` turns TLS off and is refused for any non-local host. |
+| `DATABASE_CA_CERT` | The provider CA in PEM. Both encrypts and verifies, and takes precedence over `DATABASE_SSL`, so adding it needs no second edit. Required before the database holds real conversations. |
 | `CHAT_ENABLED` | Overrides the default. Chat is **on** by default on any preview and **off** by default on the production origin, so it stays off there until the BAA is executed and someone opts in deliberately. |
 | `TRANSLATION_MODE` | `off` disables translation; `stub` forces visibly marked placeholder translations. The stub is the default on a preview whenever AWS is unconfigured, and is refused outright on the production origin. |
 
@@ -111,7 +120,15 @@ src/
 │   ├── resources/         Glossary (DefinedTermSet markup)
 │   ├── credentials/       The register's public face
 │   └── legal/             Privacy · NPP · terms · accessibility · cookies
-├── app/api/callback/      The only endpoint. Allowlist, PHI tripwire, rate limit
+├── app/api/callback/      Public form endpoint. Allowlist, PHI tripwire, rate limit
+├── app/api/chat/          Visitor side: availability · start · message · stream (SSE)
+├── app/coordinator/       The console. Unlinked, noindex, its own layout
+│                          Sign-in · password · users · chats · presence
+├── server/                Server-only. Never imported by a client component:
+│   ├── auth/              scrypt passwords · sessions · guards · audit
+│   ├── chat/              sessions · presence · translate · events bus
+│   ├── db/                pool · TLS mode · migrations
+│   └── http/              site-relative redirects (proxy-safe)
 ├── app/robots.ts          Search vs training crawler policy, per named agent
 ├── app/llms.txt/          Generated site map for AI systems; obeys the claim gate
 ├── components/            Server components; the client ones are the form,
@@ -127,11 +144,11 @@ src/
 │                          indexnow · nonce · i18n
 └── proxy.ts               CSP nonce and locale prefix
 
-tests/                     234 tests in 8 files. See "What the tests protect".
+tests/                     340 tests in 16 files. See "What the tests protect".
 scripts/                   a11y · crawler access · web vitals · nav · screenshots ·
                            coastline generation · IndexNow · handoff PDFs
-docs/                      Readiness matrix · open decisions · ADRs ·
-                           completion report · the two AirEvac handback PDFs
+docs/                      Sign-off register · readiness matrix · open decisions ·
+                           ADRs · Render setup · chat plan · handback PDFs
 ```
 
 ---
@@ -386,6 +403,23 @@ than shipping one sentence ahead of formal sign-off.
   crawler the secure flow
 - measurement reaches the transport request form
 - **a source file exists on disk but is not committed** — see below
+
+Added after the console and chat shipped, each one written the day a real
+deploy proved it was needed:
+
+- chat is offered while `DATABASE_URL` is absent, which advertises a
+  conversation there is nowhere to hold
+- stub translation is reachable on the production origin
+- a client component reads a server-only environment variable, or a feature
+  flag backed by one. In the browser those are `undefined`, so the component
+  is not reading configuration, it is reading nothing confidently. This
+  silently removed the chat launcher from a working deployment
+- a redirect is built from the request's own origin, or from a forwarded host.
+  Behind a TLS-terminating proxy the first sends users to an internal address;
+  the second is client-controlled and turns a fixed redirect into an open one
+- the database connects without TLS to a non-local host, or verification is
+  weakened without being asked for by name
+- a session cookie's path stops matching the endpoints that need it
 
 ---
 

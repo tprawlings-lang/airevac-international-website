@@ -314,6 +314,12 @@ story += bullets([
     '<b>Chat runs on one server only.</b> A second would leave each side of a '
     'conversation seeing only their own messages, which reads as the other '
     'person having stopped replying. Lifting this is a known change.',
+    '<b>The database connection is encrypted but unverified.</b> The managed '
+    'database presents a self-signed certificate, so the preview runs without '
+    'checking it. Traffic is protected from anyone listening, but not from an '
+    'attacker positioned between the site and the database. Supplying the '
+    'provider certificate closes it and takes effect on its own. Must be done '
+    'before the database holds real conversations.',
 ])
 
 story += [
@@ -325,7 +331,8 @@ story += bullets([
     'The full public site, in English and Spanish.',
     'The coordinator console: sign-in, user management, and the audit log.',
     '<b>Live chat, end to end</b>: the queue, claiming a conversation, replying, '
-    'and the transcript notification.',
+    'and the transcript notification. Run successfully on the preview on '
+    '30 July 2026.',
     '<b>Translation</b>, using clearly marked placeholder text until the AWS '
     'account is connected. It reads "[TEST TRANSLATION ES to EN] ... [NOT A REAL '
     'TRANSLATION]", which is deliberately impossible to mistake for a real one.',

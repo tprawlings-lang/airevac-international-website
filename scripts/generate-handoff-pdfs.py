@@ -3,9 +3,9 @@
   1. AirEvac_Signups_and_Accounts.pdf   what to sign up for and configure
   2. AirEvac_Facts_and_Approvals.pdf    what only AirEvac can supply
 
-Revision 2.0, 2026-07-30. Supersedes the 1.0 pair: AirEvac approved the AI
-visibility decisions, Render is now on a paid production instance, and the
-remaining asks have narrowed to facts, account access, and one certificate.
+Revision 3.0, 2026-07-30. Adds the accounts, agreements, and approvals the live
+chat and coordinator console need. Supersedes the 2.0 pair, in which AirEvac
+approved the AI visibility decisions and Render moved to a paid instance.
 
 Usage: python3 scripts/generate-handoff-pdfs.py [output_dir]
 """
@@ -126,7 +126,7 @@ def SP(h=6):
 # ===========================================================================
 
 s1 = [
-    P('WEBSITE LAUNCH PROGRAM | REVISION 2.0', 'Brand'),
+    P('WEBSITE LAUNCH PROGRAM | REVISION 3.0', 'Brand'),
     P('Sign-Ups and Accounts Required', 'DocTitle'),
     P('Every account AirEvac needs to create, claim, or grant access to before '
       'the website can launch. None of this requires technical knowledge, and '
@@ -286,7 +286,46 @@ s1 += [
       'profile. <b>Old listings showing a previous phone number or the Scottsdale '
       'address actively work against you</b> and should be corrected or removed.'),
 
-    P('8. Access checklist', 'H1'),
+    P('8. Live chat: accounts and agreements (new in revision 3.0)', 'H1'),
+    P('The website now includes a live chat that connects a visitor to a flight '
+      'coordinator, with a console for coordinators to sign into and automatic '
+      'translation between English and Spanish. It is built, deployed, and has '
+      'been used end to end on the preview. The items below are what it needs '
+      'before it can face the public.', 'Done'),
+    P('A chat receives patient details within the first minute of the first '
+      'real conversation. Everything in this section exists because of that '
+      'sentence.', 'Flag'),
+]
+s1 += bullets([
+    '<b>Database: DONE.</b> A managed PostgreSQL instance is running alongside '
+    'the website and holds coordinator accounts and conversation transcripts.',
+    '<b>Business Associate Agreement with the hosting provider.</b> Available '
+    'on the current plan, but a BAA is a signed contract rather than a plan '
+    'feature: somebody at AirEvac has to request and execute it. Until it '
+    'exists, only test data may go in the database and chat stays off on the '
+    'real address. This is the single blocking item for chat.',
+    '<b>Database certificate.</b> The connection is encrypted today but does '
+    'not verify what it is connecting to, because the provider presents a '
+    'self-signed certificate. Downloading the provider certificate and adding '
+    'it closes this. A ten-minute task for whoever holds the hosting account.',
+    '<b>AWS account, for translation.</b> Amazon Translate is the service '
+    'chosen for English and Spanish. Until it is connected the site shows '
+    'clearly marked placeholder text that nobody could mistake for a real '
+    'translation. Needs an account, a restricted access key, and an AWS '
+    'Business Associate Addendum, because message text leaves our systems for '
+    'theirs.',
+    '<b>Email sending service.</b> After each conversation ends, a notification '
+    'goes to an operations address for the record. Today those notifications '
+    'are written to the server log instead of sent, which is a safe working '
+    'state and lets you see exactly what would go out. Sending for real needs '
+    'an account with a provider that will sign a BAA.',
+    '<b>Coordinator accounts.</b> Decide who gets one. The administrator '
+    'creates them in the console; each person sets their own password on first '
+    'sign-in, so no administrator ends up knowing a coordinator password.',
+])
+
+s1 += [
+    P('9. Access checklist', 'H1'),
     table(
         ['Platform', 'AirEvac action', 'Access for the build team'],
         [
@@ -299,12 +338,15 @@ s1 += [
             ['Bing Places', 'Import from Google', 'Shared login or none'],
             ['Google Analytics 4', 'Create property, send Measurement ID', 'Editor'],
             ['Tag Manager (optional)', 'Create container', 'Editor'],
+            ['Hosting BAA', 'Request and execute; blocks chat', 'None needed'],
+            ['AWS', 'Create account, sign the BAA, issue a key', 'Key only'],
+            ['Email sending service', 'Create account, sign the BAA', 'API key'],
         ],
         [1.55 * inch, 2.85 * inch, 2.4 * inch]),
 ]
 
 build('AirEvac_Signups_and_Accounts.pdf',
-      'AirEvac International | Launch Program | Sign-Ups and Accounts | Rev 2.0',
+      'AirEvac International | Launch Program | Sign-Ups and Accounts | Rev 3.0',
       s1)
 
 # ===========================================================================
@@ -312,7 +354,7 @@ build('AirEvac_Signups_and_Accounts.pdf',
 # ===========================================================================
 
 s2 = [
-    P('WEBSITE LAUNCH PROGRAM | REVISION 2.0', 'Brand'),
+    P('WEBSITE LAUNCH PROGRAM | REVISION 3.0', 'Brand'),
     P('Facts and Approvals Still Required', 'DocTitle'),
     P('What the website still needs from AirEvac leadership, aviation '
       'operations, clinical leadership, and legal. The build work is complete. '
@@ -425,7 +467,37 @@ s2 += bullets([
     'aircraft". No registration numbers appear anywhere on the site.',
 ])
 s2 += [
-    P('4. Two things the website itself still needs before launch', 'H1'),
+    P('4. Live chat: decisions only AirEvac can make (new in revision 3.0)', 'H1'),
+    P('The chat is built and has been used end to end on the preview. What is '
+      'below is not development work; it is four decisions and one rewrite that '
+      'the build team cannot make on AirEvac\'s behalf.', 'Done'),
+]
+s2 += bullets([
+    '<b>The privacy notice has to be rewritten to describe live chat.</b> The '
+    'current notice tells visitors the website receives no clinical '
+    'information. A chat makes that untrue within the first minute of the first '
+    'real conversation. <b>This is the hard gate: chat cannot face the public '
+    'until the notice matches what the site actually does.</b>',
+    '<b>How long transcripts are kept.</b> The build uses 30 days as a '
+    'placeholder. The privacy officer should set the real number, because the '
+    'privacy notice cannot state a period AirEvac has not approved.',
+    '<b>Who staffs it, and when.</b> Chat is offered only while a coordinator is '
+    'signed into the console with availability switched on. When nobody is, the '
+    'widget says so and shows the phone number rather than leaving somebody '
+    'waiting. That is honest, and it also means an unstaffed chat is worth very '
+    'little. The blueprint asked for a 30-day staffing trial before chat became '
+    'customer-facing.',
+    '<b>Whether coordinators may discuss clinical detail in chat.</b> The site '
+    'currently tells visitors not to send records through it and directs them to '
+    'email or fax. Clinical leadership should confirm that is the intended '
+    'boundary.',
+    '<b>Which operations address receives the transcript notice.</b> Every '
+    'conversation ends with a notification for the record. It carries a '
+    'reference number and no conversation text. It is pointed at a testing '
+    'address today and must move to a real operations mailbox before launch.',
+])
+s2 += [
+    P('5. Two things the website itself still needs before launch', 'H1'),
     P('Listed here because they are business decisions, not build work:'),
 ]
 s2 += bullets([
@@ -443,7 +515,7 @@ s2 += bullets([
     'way.',
 ])
 s2 += [
-    P('5. What no website can do', 'H1'),
+    P('6. What no website can do', 'H1'),
     P('The AI searchability specification is honest about this and so are we. The '
       'website can be found, understood, and cited. It cannot manufacture the '
       'reasons an AI system or a hospital chooses to recommend AirEvac. Those come '
@@ -465,7 +537,7 @@ s2 += bullets([
     'substitutes for it.',
 ])
 s2 += [
-    P('6. How to respond', 'H1'),
+    P('7. How to respond', 'H1'),
     P('Reply by email with the item number and your answer, document, or list. '
       'Items can come back one at a time; nothing waits on the others. The EURAMI '
       'certificate in section 1 has more effect than everything else on this page '
@@ -473,7 +545,7 @@ s2 += [
 ]
 
 build('AirEvac_Facts_and_Approvals.pdf',
-      'AirEvac International | Launch Program | Facts and Approvals | Rev 2.0',
+      'AirEvac International | Launch Program | Facts and Approvals | Rev 3.0',
       s2)
 
 print('generated 2 PDFs in', OUT_DIR)
