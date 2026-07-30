@@ -11,6 +11,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { MobileCallBar } from '@/components/MobileCallBar';
 import { AnalyticsListener } from '@/components/AnalyticsListener';
 import { ChatMount } from '@/components/chat/ChatMount';
+import { assertChatConfigurationIsSane } from '@/content/site';
 import { Analytics } from '@/components/Analytics';
 
 /**
@@ -107,6 +108,10 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  // Shouts about a chat configuration that is dangerous rather than merely
+  // wrong. Never throws: the phone number on every page must keep serving.
+  assertChatConfigurationIsSane();
+
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 

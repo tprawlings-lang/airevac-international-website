@@ -80,8 +80,24 @@ export type ConversionAction = (typeof CONVERSION_ORDER)[number];
  * rather than as a broken widget.
  */
 export const FEATURES = {
-  /** PENDING D8: secure chat vendor selection and BAA. */
-  secureChat: false,
+  /**
+   * Live coordinator chat.
+   *
+   * DRIVEN BY CONFIGURATION so the feature can be exercised on a test deploy
+   * without a code change, the same way analytics is. `CHAT_ENABLED=true`
+   * turns on the public widget and every chat endpoint; absent, none of it is
+   * reachable and the endpoints return 404.
+   *
+   * IT MUST STAY OFF ON THE PRODUCTION ORIGIN UNTIL THE BUSINESS ASSOCIATE
+   * AGREEMENT IS EXECUTED. A chat receives patient details within the first
+   * minute, and the executed agreement is what makes storing them lawful.
+   * `assertChatConfigurationIsSane()` logs a loud warning when this is enabled
+   * on the production origin, because a misconfiguration that quietly starts
+   * collecting patient conversations is the worst failure this system has.
+   */
+  get secureChat(): boolean {
+    return (process.env.CHAT_ENABLED ?? '') === 'true';
+  },
 
   /** PENDING D8: protected clinical intake vendor. */
   clinicalUpload: false,
@@ -114,3 +130,45 @@ export const FEATURES = {
     return (process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? '').length > 0;
   },
 } as const;
+
+/**
+ * Shouts about configurations that are individually valid and dangerous
+ * together. Called once at startup from the root layout.
+ *
+ * Neither case throws. Refusing to boot would take the whole marketing site
+ * down over a chat setting, and the phone number on every page is the thing
+ * that must never stop being served.
+ */
+export function assertChatConfigurationIsSane(): void {
+  const isProduction = SITE.url === 'https://airevacinternational.com';
+
+  if (FEATURES.secureChat && isProduction) {
+    // `error`, not `warn`: the lint rule allows only error in src/, and a
+    // chat quietly collecting patient conversations without an executed
+    // agreement is an error rather than a caution.
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        event: 'config.chat_enabled_in_production',
+        message:
+          'Live chat is enabled on the production origin. This is only lawful once the ' +
+          'Business Associate Agreement covering the database is executed, because the ' +
+          'transcript store receives patient information. If it is not signed, set ' +
+          'CHAT_ENABLED=false now.',
+      }),
+    );
+  }
+
+  if (process.env.TRANSLATION_MODE === 'stub' && isProduction) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        event: 'config.stub_translation_in_production',
+        message:
+          'TRANSLATION_MODE=stub is set on the production origin and has been IGNORED. ' +
+          'Stub translation returns marked placeholder text, and showing that to a family ' +
+          'arranging a medical transport would be worse than showing nothing.',
+      }),
+    );
+  }
+}

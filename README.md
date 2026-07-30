@@ -50,6 +50,9 @@ Two optional variables change behaviour when set:
 |---|---|
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | Activates measurement, and only then does the CSP admit the analytics beacon host. Absent, no third-party request is made and the strict policy stands. |
 | `INDEXNOW_KEY` | Enables IndexNow submission, and only on the production origin. |
+| `DATABASE_URL` | Enables the coordinator console. Absent, the site runs without one and migrations skip. |
+| `CHAT_ENABLED` | `true` turns on the chat widget and endpoints. Must stay off on production until the BAA is executed. |
+| `TRANSLATION_MODE` | `stub` gives visibly marked placeholder translations for testing. Refused on the production origin. |
 
 ---
 
@@ -421,6 +424,7 @@ must actually be in the repository.
 | [Fleet register](docs/fleet-register.md) | Internal registration mapping. Not published. |
 | [Coordinator chat plan](docs/plans/coordinator-chat-plan.md) | Live chat and console. Phase A done, Phase B in progress |
 | [AWS Translate setup](docs/aws-translate-setup.md) | **Ready to action.** BAA, IAM policy, env vars, verification |
+| [Testing on Render](docs/testing-on-render.md) | **Start here to try the chat.** Works without AWS |
 | [ADR 0001](docs/adr/0001-framework.md) | Next.js App Router |
 | [ADR 0002](docs/adr/0002-content-model.md) | Typed block content, CMS-shaped |
 | [ADR 0003](docs/adr/0003-rate-limiting.md) | Rate limits and their known limits |

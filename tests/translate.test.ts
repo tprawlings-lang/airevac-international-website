@@ -119,3 +119,51 @@ describe('translateMessage', () => {
     expect(logged).not.toContain('hijo');
   }, 30_000);
 });
+
+describe('stub translation', () => {
+  const original = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...original };
+    __resetTranslateClient();
+  });
+
+  it('produces text nobody could mistake for a real translation', async () => {
+    process.env.TRANSLATION_MODE = 'stub';
+    process.env.SITE_URL = 'http://localhost:3000';
+
+    const result = await translateMessage('mi madre se cayo', 'es', 'en');
+    expect(result.status).toBe('translated');
+    if (result.status !== 'translated') return;
+
+    // Marked on both ends, in capitals. The translated view is only worth
+    // testing if a wrong translation is visibly wrong.
+    expect(result.body).toContain('TEST TRANSLATION');
+    expect(result.body).toContain('NOT A REAL TRANSLATION');
+    expect(result.body).toContain('mi madre se cayo');
+    expect(result.engine).toBe('stub');
+  });
+
+  it('is refused on the production origin, whatever the environment says', async () => {
+    /*
+     * In code, not by instruction. Showing marked placeholder text to a family
+     * arranging a medical transport would be worse than showing nothing, so
+     * this cannot be switched on by a stray environment variable.
+     */
+    process.env.TRANSLATION_MODE = 'stub';
+    process.env.SITE_URL = 'https://airevacinternational.com';
+    delete process.env.AWS_REGION;
+
+    expect(translationConfigured()).toBe(false);
+    expect(await translateMessage('hola', 'es', 'en')).toEqual({
+      status: 'failed',
+      reason: 'translation_unavailable',
+    });
+  });
+
+  it('still skips translation when the languages already match', async () => {
+    process.env.TRANSLATION_MODE = 'stub';
+    process.env.SITE_URL = 'http://localhost:3000';
+    expect(await translateMessage('hello', 'en', 'en')).toEqual({ status: 'not_needed' });
+  });
+});

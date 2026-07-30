@@ -57,7 +57,40 @@ const SUPPORTED = new Set(['en', 'es']);
  */
 let client: TranslateClient | undefined;
 
+/**
+ * Stub translation, for exercising the interface before AWS exists.
+ *
+ * WHY IT IS DELIBERATELY UGLY. The whole point of the translated view is that
+ * a coordinator can see both the translation and the original and notice when
+ * one does not match the other. A stub that returned plausible-looking text
+ * would make that view untestable in the only way that matters, and would be
+ * genuinely dangerous if it ever reached a real conversation: a family reading
+ * fake Spanish about a patient transfer is worse than reading nothing.
+ *
+ * So the output is marked, in brackets, in capitals, on both ends. Nobody can
+ * look at it and believe a translation happened.
+ *
+ * REFUSED ON THE PRODUCTION ORIGIN, in code rather than by instruction. See
+ * `stubAllowed`.
+ */
+function stubAllowed(): boolean {
+  if (process.env.TRANSLATION_MODE !== 'stub') return false;
+  // Never on production, whatever the environment says.
+  return (process.env.SITE_URL ?? '') !== 'https://airevacinternational.com';
+}
+
+function stubTranslate(text: string, from: string, to: string): TranslationOutcome {
+  return {
+    status: 'translated',
+    body: `[TEST TRANSLATION ${from.toUpperCase()} to ${to.toUpperCase()}] ${text} [NOT A REAL TRANSLATION]`,
+    language: to,
+    engine: 'stub',
+  };
+}
+
 export function translationConfigured(): boolean {
+  if (stubAllowed()) return true;
+
   return (
     (process.env.AWS_REGION ?? '') !== '' &&
     (process.env.AWS_ACCESS_KEY_ID ?? '') !== '' &&
@@ -96,6 +129,8 @@ export async function translateMessage(
     return { status: 'failed', reason: 'unsupported_language' };
   }
   if (text.trim() === '') return { status: 'not_needed' };
+
+  if (stubAllowed()) return stubTranslate(text, from, to);
 
   if (!translationConfigured()) {
     /*

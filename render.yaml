@@ -1,8 +1,28 @@
 # Render Blueprint. https://render.com/docs/blueprint-spec
 #
-# Deploys the public site as a Node web service. It is NOT a static site: HTML is
-# rendered per request so the CSP nonce is real (see
-# docs/adr/0004-security-headers.md), and /api/callback needs a server runtime.
+# Deploys the public site as a Node web service, plus a Postgres database for
+# the coordinator console and chat.
+#
+# It is NOT a static site: HTML is rendered per request so the CSP nonce is real
+# (docs/adr/0004-security-headers.md), /api/callback needs a server runtime, and
+# the chat holds long-lived Server-Sent Events connections.
+#
+# ONE INSTANCE ONLY, and this is a correctness constraint rather than a cost
+# one. Chat messages fan out through an in-process event bus, so a second
+# instance would leave each side of a conversation seeing only their own
+# messages. That is worse than an outage, because it looks like the other person
+# stopped replying. See src/server/chat/events.ts for the Postgres LISTEN/NOTIFY
+# swap that lifts this.
+
+databases:
+  - name: airevac-db
+    databaseName: airevac
+    user: airevac
+    plan: basic-256mb
+    region: virginia
+    # Transcripts contain patient information. Point-in-time recovery is part of
+    # the retention story: see question 3 in docs/plans/coordinator-chat-plan.md
+    # section 7.1 about how long deleted rows persist in backups.
 
 services:
   - type: web
@@ -13,9 +33,14 @@ services:
     branch: claude/air-evac-website-6c03r7
 
     buildCommand: npm ci && npm run build
+    # Migrations run before the server starts, so a deploy can never serve a
+    # schema it does not have. Skips cleanly when DATABASE_URL is absent.
     startCommand: npm start
 
     healthCheckPath: /healthz
+
+    # See the note above. Do not raise this while chat uses the in-process bus.
+    numInstances: 1
 
     envVars:
       - key: NODE_VERSION
@@ -26,17 +51,66 @@ services:
       #
       # SITE_URL controls canonical tags, hreflang, the sitemap, and the robots
       # policy. Any value other than https://airevacinternational.com causes the
-      # site to serve `noindex` and a disallow-all robots.txt — which is what a
-      # preview must do, and which does not affect anyone opening the link.
+      # site to serve `noindex` and a disallow-all robots.txt, which is what a
+      # preview must do and which does not affect anyone opening the link.
       #
-      # Set it to the production domain only on the eventual production service,
-      # at launch, after the readiness matrix is cleared.
+      # It also gates two safety checks: stub translation is refused on the
+      # production origin, and enabling chat there logs a loud warning.
       - key: SITE_URL
         sync: false
 
+      # Wired automatically from the database above.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: airevac-db
+          property: connectionString
+
+      # ---------------------------------------------------------------
+      # Coordinator console and chat. See docs/testing-on-render.md.
+      # ---------------------------------------------------------------
+
+      # 'true' turns on the public chat widget and every chat endpoint.
+      # MUST STAY 'false' ON THE PRODUCTION ORIGIN until the Business Associate
+      # Agreement covering this database is executed: a chat receives patient
+      # details within the first minute.
+      - key: CHAT_ENABLED
+        value: 'false'
+
+      # Seeds the first administrator as admin/admin, forced to change on first
+      # sign-in. Only acts while no admin exists. Remove after the real
+      # administrator account has its own password.
+      - key: ALLOW_BOOTSTRAP_ADMIN
+        value: 'false'
+
+      # 'stub' produces visibly marked placeholder translations so the
+      # translated view can be exercised before AWS exists. Refused on the
+      # production origin in code, not merely by instruction.
+      - key: TRANSLATION_MODE
+        sync: false
+
+      # Notification recipient for callback submissions and chat transcripts.
+      # A TESTING ADDRESS TODAY. Move to the operations mailbox before the site
+      # accepts real enquiries; callback notifications carry a name and number.
+      - key: OPS_NOTIFICATION_EMAIL
+        sync: false
+
+      # Without a key, mail is logged rather than sent. That is a working state.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+
+      # AWS Translate. See docs/aws-translate-setup.md. All three are required
+      # together; any missing and the app behaves as unconfigured.
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
       # OPTIONAL preview lock (HTTP Basic auth), implemented in src/proxy.ts.
-      # Disabled unless BOTH are set — leave them unset for an open preview.
-      # Useful later for the isolated staging environment the blueprint requires.
+      # Disabled unless BOTH are set. Leave unset for an open preview.
       # - key: PREVIEW_USERNAME
       #   sync: false
       # - key: PREVIEW_PASSWORD
