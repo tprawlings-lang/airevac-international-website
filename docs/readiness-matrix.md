@@ -13,7 +13,12 @@ This matrix scores **this repository**, not the current live site. Where the
 blueprint's provisional score has changed because of work in this repo, the
 previous score is shown in parentheses.
 
-Last updated: 2026-07-27.
+Last updated: 2026-07-30.
+
+This matrix is engineering's own scoring. The list of what needs a **named
+signature** before launch, and who signs it, is
+[executive-sign-off-register.md](executive-sign-off-register.md); the L, A, K,
+and B references in the evidence column point at its items.
 
 ---
 
@@ -51,7 +56,7 @@ Last updated: 2026-07-27.
 | No Surprises / GFE | Gap | High | Patient-rights page describes rights from CMS guidance and links to CMS as the authority. Does not reproduce a statutory notice or invent a dispute process. Blocked on D10. | Revenue-cycle lead |
 | Tracking on sensitive pages | Pass (was Gap) | Low | No third-party script loads anywhere on the site. `connect-src 'self'` and `Permissions-Policy` block ad-tech surfaces. Intake sets `no-store`. | HIPAA privacy owner |
 | Log redaction | Pass | Low | All server logging goes through `safeLog`; a lint rule bans direct `console` in `src/`. Asserted in `tests/privacy-controls.test.ts`. | Security or technology owner |
-| Retention and deletion | Gap | High | Retention policy is documented in the privacy notice, but **no data store exists to enforce it** — see the inquiry-queue boundary below. Blocked on D9. | HIPAA privacy owner |
+| Retention and deletion | Gap | High | **A store now exists.** Chat transcripts are written to Postgres and carry a `delete_after` stamp from `CHAT_RETENTION_DAYS`, defaulting to a **provisional, unapproved 30 days**, with a sweep that deletes past it. The callback form still persists nothing. Blocked on D9 for the approved figure, and on confirmation of how long deleted rows survive in provider backups. | HIPAA privacy owner |
 
 ## 4. Security
 
@@ -61,8 +66,8 @@ Last updated: 2026-07-27.
 | Browser security / CSP | Pass (was Gap) | Low | Strict CSP with a per-response nonce, `strict-dynamic`, `object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`. **Verified end-to-end** — CI asserts every inline script carries the response's own nonce. See ADR 0004. | Security or technology owner |
 | Security headers | Pass | Low | HSTS, nosniff, DENY, Referrer-Policy, COOP/CORP, Permissions-Policy. Asserted in CI against a running server. | Security or technology owner |
 | Rate limiting | Gap | High | Blueprint's starting thresholds implemented and tested, but **in-memory and single-instance**. Multiplies by replica count in production. Must move to the CDN/WAF or a shared store. See ADR 0003. | Security or technology owner |
-| Auth and RBAC | Gap | High | No accounts exist in phase 1, which is per plan. CMS SSO/MFA/RBAC is not built because no CMS is selected. | Security or technology owner |
-| Secrets | Pass | Low | No secrets in the repo. Only `SITE_URL` is read, and it is non-secret. Gitleaks runs in CI. | Security or technology owner |
+| Auth and RBAC | Pass with caveat (was Gap/High) | Medium | **Accounts now exist.** scrypt password hashing (N=2^17), role separation between admin and coordinator, forced password change on first sign-in, lockout after repeated failures, the same failure reason for a wrong password and an unknown email so the form is not an account-enumeration oracle, session cookies scoped to the console with an absolute expiry, and an append-only audit log that records reads as well as writes. **No MFA**, which is the caveat: acceptable for a preview with three coordinators, and a decision AirEvac should make before this holds real conversations. CMS SSO is still not built because no CMS is selected. | Security or technology owner |
+| Secrets | Pass | Low | No secrets in the repo. The console added genuinely secret inputs (`DATABASE_URL`, `RESEND_API_KEY`, the AWS keys); all are read from the environment, none has a committed default, and none is logged. `DATABASE_URL` is never echoed even in connection errors. Gitleaks runs in CI. | Security or technology owner |
 | Supply chain | Pass | Low | Lockfile committed, `npm ci` in CI, `npm audit --audit-level=high` fails the build, SBOM generated. **Zero advisories.** Three `overrides` in package.json pin patched transitives: `postcss` and `sharp` (Next.js), and `minimatch` (eslint's chain, which otherwise pulls a brace-expansion DoS). The minimatch override rather than a direct brace-expansion one is deliberate — overriding brace-expansion to v5 breaks eslint, because minimatch depends on the v1 CommonJS export shape. | Security or technology owner |
 | Penetration test | Gap | High | Not performed. Launch gate on page 21. | Security or technology owner |
 | DAST | Gap | High | Not run. Needs a staging environment. | Security or technology owner |
@@ -78,11 +83,31 @@ Last updated: 2026-07-27.
 | RTO / RPO | Gap | High | No failover, backup, or restore configuration exists in this repo. Drills not run. | Security or technology owner |
 | CDN / WAF | Gap | High | Not configured. HTML is per-request (see ADR 0004), so the CDN needs `stale-if-error` for the page 20 origin-outage drill. | Security or technology owner |
 
-## 6. Quality and growth
+## 6. Coordinator console and live chat
+
+Added 2026-07-30. Built, deployed, and exercised end to end on a preview against
+a real database. Scored here for the first time.
 
 | Category | Status | Severity | Evidence | Owner |
 |---|---|---|---|---|
-| Unit / integration tests | Pass | Low | 173 tests. 100% statement and branch coverage on the credential gate and the intake allowlist, enforced by threshold in `vitest.config.ts`. | Security or technology owner |
+| Business Associate Agreement | **Fail** | **Critical** | **Not executed.** The database holds conversation transcripts, which are patient details in practice from the first real chat. Available on the current hosting plan, but a BAA is a signed contract rather than a plan feature. Chat is off by default on the production origin because of this, and only test data may go in the database until it is signed. Sign-off register L6. | Privacy officer |
+| Privacy notice covers chat | **Fail** | **Critical** | The published notice tells visitors the site receives **no** clinical information. A chat makes that untrue within the first minute of the first real conversation. Hard gate on chat facing the public, independent of the BAA. Sign-off register L4. | Legal and privacy |
+| Entry-point gating | Pass | Low | `FEATURES.secureChat` is off on the production origin unless explicitly enabled, on for previews, and **refused outright without `DATABASE_URL`** — a deployment fact that outranks an explicit opt-in, so chat can never be advertised with nowhere to hold it. Every endpoint re-checks independently of the widget. `tests/chat-feature-gate.test.ts`. | Security or technology owner |
+| Transport security | Gap | Medium | TLS to the database is enforced and cannot be disabled for a non-local host, but the preview runs `DATABASE_SSL=no-verify` because the managed instance presents a self-signed certificate. Encrypted against a passive observer, not against an active attacker on the path. Closed by supplying `DATABASE_CA_CERT`, which takes precedence automatically. Sign-off register B6. | Security or technology owner |
+| PHI kept out of logs | Pass | Low | No message body reaches a log line, including on translation failure, where only the error class is recorded. The transcript notification carries a reference and a link, never conversation text. Verified against a real conversation on a running server. `tests/mail.test.ts`, `tests/privacy-controls.test.ts`. | HIPAA privacy owner |
+| Intake allowlist | Pass | Low | The chat intake uses the same strict Zod allowlist discipline as the callback form. A clinical-shaped field is rejected by name, never by value, so a rejection message cannot echo what someone typed. | HIPAA privacy owner |
+| Translation safety | Pass with caveat | Medium | Translation is additive: the original is always shown beneath, never replaced, so a bilingual coordinator can catch an error the machine cannot. Both sides are told before the conversation starts when a machine is involved. Stub output is unmistakably marked and refused outright on production. **Caveat:** live translation needs an AWS Business Associate Addendum, since message text leaves our systems. | Privacy officer |
+| Availability honesty | Pass | Low | Presence is a heartbeat with a 75-second window, not a flag, so a closed laptop reads as offline within one window rather than leaving a visitor waiting on an unattended chat at 3am. Failure direction is "nobody is here". No response time is published in any state, including the queue. | Director of Operations |
+| Single instance | Gap | High | Messages fan out through an in-process bus, so `numInstances` must stay 1. A second instance would leave each side seeing only their own messages, which reads as the other person having stopped replying. Known change to Postgres `LISTEN`/`NOTIFY`. Sign-off register B5. | Security or technology owner |
+| Staffing trial | Gap | Medium | The blueprint required a 30-day staffing test before chat became customer-facing. Not run. Sign-off register A5, open decision D22. | Director of Operations |
+| Multi-factor authentication | Gap | Medium | Not implemented. Passwords are strong by policy and slow to verify by design, but a stolen coordinator password is currently sufficient on its own. | Security or technology owner |
+| End-to-end verification | Pass | Low | A full two-sided conversation on a preview deploy against a real database: intake, queue, claim, reply, marked translation, close, and notification. Sign-in, forced password change, weak-password refusal, and console gating all exercised against a live server rather than a mock. | Security or technology owner |
+
+## 7. Quality and growth
+
+| Category | Status | Severity | Evidence | Owner |
+|---|---|---|---|---|
+| Unit / integration tests | Pass | Low | 340 tests across 16 files. 100% statement and branch coverage on the credential gate and the intake allowlist, enforced by threshold in `vitest.config.ts`. | Security or technology owner |
 | End-to-end tests | Gap | High | Not implemented. Page 21 requires hospital, cruise, insurer, and family flows in both languages. | Security or technology owner |
 | Accessibility (automated) | Pass | Low | axe runs against nine representative pages in CI at `wcag22aa`. Built for keyboard, focus visibility, zoom, labels, error summary focus, and reduced motion. | Marketing owner |
 | Accessibility (manual) | Gap | High | No screen-reader, 400% zoom, or assistive-technology matrix testing. No independent audit. The accessibility statement says so rather than claiming conformance. | Marketing owner |
@@ -90,12 +115,12 @@ Last updated: 2026-07-27.
 | Load and stress | Gap | High | Not run. Page 21 targets 100 rps public and 20 accepted callbacks/min. | Security or technology owner |
 | Chaos and recovery | Gap | High | Not run. | Security or technology owner |
 | SEO and redirects | Pass (was Fail) | Low | Canonical URLs, hreflang pairs, per-page unique title and description, sitemap generated from the page registry, robots blocking non-production by origin. **Redirect map is now complete** — all 88 legacy URLs from the live sitemap (43 pages, 44 posts, 1 author), with automated no-chain, locale-prefix, and destination-resolves checks, verified single-hop against a running server. See [migration-findings.md](migration-findings.md). Remaining: export the real URL list from Search Console, which shows indexed URLs a sitemap omits. | Marketing owner |
-| Spanish content | Gap | High | UI chrome translated as a draft (D11). All medical, legal, insurance, and coverage body copy renders `TranslationPendingNotice` in Spanish rather than machine translation, per page 24. | Marketing owner |
+| Spanish content | Gap | High | UI chrome translated as a draft (D11). All medical, legal, insurance, and coverage body copy renders `TranslationPendingNotice` in Spanish rather than machine translation, per page 24. **Chat is the one place machine translation is permitted**, and only because it is additive and disclosed: the original is always shown, and both sides are told before starting. That is a live conversation with a person who can ask again, not published copy nobody can question. It does not change this score and does not make the site bilingual. | Marketing owner |
 | CMS | Gap | Medium | Content is typed data conforming to the section 5 block model, but no CMS, approval workflow, version history, or scheduled review is implemented. | Marketing owner |
 
 ---
 
-## The three findings that most need attention
+## The findings that most need attention
 
 1. **The callback form is not connected to anything** (Fail/Critical). It
    validates, deduplicates, and issues a reference, then stops. Until D7/D8/D9
@@ -112,3 +137,18 @@ Last updated: 2026-07-27.
    state. The patient rights page was removed by the AEI handoff and archived
    (`docs/archive/patient-rights-and-cost-info.md`). D10 must close before
    launch.
+
+4. **Chat has no Business Associate Agreement and no matching privacy notice**
+   (Fail/Critical, new 2026-07-30). Two independent gates, either of which
+   alone keeps chat off the public site. The code holds the line without
+   relying on anyone remembering: chat is off by default on the production
+   origin and refused entirely without a database. But the code cannot sign a
+   contract, and it cannot make the privacy notice true. Sign-off register L4
+   and L6.
+
+Note on scoring: adding the console moved **Auth and RBAC** from Gap to a
+qualified Pass, which is the only score in this matrix that improved by
+building something rather than by holding something back. It is worth saying
+plainly that this also enlarged the attack surface: there was previously no
+account to compromise and no store to exfiltrate. The controls listed in
+section 6 exist because of that trade, not in spite of it.

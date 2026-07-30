@@ -1,8 +1,13 @@
 # Open decisions
 
-The blueprint's section 21 decision list (D1–D14), annotated with **what the
-code does today** while each decision is open, and **exactly what changes** when
-it closes.
+The blueprint's section 21 decision list (D1–D14), the decisions raised by the
+crawl of the current site (D15–D17), and the decisions raised by building the
+coordinator chat (D18–D22). Each is annotated with **what the code does today**
+while it is open, and **exactly what changes** when it closes.
+
+These are engineering's tracking of open questions. The list of what needs a
+**named signature** before launch is
+[executive-sign-off-register.md](executive-sign-off-register.md).
 
 Format per section 22: *user choice, impact, safe default, deadline.*
 
@@ -100,42 +105,66 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 - **Never:** a browser-direct write, per page 14.
 
 ## D8 — Secure chat and clinical intake vendors
-**Owner:** Operations and privacy · **Needed by:** before sprint 7
+**Owner:** Operations and privacy · **Needed by:** built; blocked on the BAA (L6)
 
 - **REOPENED 2026-07-30.** The July handoff removed chat and put the clinical
   route on email and fax. AirEvac has now confirmed that **chat supersedes
-  email-and-fax-only**, and a coordinator chat is being built (Phase B,
-  docs/plans/coordinator-chat-plan.md).
+  email-and-fax-only**. See docs/plans/coordinator-chat-plan.md.
 - **What the supersession does and does not cover.** Chat replaces email and
   fax as the route for *conversation*. It does **not** replace them as the route
   for *documents*: a chat window is a poor place to receive a 40-page medical
   record, and no upload exists in the chat by design. Records continue to go to
   ops@aeiamericas.com or (619) 330-4551. If AirEvac intends documents to move
   through chat as well, that is a separate decision and needs saying.
-- **Safe default in code:** `FEATURES.secureChat: false` and
-  `FEATURES.clinicalUpload: false` remain, so the public chat entry point
-  cannot appear before the BAA is signed. The server side ships behind that
-  flag; see the BAA risk note in the plan.
+- **BUILT AND RUNNING 2026-07-30.** Phases A, B, and C are complete and a full
+  two-sided conversation has been held on the preview deploy against a real
+  database: intake, queue, claim, reply, marked test translation, and the
+  transcript notification.
+- **Safe default in code, restated for what now exists.** `FEATURES.secureChat`
+  is no longer a constant. It is **off on the production origin unless someone
+  opts in**, on for any preview, and **refused outright when `DATABASE_URL` is
+  absent**, because there is then nowhere for a conversation to exist. The
+  database check outranks an explicit `CHAT_ENABLED=true`: the presence of a
+  database is a fact about the deployment, not a preference.
+  `FEATURES.clinicalUpload: false` is unchanged, and no upload exists.
+- **What still keeps it off the public site** is the BAA (L6 in the sign-off
+  register), not a hardcoded flag. That is a deliberate change: a flag someone
+  can flip is a weaker guarantee than an origin check they would have to
+  deliberately override, and the override is logged loudly on every boot.
 - **Copy that changes when chat goes live**, all currently stating email and
   fax as the only route: `src/content/dictionary.ts`, `src/content/pages/`
   (`services.ts`, `patients.ts`, `legal.ts`), the homepage clinical-intake
   section, the contact page, `src/app/api/callback/route.ts`, and
   `/llms.txt`. These are deliberately NOT changed yet: telling visitors to use
   a chat that is not running would be worse than the current copy.
-- **Still open:** the hosting BAA (see below), AEI privacy approval covering
-  chat as well as email and fax, retention rules (D9), and the 30-day staffing
-  test the blueprint required before chat became customer-facing.
+- **Still open, and now the only things standing between this and the public:**
+  the hosting BAA (L6), a privacy notice rewritten to describe a site that
+  receives clinical information (L4 — the current one says the opposite, which
+  a chat makes untrue in the first minute of the first real conversation),
+  retention rules (D9), and the 30-day staffing test the blueprint required
+  (A5). Tracked for signature in `docs/executive-sign-off-register.md`.
 
 ## D9 — Approved data retention and deletion schedule
 **Owner:** Privacy and records · **Needed by:** before production config
 
-- **Impact:** whether any inquiry may be stored at all.
-- **Safe default in code:** **nothing is stored.** `recordInquiry` holds only an
-  idempotency key and a minted reference, in memory, for 24 hours. The privacy
-  notice states the intended schedule from page 15 but no store exists to
-  enforce it.
-- **To close:** approve the schedule, then implement it in the chosen store
-  (D8), with automated deletion and a documented legal-hold path.
+- **Impact:** whether any inquiry may be stored at all, and for how long a chat
+  transcript survives.
+- **CHANGED 2026-07-30: a store now exists.** The callback form is unchanged and
+  still persists nothing — `recordInquiry` holds only an idempotency key and a
+  minted reference, in memory, for 24 hours. But chat writes conversations to
+  Postgres, so "nothing is stored" is no longer true of the system as a whole
+  and must not be repeated as though it were.
+- **Safe default in code:** transcripts carry a `delete_after` stamp set from
+  `CHAT_RETENTION_DAYS`, defaulting to **30 days, provisional and unapproved**.
+  A sweep deletes past it. The number is deliberately a variable rather than a
+  constant so approving a different one is a configuration change, not a
+  deploy.
+- **To close:** the privacy officer approves the period, it is set explicitly,
+  and the privacy notice states the approved figure. Until then the notice
+  cannot name a number, because none has been approved.
+- **Still owed:** a documented legal-hold path, and confirmation of how long
+  deleted rows persist in the provider's backups. Deletion from the database is
+  not deletion from a backup taken yesterday.
 
 ## D10 — Current Notice of Privacy Practices and No Surprises/GFE documents
 **Owner:** Legal and billing · **Needed by:** before legal page build
@@ -169,6 +198,18 @@ Format per section 22: *user choice, impact, safe default, deadline.*
   the chrome (`reviewStatus: 'approved'`), then add `esBlocks` and `esReviewedOn`
   per page as translations are reviewed. A test asserts `esBlocks` can never
   exist without `esReviewedOn`.
+- **CHANGED 2026-07-30: machine translation now exists in chat, and it does not
+  close this.** A coordinator records the languages they speak. When a visitor's
+  language is covered by someone on shift, no machine is involved. When it is
+  not, messages are machine translated and **both sides are told so before the
+  conversation starts**, not after. Translation is additive throughout: the
+  original text is always shown beneath the translation, never replaced by it,
+  so a bilingual coordinator can catch an error the system cannot.
+- **What that means for the promise.** A machine in the loop is not bilingual
+  staffing and must not be described as it. The `bilingual-coordination` claim
+  stays `gap`. If AirEvac wants to publish a Spanish guarantee, the thing being
+  guaranteed has to be people, and D11 is still the decision that says whether
+  those people exist.
 
 ## D12 — Approved statistics, reviews, case stories and image permissions
 **Owner:** Marketing and compliance · **Needed by:** before proof modules
@@ -220,6 +261,11 @@ Format per section 22: *user choice, impact, safe default, deadline.*
   true for your route is worse than no number."*
 - **To close:** run the 30-day staffing test, then publish only the measured
   figure.
+- **UNCHANGED BY THE CHAT SHIPPING, deliberately.** Chat exists now, and it
+  still publishes no response time in any state, including while a visitor is
+  queued. The queue says a coordinator will join and shows the phone number; it
+  does not estimate. Building the feature was never the thing that would make a
+  number true.
 
 ---
 
@@ -232,6 +278,19 @@ Full detail in [migration-findings.md](migration-findings.md).
 | D15 | Is `(888) 761-2253` current, and should it be published alongside `619-754-6755`? If both, which is primary? | Operations |
 | D16 | Rebuild the six private cruise-island pages with operations-informed content, or let the redirects stand? | Operations and Marketing |
 | D17 | Confirm the contracting entity for Terms and the Privacy Notice — the 2021 press release says "Medical Logistics Management, Inc. dba AirEvac International" | Legal |
+
+## Decisions raised by building the chat
+
+Opened 2026-07-30. These did not exist before there was a console, a database,
+and a conversation store, and none of them is a coding question.
+
+| ID | Decision | Owner |
+|---|---|---|
+| D18 | Who receives the transcript notification in production? It is pointed at a testing address today and carries a reference number with no conversation text. | Operations |
+| D19 | May a coordinator discuss clinical detail in chat? Copy currently directs records to email and fax and there is no upload, but the boundary for *conversation* has not been stated. | Clinical and privacy |
+| D20 | Who gets a coordinator account, and who is the administrator that creates them? Each person sets their own password on first sign-in, so no administrator knows a working password. | Operations |
+| D21 | Is the audit log retention the same as the transcript retention? It records reads as well as writes, so it is evidence about staff conduct as well as about patients, and the two may warrant different periods. | Privacy and HR |
+| D22 | Does chat run outside staffed hours at all? Today it is offered only while a coordinator is available and shows the phone number otherwise, which is honest but means an unstaffed chat is worth little. | Operations |
 
 Two findings from the same crawl need attention on the **live site**, regardless
 of this project's timeline:
