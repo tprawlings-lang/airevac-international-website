@@ -69,18 +69,28 @@ services:
       # Coordinator console and chat. See docs/testing-on-render.md.
       # ---------------------------------------------------------------
 
-      # 'true' turns on the public chat widget and every chat endpoint.
-      # MUST STAY 'false' ON THE PRODUCTION ORIGIN until the Business Associate
-      # Agreement covering this database is executed: a chat receives patient
-      # details within the first minute.
+      # LEAVE UNSET. The default is derived from SITE_URL: chat is on for any
+      # preview origin and off on https://airevacinternational.com, so a demo
+      # works with no configuration and production has to opt in deliberately.
+      #
+      # Setting it here would defeat that. This key exists only so an operator
+      # can force chat off on a preview ('false') or, once the Business
+      # Associate Agreement covering this database is executed, on
+      # ('true') for production. A chat receives patient details within the
+      # first minute, which is why production is opt-in.
       - key: CHAT_ENABLED
-        value: 'false'
+        sync: false
 
       # Seeds the first administrator as admin/admin, forced to change on first
-      # sign-in. Only acts while no admin exists. Remove after the real
-      # administrator account has its own password.
+      # sign-in. Only acts while no admin exists, so it is inert once a real
+      # administrator has a password.
+      #
+      # 'true' HERE ON PURPOSE: this blueprint describes the preview service,
+      # and without it there is no way to sign into the console for the first
+      # time. Set it to 'false' once the real administrator account exists, and
+      # it must be 'false' on production.
       - key: ALLOW_BOOTSTRAP_ADMIN
-        value: 'false'
+        value: 'true'
 
       # 'stub' produces visibly marked placeholder translations so the
       # translated view can be exercised before AWS exists. Refused on the
