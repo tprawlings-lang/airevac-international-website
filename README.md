@@ -275,7 +275,7 @@ Everything the build team owns is complete and verified. What follows is owned
 by AirEvac, and the site should not go public until each is closed.
 
 **[docs/executive-sign-off-register.md](docs/executive-sign-off-register.md) is
-the authoritative list**: twenty-five numbered items, each with a named signer,
+the authoritative list**: twenty-six numbered items, each with a named signer,
 what they are approving, and what the site does while it is unsigned. It also
 states plainly what is safe to demonstrate today, which is everything, because
 the preview is `noindex` and disallowed to crawlers. The printable version to

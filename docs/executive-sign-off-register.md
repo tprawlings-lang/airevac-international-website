@@ -74,6 +74,7 @@ default in the "if unsigned" column.
 | K3 | Director of Operations | **ARGUS** (D3): current rating evidence, or a decision to omit. | Held. Renders nowhere. |
 | K4 | Director of Operations | **Learjet 35 status** (D5): active, reserve, partner-operated, or retired. | Held. Public copy states only the two Learjet 31As. |
 | K5 | Compliance lead | **State EMS licences and marketed-base authority** (D6). | No operating-authority claim appears on any page. |
+| K6 | Compliance lead + Legal | **Publishing Cuba (MUHA, Havana) as a served destination.** Added to the coverage map at AirEvac's request, 2026-07-30. A United States operator advertising Cuba touches OFAC sanctions: medical evacuation is generally licensable, but it is not automatically permitted, and the published claim is what a regulator reads. | The marker is live on the map. It asserts a destination and no authority to fly there, which is the same posture as every other point, but the destination itself is the part that needs confirming here rather than the authority. |
 
 ## 5. Commercial
 

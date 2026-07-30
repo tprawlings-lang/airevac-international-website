@@ -142,7 +142,7 @@ story = [
     P('WEBSITE LAUNCH PROGRAM | SIGN-OFF REGISTER', 'Brand'),
     P('Executive Sign-Off Register', 'DocTitle'),
     P('Everything that needs a named signature before airevacinternational.com '
-      'is public, and what the website does in the meantime. Twenty-five items. '
+      'is public, and what the website does in the meantime. Twenty-six items. '
       'Prepared 30 July 2026.', 'DocSub'),
 
     P('You can demonstrate the site today without signing any of this', 'H1'),
@@ -274,6 +274,14 @@ story = [
         ('K5', 'Compliance lead',
          '<b>State EMS licences and marketed-base authority.</b>',
          'No operating-authority claim appears on any page.'),
+        ('K6', 'Compliance lead and Legal',
+         '<b>Publishing Cuba (Havana) as a served destination.</b> Added to the '
+         'coverage map at AirEvac\'s request on 30 July 2026. A United States '
+         'operator advertising Cuba touches US sanctions rules: medical '
+         'evacuation is generally licensable, but it is not automatically '
+         'permitted, and what is published is what a regulator reads.',
+         'The destination is live on the map. It claims no authority to fly '
+         'there, but the destination itself is what needs confirming.'),
     ]),
 
     P('5. Commercial', 'H1'),

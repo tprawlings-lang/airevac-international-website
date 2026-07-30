@@ -74,6 +74,18 @@ export const MAPPED_AIRPORTS: readonly MappedAirport[] = [
   { code: 'MKJP', name: 'Kingston', lat: 17.936, lon: -76.787, region: 'caribbean', labelled: false },
   { code: 'MBPV', name: 'Providenciales', lat: 21.774, lon: -72.266, routeSlug: 'turks-and-caicos', region: 'caribbean', labelled: true },
   { code: 'MWCR', name: 'Grand Cayman', lat: 19.293, lon: -81.358, routeSlug: 'cayman-islands', region: 'caribbean', labelled: true, labelDy: -14 },
+  /*
+   * Added at AirEvac's request, 2026-07-30. Neither has a route page, so
+   * neither carries a link; they appear as coverage points only.
+   *
+   * MUHA IS CUBA, and that is a compliance question rather than a mapping one.
+   * A United States operator publishing Cuba as a served destination touches
+   * OFAC sanctions, where medical evacuation is generally licensable but is not
+   * automatically permitted. Flagged on the sign-off register; the marker
+   * asserts a destination, never authority to fly there (D6).
+   */
+  { code: 'MUHA', name: 'Havana', lat: 22.989, lon: -82.409, region: 'caribbean', labelled: true, labelDy: -14 },
+  { code: 'TQPF', name: 'Anguilla', lat: 18.205, lon: -63.055, region: 'caribbean', labelled: true, labelDy: -14 },
 
   // --- Central America --------------------------------------------------
   { code: 'MZBZ', name: 'Belize City', lat: 17.539, lon: -88.308, routeSlug: 'belize', region: 'central-america', labelled: true, labelDx: -15, labelAnchor: 'end' },

@@ -8,7 +8,7 @@ import { buildLegalNavigation, buildNavigation, PRIORITY_ROUTES } from '@/conten
 import { legacyRedirects } from '@/content/redirects';
 import { MEDIA, mediaNeedingPermission, publishableMedia } from '@/content/media';
 import { COASTLINE_PATHS, COASTLINE_VIEW } from '@/content/coastlines';
-import { BASE_AIRPORT, MAPPED_AIRPORTS } from '@/content/airports';
+import { BASE_AIRPORT, EAST_FRAME_LON, MAPPED_AIRPORTS } from '@/content/airports';
 import { REGION_CONTENT } from '@/content/pages/coverage';
 import { ALL_CONTENT_PAGES } from '@/lib/page-registry';
 import { LOCALES } from '@/lib/i18n';
@@ -500,12 +500,21 @@ describe('coverage map geometry', () => {
   });
 
   it('places every mapped airport inside the viewBox', () => {
-    // Catches a coordinate typo that would put a marker off the map.
+    /*
+     * Catches a coordinate typo that would put a marker off the map.
+     *
+     * The eastern bound is EAST_FRAME_LON rather than a number typed here.
+     * It was -65 until Anguilla (TQPF) was added at -63.06, which is inside the
+     * frame and outside the old constant: the test was asserting a stale idea
+     * of the frame rather than the frame. Deriving it means widening the map
+     * cannot leave this check behind, and narrowing it cannot silently strand a
+     * marker outside.
+     */
     for (const airport of [BASE_AIRPORT, ...MAPPED_AIRPORTS]) {
       expect(airport.lat, `${airport.code} latitude`).toBeGreaterThan(5);
       expect(airport.lat, `${airport.code} latitude`).toBeLessThan(30);
       expect(airport.lon, `${airport.code} longitude`).toBeGreaterThan(-115);
-      expect(airport.lon, `${airport.code} longitude`).toBeLessThan(-65);
+      expect(airport.lon, `${airport.code} longitude`).toBeLessThan(EAST_FRAME_LON);
     }
   });
 

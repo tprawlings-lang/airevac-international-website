@@ -109,6 +109,33 @@ const REGION_COLOR: Record<MappedAirport['region'], string> = {
   'central-america': 'var(--color-support-500)',
 };
 
+/**
+ * A small aircraft, centred on an unlabelled marker.
+ *
+ * DRAWN IN MAP COORDINATES rather than reusing `AircraftIcon`, which carries
+ * its own 24-unit viewBox and would need nesting and rescaling to land on a
+ * point. This is the same silhouette, expressed as a path around the origin and
+ * translated, so it stays crisp at any map size and cannot drift off its dot.
+ *
+ * `aria-hidden`: the marker's meaning is carried by the region and route lists
+ * beneath the map, which are the map's text alternative. A screen reader
+ * announcing fourteen aircraft glyphs would add noise, not information.
+ */
+function AirportGlyph({ x, y, color }: { x: number; y: number; color: string }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(0.42)`} aria-hidden="true">
+      <path
+        d="M0 -11c1.3 0 2.3 2 2.3 4.6v4.4l10.6 6.1v3.2l-10.6-3.3v5.7l3.4 2.7v2.3L0 16.4l-5.7 1.3v-2.3l3.4-2.7V7l-10.6 3.3V7.1L-2.3 1V-3.4C-2.3-9-1.3-11 0-11Z"
+        fill={color}
+        stroke="var(--color-paper)"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+        paintOrder="stroke"
+      />
+    </g>
+  );
+}
+
 export function CoverageMap({
   locale,
   className = '',
@@ -210,6 +237,16 @@ export function CoverageMap({
             <g key={airport.code}>
               <circle cx={x} cy={y} r={5} fill={REGION_COLOR[airport.region]} />
               <circle cx={x} cy={y} r={9} fill="none" stroke={REGION_COLOR[airport.region]} strokeWidth="1" opacity="0.4" />
+
+              {/*
+               * An aircraft glyph on every marker that is not showing its code.
+               * A bare dot on a map of the Caribbean could be an island, a city,
+               * or a route waypoint; these are airports, and the ones without
+               * room for a label had nothing saying so. Labelled markers do not
+               * get one, because the code already says it and a glyph beside it
+               * would just crowd the point it sits on.
+               */}
+              {!showLabel && <AirportGlyph x={x} y={y} color={REGION_COLOR[airport.region]} />}
 
               {showLabel && (
                 <text
