@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { currentUser } from '@/server/auth/guard';
-import { goOffline, heartbeat } from '@/server/chat/presence';
+import { goOffline, heartbeat, renewIfAvailable } from '@/server/chat/presence';
 import { publish } from '@/server/chat/events';
 
 /**
@@ -25,7 +25,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as { available?: unknown };
+  const body = (await request.json().catch(() => ({}))) as {
+    available?: unknown;
+    renew?: unknown;
+  };
+
+  /*
+   * A renew extends an existing window and cannot open one. The console now
+   * beats from every page rather than only the chat queue, so that a
+   * coordinator marked available on sign-in does not lapse while sitting on the
+   * user list. That renew fires wherever they are, and must therefore never be
+   * able to *make* somebody available: only the toggle below, or signing in as
+   * a coordinator, does that.
+   */
+  if (body.renew === true) {
+    const stillAvailable = await renewIfAvailable(user.id);
+    return NextResponse.json({ available: stillAvailable });
+  }
+
   const available = body.available === true;
 
   if (available) {

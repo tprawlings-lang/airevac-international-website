@@ -290,7 +290,7 @@ and a conversation store, and none of them is a coding question.
 | D19 | May a coordinator discuss clinical detail in chat? Copy currently directs records to email and fax and there is no upload, but the boundary for *conversation* has not been stated. | Clinical and privacy |
 | D20 | Who gets a coordinator account, and who is the administrator that creates them? Each person sets their own password on first sign-in, so no administrator knows a working password. | Operations |
 | D21 | Is the audit log retention the same as the transcript retention? It records reads as well as writes, so it is evidence about staff conduct as well as about patients, and the two may warrant different periods. | Privacy and HR |
-| D22 | Does chat run outside staffed hours at all? Today it is offered only while a coordinator is available and shows the phone number otherwise, which is honest but means an unstaffed chat is worth little. | Operations |
+| D22 | **ANSWERED 2026-07-30: chat is staffed around the clock**, matching the phone line. Coordinators are marked available automatically on sign-in, the console warns whenever nobody is, and ops is emailed if a gap passes three minutes. What remains open is whether the *public copy* may say chat is 24/7, which is a claim and therefore needs A5 and the staffing trial behind it. | Operations |
 
 Two findings from the same crawl need attention on the **live site**, regardless
 of this project's timeline:

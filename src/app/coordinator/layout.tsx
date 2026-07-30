@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import '@/app/globals.css';
+import { PresenceHeartbeat } from '@/components/chat/PresenceHeartbeat';
 
 /**
  * Coordinator console shell.
@@ -47,6 +48,12 @@ export default function CoordinatorLayout({ children }: { children: React.ReactN
         <div className="border-b-4 border-navy-900 bg-navy-950 px-4 py-2 text-center text-sm font-semibold text-white">
           AirEvac Coordinator Console · internal use
         </div>
+        {/*
+         * Renews an availability window from every console page, not only the
+         * chat queue. It cannot create one, so mounting it here is safe even on
+         * the sign-in page, where it stops on the first 401.
+         */}
+        <PresenceHeartbeat />
         {children}
       </body>
     </html>

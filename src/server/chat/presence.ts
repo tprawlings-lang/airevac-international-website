@@ -52,6 +52,31 @@ export async function heartbeat(userId: string, available: boolean): Promise<voi
   );
 }
 
+/**
+ * Extends an existing window, and does nothing otherwise.
+ *
+ * WHY THIS IS NOT `heartbeat`. The console renews from every page now, not only
+ * the chat queue, because a coordinator marked available on sign-in may sit on
+ * the console or the user list for their whole shift and must not lapse there.
+ * But a renew fired from every page must never be able to *make* somebody
+ * available: only an explicit toggle, or signing in as a coordinator, does
+ * that. So this updates the expiry where `available` is already true and
+ * touches nothing where it is not.
+ *
+ * Returns whether a window was actually extended, which is what lets the client
+ * stop renewing once it learns it is offline.
+ */
+export async function renewIfAvailable(userId: string): Promise<boolean> {
+  const rows = await query<{ user_id: string }>(
+    `UPDATE coordinator_presence
+        SET expires_at = now() + ($2 || ' seconds')::interval, updated_at = now()
+      WHERE user_id = $1 AND available
+      RETURNING user_id`,
+    [userId, String(PRESENCE_TTL_SECONDS)],
+  );
+  return rows.length > 0;
+}
+
 /** Explicit sign-off. Distinct from letting the window lapse. */
 export async function goOffline(userId: string): Promise<void> {
   await query(

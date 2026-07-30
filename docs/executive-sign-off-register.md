@@ -63,7 +63,7 @@ default in the "if unsigned" column.
 | A2 | Director of Operations | **Certificate-holder wording**, and whether the certificate number may be published (D4). | The site says AirEvac coordinates directly with no broker in between, and claims no operating authority anywhere. |
 | A3 | Director of Operations | **Route detail on the twelve route pages** — ground transfer times, hospital and discharge realities, border paperwork. Drafted from general regional knowledge, not AirEvac case files. | Live and hedged throughout, but unconfirmed. Corrections take effect the same day. |
 | A4 | Director of Operations | **Service area boundaries**: which regions are routine versus case-by-case (D6). | Four regions published, with "other destinations are reviewed case by case". |
-| A5 | Operations | **Chat staffing.** Chat is offered only while a coordinator is signed into the console. The blueprint required a 30-day staffing test before chat became customer-facing. | The widget tells visitors nobody is available and shows the phone number. Honest, and it undercuts the value of having chat at all. |
+| A5 | Operations | **Chat staffing, and whether the site may say so.** AirEvac staffs coordinators around the clock, so the build now marks a coordinator available on sign-in, warns in the console when nobody is, and emails ops if a gap passes three minutes. What needs a signature is the *claim*: publishing "chat answered 24/7" is a promise, and the blueprint required a 30-day staffing test before chat became customer-facing. | Chat runs and is monitored, but no page claims it is always answered. The widget still tells visitors honestly when nobody is available and shows the phone number. |
 
 ## 4. Compliance and credentials
 

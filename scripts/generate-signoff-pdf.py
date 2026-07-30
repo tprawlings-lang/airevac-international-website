@@ -240,11 +240,16 @@ story = [
          'Four regions published, with "other destinations are reviewed case by '
          'case".'),
         ('A5', 'Operations',
-         '<b>Chat staffing.</b> Chat is offered only while a coordinator is '
-         'signed into the console. The blueprint asked for a 30-day staffing test '
+         '<b>Chat staffing, and whether the site may say so.</b> AirEvac staffs '
+         'coordinators around the clock, so a coordinator is now marked '
+         'available automatically on sign-in, the console warns whenever nobody '
+         'is, and operations is emailed if a gap lasts more than three minutes. '
+         'What needs a signature is the <i>claim</i>: publishing "chat answered '
+         '24/7" is a promise, and the blueprint asked for a 30-day staffing test '
          'before chat became customer-facing.',
-         'The widget tells visitors nobody is available and shows the phone '
-         'number. Honest, and it undercuts the point of having chat at all.'),
+         'Chat runs and is monitored, but no page claims it is always answered. '
+         'The widget still tells visitors honestly when nobody is available and '
+         'shows the phone number.'),
     ]),
 
     P('4. Compliance and credentials', 'H1'),

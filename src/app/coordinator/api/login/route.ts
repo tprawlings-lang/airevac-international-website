@@ -5,6 +5,8 @@ import { issueSession } from '@/server/auth/sessions';
 import { csrfValid, setSessionCookie, CSRF_FIELD } from '@/server/auth/guard';
 import { consume } from '@/lib/rate-limit';
 import { coarsenIp, safeLog } from '@/lib/redact';
+import { heartbeat } from '@/server/chat/presence';
+import { publish } from '@/server/chat/events';
 import { audit } from '@/server/audit';
 import { seeOther } from '@/server/http/redirect';
 
@@ -84,6 +86,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   await setSessionCookie(session.token, session.absoluteExpiresAt);
+
+  /*
+   * COORDINATORS ARE AVAILABLE ON SIGN-IN. AirEvac staffs the desk around the
+   * clock, so a coordinator signing in is a coordinator starting a shift, and
+   * making them click a second switch afterwards only creates a state where
+   * somebody is at the desk and the site says nobody is.
+   *
+   * Admins are not, deliberately. An administrator signing in to add a user or
+   * read the audit log is doing desk work, and putting them in the queue for it
+   * would hand a conversation to someone who is not watching for one.
+   *
+   * This only opens the window. The console renews it while it stays open, so
+   * closing the laptop still lapses within a minute: the heartbeat remains the
+   * thing that decides whether somebody is really there.
+   *
+   * Never fatal. Being signed in matters more than being marked available, and
+   * a presence write that fails must not cost someone their sign-in.
+   */
+  if (result.user.role === 'coordinator') {
+    try {
+      await heartbeat(result.user.id, true);
+      publish({ kind: 'queue' });
+    } catch (error) {
+      safeLog('error', 'presence.auto_available_failed', { error: (error as Error).name });
+    }
+  }
 
   /*
    * A user who must change their password lands on the password page and
