@@ -78,10 +78,17 @@ as the July handoff won over the blueprint. But it must be explicit, because
 several pages of approved copy will need to change, and D8 currently records
 chat as removed rather than pending.
 
-**Needed:** written confirmation that chat supersedes the July handoff's
-email-and-fax-only position, and a decision on whether email and fax remain the
-route for *documents* while chat handles conversation. (Recommended: yes. A chat
-window is a bad place to receive a 40-page medical record.)
+**CONFIRMED 2026-07-30.** AirEvac has confirmed that chat supersedes the July
+handoff's email-and-fax-only position.
+
+Recorded interpretation, which governs unless corrected: chat replaces email
+and fax for **conversation**. Email and fax remain the route for **documents**,
+and the chat has no upload. If AirEvac intends records to move through chat too,
+that is a separate decision and changes both the schema and the BAA scope.
+
+The affected copy is listed in D8 and is deliberately unchanged until the chat
+is actually running behind its flag: pointing visitors at a chat that does not
+answer would be worse than the wording there now.
 
 ### 1.3 A chat that nobody answers is worse than no chat
 

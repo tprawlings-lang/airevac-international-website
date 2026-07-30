@@ -102,17 +102,29 @@ Format per section 22: *user choice, impact, safe default, deadline.*
 ## D8 — Secure chat and clinical intake vendors
 **Owner:** Operations and privacy · **Needed by:** before sprint 7
 
-- **Impact:** originally the secure chat widget and clinical upload. The AEI
-  handoff (July 2026) removed both from the product: clinical documents now
-  move by email (ops@aeiamericas.com) or fax ((619) 330-4551), stated verbatim
-  on the contact, intake, and service pages. `SecureChatButton` is deleted.
+- **REOPENED 2026-07-30.** The July handoff removed chat and put the clinical
+  route on email and fax. AirEvac has now confirmed that **chat supersedes
+  email-and-fax-only**, and a coordinator chat is being built (Phase B,
+  docs/plans/coordinator-chat-plan.md).
+- **What the supersession does and does not cover.** Chat replaces email and
+  fax as the route for *conversation*. It does **not** replace them as the route
+  for *documents*: a chat window is a poor place to receive a 40-page medical
+  record, and no upload exists in the chat by design. Records continue to go to
+  ops@aeiamericas.com or (619) 330-4551. If AirEvac intends documents to move
+  through chat as well, that is a separate decision and needs saying.
 - **Safe default in code:** `FEATURES.secureChat: false` and
-  `FEATURES.clinicalUpload: false` remain so no chat or upload UI can return
-  without a deliberate flag flip.
-- **Still open:** AEI privacy approval for the email and fax handling
-  statement (see docs/handoff-completion-report.md), plus retention rules for
-  documents received that way. If chat is ever revived it needs the BAA,
-  security review, and 30-day staffing test the blueprint required.
+  `FEATURES.clinicalUpload: false` remain, so the public chat entry point
+  cannot appear before the BAA is signed. The server side ships behind that
+  flag; see the BAA risk note in the plan.
+- **Copy that changes when chat goes live**, all currently stating email and
+  fax as the only route: `src/content/dictionary.ts`, `src/content/pages/`
+  (`services.ts`, `patients.ts`, `legal.ts`), the homepage clinical-intake
+  section, the contact page, `src/app/api/callback/route.ts`, and
+  `/llms.txt`. These are deliberately NOT changed yet: telling visitors to use
+  a chat that is not running would be worse than the current copy.
+- **Still open:** the hosting BAA (see below), AEI privacy approval covering
+  chat as well as email and fax, retention rules (D9), and the 30-day staffing
+  test the blueprint required before chat became customer-facing.
 
 ## D9 — Approved data retention and deletion schedule
 **Owner:** Privacy and records · **Needed by:** before production config
