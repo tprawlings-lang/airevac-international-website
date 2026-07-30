@@ -98,10 +98,22 @@ describe('POST /api/callback', () => {
 
     await POST(request(validBody({ diagnosis: 'sepsis' })));
 
-    const line = warn.mock.calls[0]?.[0] as string;
-    expect(line).toContain('callback.forbidden_fields_rejected');
+    /*
+     * Searched rather than indexed. Asserting on calls[0] coupled this test to
+     * how many other things happen to warn during a request, and it broke the
+     * moment the notification layer logged a configuration warning first. What
+     * matters is that the privacy event was recorded, not that it was recorded
+     * first.
+     */
+    const lines = warn.mock.calls.map((call) => String(call[0]));
+    const line = lines.find((entry) => entry.includes('callback.forbidden_fields_rejected'));
+
+    expect(line, `no privacy event in: ${lines.join(' | ')}`).toBeDefined();
     expect(line).toContain('diagnosis'); // the field NAME
     expect(line).not.toContain('sepsis'); // never the VALUE
+
+    // And no other log line leaked the value either.
+    for (const entry of lines) expect(entry).not.toContain('sepsis');
   });
 
   it('returns field-level errors without the submitted values', async () => {

@@ -1,5 +1,6 @@
 import type { PublicIntake } from '@/lib/intake-schema';
 import { safeLog } from '@/lib/redact';
+import { assertNoPhiShape, sendMail } from '@/server/mail';
 
 /**
  * Inquiry acceptance and idempotency.
@@ -23,12 +24,14 @@ import { safeLog } from '@/lib/redact';
  * would create exactly the "Sensitive PII" record that section 9 says must live
  * in an encrypted, minimized, retention-bounded system - before that system has
  * been chosen. So the current implementation mints an inquiry ID, records the
- * idempotency key, and logs a non-identifying acceptance event.
+ * idempotency key, and sends an email notification. Nothing is persisted.
  *
- * WHAT THIS MEANS OPERATIONALLY TODAY: the phone line is the delivery mechanism.
- * The form is not connected to a coordinator queue and must not be presented as
- * if it were until D7/D8/D9 close. The UI reflects this - the confirmation
- * screen tells the visitor to call if the case is time-critical.
+ * WHAT THIS MEANS OPERATIONALLY TODAY: the phone line is still the delivery
+ * mechanism. An email notification is not a case queue - nobody is paged by it,
+ * it has no acknowledgement, and it does not survive a full mailbox. The form
+ * must not be presented as a working channel until D7/D8/D9 close, and the
+ * confirmation screen accordingly tells the visitor to call if the case is
+ * time-critical.
  *
  * When the vendor is chosen, replace `recordInquiry`'s body with the adapter
  * call. The signature, the idempotency contract, and every caller stay the same.
@@ -109,15 +112,77 @@ export async function recordInquiry(
     expiresAt: nowMs + IDEMPOTENCY_WINDOW_MS,
   });
 
-  // Section 14 (Circuit breaker / fallback): staff must be able to see that an
-  // inquiry arrived even when no downstream system is connected. This is the
-  // alert seam - wire it to the on-call channel when D8 closes.
-  safeLog('info', 'inquiry.accepted_pending_delivery', {
+  /*
+   * Delivery. Section 14 (Circuit breaker / fallback): staff must be able to
+   * see that an inquiry arrived even when no case system is connected.
+   *
+   * THIS IS EMAIL NOTIFICATION, NOT A CASE RECORD. The blueprint's requirement
+   * for a durable, retention-bounded store (D7/D8/D9) is still open and this
+   * does not close it: nothing here persists. It exists so that a submission
+   * during testing reaches a person rather than only a log line.
+   *
+   * WHAT IS IN THE MESSAGE. The fields the form already allowlists: role,
+   * timeframe, language, cities, and a callback name and number. That is
+   * ordinary personal data, and the intake schema's tripwire guarantees it
+   * carries no patient detail. It is going to a testing mailbox at AirEvac's
+   * direction; see the recipient note in src/server/mail.ts, which must change
+   * before the site accepts real enquiries.
+   *
+   * `await`ed rather than fired and forgotten so the response is not sent
+   * before the notification has been attempted, and `sendMail` never throws, so
+   * a mail outage cannot fail a visitor's submission.
+   */
+  /*
+   * The note is the one free-text field on the form, so it is the one field
+   * that can carry clinical detail regardless of what the label asks for.
+   *
+   * It is screened separately rather than left to the check inside `sendMail`.
+   * That check refuses the whole message, which is right for a chat transcript
+   * and wrong here: dropping the entire notification because a worried relative
+   * wrote "broken leg" would mean nobody learns the enquiry arrived at all. So
+   * a note that looks clinical is withheld and the notification still goes,
+   * carrying the reference and the callback number - which is what a
+   * coordinator needs to pick up the phone.
+   */
+  const note = intake.note ?? '';
+  const noteIsSafe = note !== '' && assertNoPhiShape(note).ok;
+  const noteLine =
+    note === ''
+      ? '(none)'
+      : noteIsSafe
+        ? note
+        : '(withheld: the note looked clinical, so it was not emailed. ' +
+          'Call the sender back using the number above.)';
+
+  await sendMail({
+    subject: `Callback request ${inquiryId} (${intake.role})`,
+    body: [
+      `A callback request was submitted on the AirEvac website.`,
+      ``,
+      `Reference:    ${inquiryId}`,
+      `From:         ${intake.contactName}`,
+      `Role:         ${intake.role}`,
+      `Organization: ${intake.organization !== '' ? intake.organization : 'not given'}`,
+      `Phone:        ${intake.phone}`,
+      `Email:        ${intake.email !== '' ? intake.email : 'not given'}`,
+      `Route:        ${intake.originCity} to ${intake.destinationCity}`,
+      `Timeframe:    ${intake.timeframe}`,
+      `Language:     ${intake.preferredLanguage}`,
+      ``,
+      `Note from the sender:`,
+      noteLine,
+      ``,
+      `This form does not create a case record, and nothing about it is stored.`,
+      `The phone line remains the delivery mechanism until an approved intake`,
+      `system is connected.`,
+    ].join('\n'),
+  });
+
+  safeLog('info', 'inquiry.accepted', {
     inquiryId,
     role: intake.role,
     timeframe: intake.timeframe,
     preferredLanguage: intake.preferredLanguage,
-    deliveryConnected: false,
   });
 
   return { inquiryId, duplicate: false };
