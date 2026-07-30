@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { getDictionary } from '@/content/dictionary';
 import { SITE } from '@/content/site';
@@ -51,6 +51,13 @@ interface Message {
   at: string;
 }
 
+/**
+ * Subscribe for the hydration probe below. Nothing ever changes it, so it
+ * returns a no-op unsubscribe. Declared at module scope because a new function
+ * identity on each render would make React resubscribe every time.
+ */
+const subscribeNever = () => () => {};
+
 interface Availability {
   enabled: boolean;
   staffed: boolean;
@@ -61,6 +68,18 @@ interface Availability {
 export function ChatWidget({ locale }: { locale: Locale }) {
   const dictionary = getDictionary(locale);
   const t = dictionary.chat;
+
+  /*
+   * Hydration guard. The launcher is useless without JavaScript: every state it
+   * reaches comes from a fetch. Server-rendering it means it appears, looks
+   * clickable, and silently does nothing until React attaches, which on a
+   * cold-started instance is seconds rather than milliseconds. A visitor who
+   * taps it in that window gets no panel, no error, and no reason to try again.
+   *
+   * So it does not exist until it works. There is no layout shift to trade
+   * against, because the launcher is fixed-position and occupies no flow space.
+   */
+  const ready = useSyncExternalStore(subscribeNever, () => true, () => false);
 
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>('idle');
@@ -231,6 +250,8 @@ export function ChatWidget({ locale }: { locale: Locale }) {
     </p>
   );
 
+  if (!ready) return null;
+
   return (
     <>
       {/* Launcher. `bottom-24` on small screens clears the mobile call bar so
@@ -261,7 +282,15 @@ export function ChatWidget({ locale }: { locale: Locale }) {
           aria-modal="false"
           aria-label={t.heading}
           tabIndex={-1}
-          className="fixed bottom-40 right-4 z-40 flex max-h-[70vh] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-panel border border-ink-300 bg-white shadow-2xl sm:bottom-20"
+          /*
+           * The height cap subtracts the launcher offset rather than trusting
+           * 70vh alone. `bottom-40` plus 70vh exceeds the viewport on anything
+           * shorter than about 533px, which is a phone in landscape and any
+           * pinch-zoomed tablet, and the overflow goes off the TOP of the
+           * screen where the heading and the phone number live. dvh rather
+           * than vh so a mobile toolbar sliding in does not reintroduce it.
+           */
+          className="fixed bottom-40 right-4 z-40 flex max-h-[min(70vh,calc(100dvh-12rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-panel border border-ink-300 bg-white shadow-2xl sm:bottom-20 sm:max-h-[min(70vh,calc(100dvh-7rem))]"
         >
           <div className="border-b border-ink-200 bg-navy-900 px-4 py-3">
             <h2 className="text-sm font-bold text-white">{t.heading}</h2>
