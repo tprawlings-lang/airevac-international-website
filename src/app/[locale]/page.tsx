@@ -19,7 +19,7 @@ import { getDictionary } from '@/content/dictionary';
 import { COVERAGE_REGIONS, PRIORITY_ROUTES } from '@/content/navigation';
 import { SITE } from '@/content/site';
 import { isLocale, localePath } from '@/lib/i18n';
-import { organizationJsonLd, serializeJsonLd } from '@/lib/structured-data';
+import { organizationJsonLd, pageGraphJsonLd, serializeJsonLd } from '@/lib/structured-data';
 import { getNonce } from '@/lib/nonce';
 
 /**
@@ -86,6 +86,30 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         // here exactly as they are absent from the page.
         dangerouslySetInnerHTML={{
           __html: serializeJsonLd(organizationJsonLd(locale, now)),
+        }}
+      />
+
+      {/* WebSite and WebPage nodes, AI Search Coding Handoff section 7. The
+          homepage has no breadcrumb trail, so none is emitted. */}
+      <script
+        nonce={nonce}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(
+            pageGraphJsonLd(locale, {
+              path: '/',
+              title:
+                locale === 'es'
+                  ? 'Ambulancia aérea para México y el Caribe'
+                  : 'Air Ambulance for Mexico and the Caribbean',
+              description:
+                locale === 'es'
+                  ? 'Coordinación directa de ambulancia aérea desde México, el Caribe y ' +
+                    'Centroamérica, con base en Fort Lauderdale.'
+                  : 'Direct air ambulance coordination from Mexico, the Caribbean, and ' +
+                    'Central America, based at Fort Lauderdale Executive Airport.',
+            }),
+          ),
         }}
       />
 

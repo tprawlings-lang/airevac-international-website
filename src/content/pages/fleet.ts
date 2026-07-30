@@ -31,6 +31,22 @@ export const FLEET_PAGES: readonly PageContent[] = [
     reviewedOn: null,
     esReviewedOn: null,
     blocks: [
+      // Opening answer, AI Search Coding Handoff section 6. The page used to
+      // open with the credentials caveat, which explains what is missing before
+      // saying what is true.
+      {
+        type: 'prose',
+        paragraphs: [
+          'The medical crew for an AirEvac transport is assigned case by case, from the ' +
+            'level of care the treating physician and our medical review agree the patient ' +
+            'needs in flight. A patient who needs continuous intensive-care management is ' +
+            'staffed differently from one who is stable and traveling for continued care ' +
+            'closer to home.',
+          'Our coordinators will confirm the crew configuration for a specific patient ' +
+            'before the transport is accepted. Call (619) 754-6755 or email ' +
+            'ops@aeiamericas.com to ask about a case.',
+        ],
+      },
       {
         type: 'callout',
         tone: 'info',

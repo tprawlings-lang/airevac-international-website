@@ -3,12 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ContactBlock } from '@/components/ContactBlock';
+import { PageGraph } from '@/components/PageGraph';
 import { PageHeader } from '@/components/PageHeader';
 import { Container, Section } from '@/components/ui/Container';
 import { getDictionary } from '@/content/dictionary';
 import { REGION_CONTENT } from '@/content/pages/coverage';
 import { PRIORITY_ROUTES } from '@/content/navigation';
-import { isLocale, localePath, LOCALES } from '@/lib/i18n';
+import { isLocale, localePath, LOCALES, type Locale } from '@/lib/i18n';
 import { CoverageMap } from '@/components/graphics/CoverageMap';
 
 /**
@@ -25,6 +26,22 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+/**
+ * Title and description, defined once and used by both the page metadata and
+ * the structured-data graph. Two copies of these strings is how a page ends up
+ * telling a crawler one thing in its <title> and another in its JSON-LD.
+ */
+function coverageMeta(locale: Locale) {
+  return {
+    title: locale === 'es' ? 'Cobertura' : 'Coverage',
+    description: locale === 'es'
+        ? 'Regiones y rutas donde AirEvac International coordina transporte médico aéreo: ' +
+          'México, el Caribe, Centroamérica y Estados Unidos.'
+        : 'Regions and routes where AirEvac International coordinates air medical transport: ' +
+          'Mexico, the Caribbean, Central America, and the United States.',
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -34,13 +51,7 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
 
   return {
-    title: locale === 'es' ? 'Cobertura' : 'Coverage',
-    description:
-      locale === 'es'
-        ? 'Regiones y rutas donde AirEvac International coordina transporte médico aéreo: ' +
-          'México, el Caribe, Centroamérica y Estados Unidos.'
-        : 'Regions and routes where AirEvac International coordinates air medical transport: ' +
-          'Mexico, the Caribbean, Central America, and the United States.',
+    ...coverageMeta(locale),
     alternates: {
       canonical: localePath(locale, '/coverage'),
       languages: {
@@ -64,6 +75,13 @@ export default async function CoverageHubPage({
 
   return (
     <>
+      <PageGraph
+        locale={locale}
+        path={'/coverage'}
+        {...coverageMeta(locale)}
+        breadcrumbs={[{ name: dictionary.common.home, path: '/' }]}
+      />
+
       <PageHeader
         locale={locale}
         title={dictionary.nav.coverage}

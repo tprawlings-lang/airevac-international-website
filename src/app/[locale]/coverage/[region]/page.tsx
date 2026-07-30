@@ -11,7 +11,7 @@ import { getDictionary } from '@/content/dictionary';
 import { COVERAGE_REGIONS } from '@/content/navigation';
 import { findRegion, routesInRegion } from '@/content/pages/coverage';
 import { isLocale, localePath, LOCALES } from '@/lib/i18n';
-import { breadcrumbJsonLd, serializeJsonLd } from '@/lib/structured-data';
+import { pageGraphJsonLd, serializeJsonLd } from '@/lib/structured-data';
 import { getNonce } from '@/lib/nonce';
 
 /**
@@ -88,11 +88,16 @@ export default async function CoverageRegionPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: serializeJsonLd(
-            breadcrumbJsonLd(locale, [
-              { name: dictionary.common.home, path: '/' },
-              { name: dictionary.nav.coverage, path: '/coverage' },
-              { name: content.name, path },
-            ]),
+            pageGraphJsonLd(locale, {
+              path,
+              title: content.title,
+              description: content.description,
+              breadcrumbs: [
+                { name: dictionary.common.home, path: '/' },
+                { name: dictionary.nav.coverage, path: '/coverage' },
+                { name: content.name, path },
+              ],
+            }),
           ),
         }}
       />

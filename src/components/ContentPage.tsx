@@ -1,14 +1,13 @@
 import { canRenderLocale, type PageContent } from '@/content/blocks';
 import { getDictionary } from '@/content/dictionary';
 import { formatDate, localePath, type Locale } from '@/lib/i18n';
-import { breadcrumbJsonLd, serializeJsonLd } from '@/lib/structured-data';
 import { Container, Section } from '@/components/ui/Container';
 import { ContentBlocks } from '@/components/ContentBlocks';
 import { ContactBlock } from '@/components/ContactBlock';
+import { PageGraph } from '@/components/PageGraph';
 import { PageHeader } from '@/components/PageHeader';
 import { Photo } from '@/components/graphics/Photo';
 import { TranslationPendingNotice } from '@/components/TranslationPendingNotice';
-import { getNonce } from '@/lib/nonce';
 
 /**
  * Standard content page template.
@@ -57,21 +56,30 @@ export async function ContentPage({
    */
   const needsReviewer = page.contentClass !== 'general';
 
-  const nonce = await getNonce();
+  /*
+   * Structured data, AI Search Coding Handoff section 7.
+   *
+   * The FAQ items are read from `blocks`, the same array `ContentBlocks`
+   * renders below, which is what makes the handoff's central rule structurally
+   * true rather than a promise: "All marked-up facts must also appear in
+   * visible page content." When the Spanish gate withholds the body, nothing
+   * is rendered, so nothing is marked up.
+   */
+  const faqItems = renderable
+    ? blocks.flatMap((block) => (block.type === 'faq' ? block.items : []))
+    : [];
 
   return (
     <>
-      {breadcrumbs.length > 0 && (
-        <script
-          nonce={nonce}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: serializeJsonLd(
-              breadcrumbJsonLd(locale, [...breadcrumbs, { name: page.title, path: page.path }]),
-            ),
-          }}
-        />
-      )}
+      <PageGraph
+        locale={locale}
+        path={page.path}
+        title={title}
+        description={page.description}
+        reviewedOn={page.reviewedOn}
+        breadcrumbs={[...breadcrumbs, { name: page.title, path: page.path }]}
+        faqItems={faqItems}
+      />
 
       <PageHeader locale={locale} title={title} intro={intro} breadcrumbs={breadcrumbs} />
 

@@ -11,7 +11,7 @@ import { getDictionary } from '@/content/dictionary';
 import { PRIORITY_ROUTES } from '@/content/navigation';
 import { buildRouteBlocks, findRegion, findRoute, routesInRegion } from '@/content/pages/coverage';
 import { isLocale, localePath, LOCALES } from '@/lib/i18n';
-import { breadcrumbJsonLd, serializeJsonLd } from '@/lib/structured-data';
+import { pageGraphJsonLd, serializeJsonLd } from '@/lib/structured-data';
 import { getNonce } from '@/lib/nonce';
 
 /**
@@ -99,12 +99,20 @@ export default async function RoutePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: serializeJsonLd(
-            breadcrumbJsonLd(locale, [
-              { name: dictionary.common.home, path: '/' },
-              { name: dictionary.nav.coverage, path: '/coverage' },
-              { name: regionContent.name, path: `/coverage/${regionContent.slug}` },
-              { name: route.name, path },
-            ]),
+            pageGraphJsonLd(locale, {
+              path,
+              title,
+              description:
+                `Medical transport from ${route.name} to ${route.commonDestinations}. ` +
+                'Departure airports, receiving coordination, and the factors that drive ' +
+                'timing on this route.',
+              breadcrumbs: [
+                { name: dictionary.common.home, path: '/' },
+                { name: dictionary.nav.coverage, path: '/coverage' },
+                { name: regionContent.name, path: `/coverage/${regionContent.slug}` },
+                { name: route.name, path },
+              ],
+            }),
           ),
         }}
       />

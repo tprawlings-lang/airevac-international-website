@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { ContactBlock } from '@/components/ContactBlock';
+import { PageGraph } from '@/components/PageGraph';
 import { PageHeader } from '@/components/PageHeader';
 import { Container, Section } from '@/components/ui/Container';
 import { CtaLink, PhoneCta } from '@/components/ui/Cta';
 import { getDictionary } from '@/content/dictionary';
 import { SITE } from '@/content/site';
-import { isLocale, localePath, LOCALES } from '@/lib/i18n';
+import { isLocale, localePath, LOCALES, type Locale } from '@/lib/i18n';
 
 /**
  * Other Destinations: new coverage child page per the AEI handoff (Section 13).
@@ -20,6 +21,23 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+/**
+ * Title and description, defined once and used by both the page metadata and
+ * the structured-data graph. Two copies of these strings is how a page ends up
+ * telling a crawler one thing in its <title> and another in its JSON-LD.
+ */
+function otherDestinationsMeta(locale: Locale) {
+  return {
+    title: locale === 'es' ? 'Otros destinos' : 'Other Destinations',
+    description: locale === 'es'
+        ? 'Rutas fuera de las áreas principales de servicio de AEI, revisadas caso por caso ' +
+          'según disponibilidad de aeronave, acceso a aeropuertos, permisos y necesidades médicas.'
+        : 'Routes outside AEI’s primary service areas, reviewed case by case based on ' +
+          'aircraft availability, airport access, permits, medical needs, and receiving bed ' +
+          'acceptance.',
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -30,14 +48,7 @@ export async function generateMetadata({
 
   const path = '/coverage/other-destinations';
   return {
-    title: locale === 'es' ? 'Otros destinos' : 'Other Destinations',
-    description:
-      locale === 'es'
-        ? 'Rutas fuera de las áreas principales de servicio de AEI, revisadas caso por caso ' +
-          'según disponibilidad de aeronave, acceso a aeropuertos, permisos y necesidades médicas.'
-        : 'Routes outside AEI’s primary service areas, reviewed case by case based on ' +
-          'aircraft availability, airport access, permits, medical needs, and receiving bed ' +
-          'acceptance.',
+    ...otherDestinationsMeta(locale),
     alternates: {
       canonical: localePath(locale, path),
       languages: {
@@ -61,6 +72,16 @@ export default async function OtherDestinationsPage({
 
   return (
     <>
+      <PageGraph
+        locale={locale}
+        path={'/coverage/other-destinations'}
+        {...otherDestinationsMeta(locale)}
+        breadcrumbs={[
+          { name: dictionary.common.home, path: '/' },
+          { name: dictionary.nav.coverage, path: '/coverage' },
+        ]}
+      />
+
       <PageHeader
         locale={locale}
         title={locale === 'es' ? 'Otros destinos' : 'Other Destinations'}

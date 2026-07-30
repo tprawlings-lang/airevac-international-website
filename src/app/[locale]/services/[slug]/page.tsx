@@ -4,8 +4,11 @@ import { notFound } from 'next/navigation';
 import { ContentPage, contentPageMetadata } from '@/components/ContentPage';
 import { SERVICE_PAGES } from '@/content/pages/services';
 import { getDictionary } from '@/content/dictionary';
+import { COVERAGE_REGIONS } from '@/content/navigation';
 import { isLocale, LOCALES } from '@/lib/i18n';
 import { slugOf } from '@/lib/page-registry';
+import { serializeJsonLd, serviceJsonLd } from '@/lib/structured-data';
+import { getNonce } from '@/lib/nonce';
 
 /**
  * Service pages. Blueprint page 8, "Service" template: explain fit, process,
@@ -52,15 +55,41 @@ export default async function ServicePage({
   if (page === undefined) notFound();
 
   const dictionary = getDictionary(locale);
+  const nonce = await getNonce();
+
+  /*
+   * Service schema (AI Search Coding Handoff section 7). `areaServed` is the
+   * same four regions the visible Focused Coverage copy names, read from the
+   * navigation registry rather than restated here, so the markup cannot drift
+   * from the page. No offers or ratings: pricing is not published and the
+   * handoff bars review markup built from testimonials.
+   */
+  const areaServed = COVERAGE_REGIONS.map((region) => region.name);
 
   return (
-    <ContentPage
-      page={page}
-      locale={locale}
-      breadcrumbs={[
-        { name: dictionary.common.home, path: '/' },
-        { name: dictionary.nav.services, path: '/services' },
-      ]}
-    />
+    <>
+      <script
+        nonce={nonce}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(
+            serviceJsonLd(
+              locale,
+              { path: page.path, title: page.title, description: page.description },
+              areaServed,
+            ),
+          ),
+        }}
+      />
+
+      <ContentPage
+        page={page}
+        locale={locale}
+        breadcrumbs={[
+          { name: dictionary.common.home, path: '/' },
+          { name: dictionary.nav.services, path: '/services' },
+        ]}
+      />
+    </>
   );
 }

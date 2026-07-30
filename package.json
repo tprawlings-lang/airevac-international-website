@@ -18,7 +18,11 @@
     "test:coverage": "vitest run --coverage",
     "check": "npm run typecheck && npm run test && npm run build",
     "test:a11y": "node scripts/a11y-audit.mjs",
-    "test:nav": "node scripts/nav-behaviour-check.mjs"
+    "test:nav": "node scripts/nav-behaviour-check.mjs",
+    "test:crawlers": "node scripts/crawler-access-check.mjs",
+    "test:vitals": "node scripts/web-vitals-check.mjs",
+    "test:screenshots": "node scripts/screenshot-check.mjs",
+    "indexnow": "node scripts/indexnow-submit.mjs"
   },
   "repository": {
     "type": "git",

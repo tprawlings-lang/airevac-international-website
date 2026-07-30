@@ -147,6 +147,27 @@ export const PATIENT_PAGES: readonly PageContent[] = [
     reviewedOn: null,
     esReviewedOn: null,
     blocks: [
+      /*
+       * Opening answer, AI Search Coding Handoff section 6: "The first 80 to
+       * 140 words should directly answer the page's main question." This page
+       * previously opened straight into the stage list, so a reader or an
+       * answer engine had to assemble the answer from six list items before
+       * learning what the process actually is.
+       */
+      {
+        type: 'prose',
+        paragraphs: [
+          'An AirEvac medical transport runs in six stages: you contact a coordinator, ' +
+            'you share the transport logistics, you send the case documents by email or ' +
+            'fax, our medical and flight teams review the case, the required documents ' +
+            'and financial clearance are completed, and the flight is confirmed and ' +
+            'flown.',
+          'The first call takes minutes and needs nothing prepared. You do not need ' +
+            'records, insurance information, or a confirmed receiving hospital to start. ' +
+            'Those are the things our coordinators help you work through, and starting ' +
+            'early lets the slow steps run in parallel rather than one after another.',
+        ],
+      },
       {
         type: 'definitions',
         heading: 'The six stages',

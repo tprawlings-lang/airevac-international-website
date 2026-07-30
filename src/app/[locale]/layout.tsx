@@ -9,6 +9,7 @@ import { getNonce } from '@/lib/nonce';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { MobileCallBar } from '@/components/MobileCallBar';
+import { AnalyticsListener } from '@/components/AnalyticsListener';
 
 /**
  * Root layout.
@@ -129,6 +130,10 @@ export default async function LocaleLayout({
         <SiteFooter locale={locale} />
 
         <MobileCallBar locale={locale} />
+
+        {/* Qualified-action measurement. Renders nothing while the analytics
+            feature flag is off, which is its current state. */}
+        <AnalyticsListener />
       </body>
     </html>
   );

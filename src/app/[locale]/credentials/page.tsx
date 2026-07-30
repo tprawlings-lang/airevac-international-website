@@ -3,11 +3,12 @@ import { notFound } from 'next/navigation';
 
 import { ContactBlock } from '@/components/ContactBlock';
 import { CredentialList } from '@/components/CredentialCard';
+import { PageGraph } from '@/components/PageGraph';
 import { PageHeader } from '@/components/PageHeader';
 import { Container, Section } from '@/components/ui/Container';
 import { CREDENTIAL_REGISTER } from '@/content/credentials';
 import { getDictionary } from '@/content/dictionary';
-import { isLocale, localePath, LOCALES } from '@/lib/i18n';
+import { isLocale, localePath, LOCALES, type Locale } from '@/lib/i18n';
 
 /**
  * Credentials page. Blueprint page 11, "Credential" template:
@@ -29,6 +30,22 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+/**
+ * Title and description, defined once and used by both the page metadata and
+ * the structured-data graph. Two copies of these strings is how a page ends up
+ * telling a crawler one thing in its <title> and another in its JSON-LD.
+ */
+function credentialsMeta(locale: Locale) {
+  return {
+    title: getDictionary(locale).credentials.heading,
+    description: locale === 'es'
+        ? 'Acreditaciones y registros de aeronaves de AirEvac International, con alcance ' +
+          'exacto, titular, fecha de vencimiento y enlace de verificación del emisor.'
+        : 'AirEvac International accreditations and aircraft registrations, with exact scope, ' +
+          'holder, expiry date, and a verification link to the issuer’s own record.',
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -38,13 +55,7 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
 
   return {
-    title: getDictionary(locale).credentials.heading,
-    description:
-      locale === 'es'
-        ? 'Acreditaciones y registros de aeronaves de AirEvac International, con alcance ' +
-          'exacto, titular, fecha de vencimiento y enlace de verificación del emisor.'
-        : 'AirEvac International accreditations and aircraft registrations, with exact scope, ' +
-          'holder, expiry date, and a verification link to the issuer’s own record.',
+    ...credentialsMeta(locale),
     alternates: {
       canonical: localePath(locale, '/credentials'),
       languages: {
@@ -69,6 +80,13 @@ export default async function CredentialsPage({
 
   return (
     <>
+      <PageGraph
+        locale={locale}
+        path={'/credentials'}
+        {...credentialsMeta(locale)}
+        breadcrumbs={[{ name: dictionary.common.home, path: '/' }]}
+      />
+
       <PageHeader
         locale={locale}
         title={dictionary.credentials.heading}

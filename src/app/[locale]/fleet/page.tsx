@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ContactBlock } from '@/components/ContactBlock';
+import { PageGraph } from '@/components/PageGraph';
 import { PageHeader } from '@/components/PageHeader';
 import { Container, Section } from '@/components/ui/Container';
 import { getDictionary } from '@/content/dictionary';
 import { FLEET_PAGES } from '@/content/pages/fleet';
-import { isLocale, localePath, LOCALES } from '@/lib/i18n';
+import { isLocale, localePath, LOCALES, type Locale } from '@/lib/i18n';
 import { Photo } from '@/components/graphics/Photo';
 import { AircraftPlanform } from '@/components/graphics/HeroBackdrop';
 
@@ -27,6 +28,22 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
+/**
+ * Title and description, defined once and used by both the page metadata and
+ * the structured-data graph. Two copies of these strings is how a page ends up
+ * telling a crawler one thing in its <title> and another in its JSON-LD.
+ */
+function fleetMeta(locale: Locale) {
+  return {
+    title: locale === 'es' ? 'Flota Learjet 31A' : 'Learjet 31A Fleet',
+    description: locale === 'es'
+        ? 'La flota de trabajo actual de AirEvac International consta de dos aeronaves ' +
+          'Learjet 31A configuradas para transporte médico.'
+        : 'AirEvac International’s current working fleet is two Learjet 31A aircraft ' +
+          'configured for medical transport.',
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -36,13 +53,7 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
 
   return {
-    title: locale === 'es' ? 'Flota Learjet 31A' : 'Learjet 31A Fleet',
-    description:
-      locale === 'es'
-        ? 'La flota de trabajo actual de AirEvac International consta de dos aeronaves ' +
-          'Learjet 31A configuradas para transporte médico.'
-        : 'AirEvac International’s current working fleet is two Learjet 31A aircraft ' +
-          'configured for medical transport.',
+    ...fleetMeta(locale),
     alternates: {
       canonical: localePath(locale, '/fleet'),
       languages: {
@@ -62,6 +73,13 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
 
   return (
     <>
+      <PageGraph
+        locale={locale}
+        path={'/fleet'}
+        {...fleetMeta(locale)}
+        breadcrumbs={[{ name: dictionary.common.home, path: '/' }]}
+      />
+
       <PageHeader
         locale={locale}
         title={locale === 'es' ? 'Flota Learjet 31A' : 'Learjet 31A Fleet'}

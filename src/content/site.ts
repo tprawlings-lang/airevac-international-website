@@ -91,4 +91,16 @@ export const FEATURES = {
 
   /** PENDING D13: private-pay payment flow. Hosted page only when enabled. */
   hostedPayments: false,
+
+  /**
+   * PENDING approvals-document item A2: GA4 and Tag Manager.
+   *
+   * The measurement layer in src/lib/analytics.ts is written and tested but
+   * inert while this is false. Enabling it requires more than this flag: the
+   * privacy notice states the site sets no analytics cookies, and the Notice
+   * of Privacy Practices describes a site running no measurement on pages
+   * carrying sensitive information. Both must be revised and re-approved
+   * first, or the site's own privacy notice becomes untrue.
+   */
+  analytics: false,
 } as const;

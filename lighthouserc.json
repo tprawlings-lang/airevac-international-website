@@ -1,0 +1,59 @@
+{
+  "//": [
+    "Lighthouse CI budgets. AI Search Coding Handoff section 8 sets the targets:",
+    "LCP under 2.5s, INP under 200ms, CLS under 0.1, all at the 75th percentile.",
+    "",
+    "INP cannot be measured in a lab run because it needs real interactions, so",
+    "Total Blocking Time stands in for it here: it is the lab proxy Google itself",
+    "recommends, and a page with low TBT is very unlikely to fail INP in the field.",
+    "Real INP must still be read from Search Console's Core Web Vitals report once",
+    "the site has field data.",
+    "",
+    "Run: npx @lhci/cli autorun   (with the site running on localhost:3000)",
+    "scripts/web-vitals-check.mjs measures the same three metrics without the",
+    "Lighthouse dependency, and is what CI runs today."
+  ],
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "url": [
+        "http://localhost:3000/en",
+        "http://localhost:3000/en/services/air-ambulance",
+        "http://localhost:3000/en/coverage/mexico/cancun",
+        "http://localhost:3000/en/credentials",
+        "http://localhost:3000/en/contact"
+      ],
+      "settings": {
+        "preset": "desktop"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.9 }],
+        "categories:accessibility": ["error", { "minScore": 1 }],
+        "categories:seo": ["error", { "minScore": 1 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "total-blocking-time": ["error", { "maxNumericValue": 200 }],
+
+        "is-crawlable": "error",
+        "document-title": "error",
+        "meta-description": "error",
+        "canonical": "error",
+        "http-status-code": "error",
+        "hreflang": "error",
+        "structured-data": "off",
+
+        "uses-responsive-images": "warn",
+        "modern-image-formats": "warn",
+        "unused-javascript": "warn"
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

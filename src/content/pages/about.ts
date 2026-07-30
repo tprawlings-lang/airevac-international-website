@@ -79,6 +79,23 @@ export const ABOUT_PAGES: readonly PageContent[] = [
     reviewedOn: null,
     esReviewedOn: null,
     blocks: [
+      // Opening answer, AI Search Coding Handoff section 6. The page used to
+      // begin with the comparison list itself, which answered nothing until
+      // the reader had worked through all four items.
+      {
+        type: 'prose',
+        paragraphs: [
+          'AirEvac International coordinates air ambulance transport from Mexico, the ' +
+            'Caribbean, and Central America into the United States, from a base at Fort ' +
+            'Lauderdale Executive Airport. Four things distinguish us: we concentrate on ' +
+            'one region instead of claiming the world, you speak to the coordinator ' +
+            'working your case rather than to a broker, our own team handles insurance ' +
+            'authorization and billing, and we publish a credential only when we can ' +
+            'evidence it.',
+          'Each of those is checkable, which is the point. The sections below explain ' +
+            'what each one means in practice.',
+        ],
+      },
       {
         type: 'definitions',
         heading: 'What sets us apart',

@@ -107,6 +107,43 @@ yet confirmed by AEI.** They are the kind of thing an operations lead can
 verify quickly, and they should be verified before launch. This is added to the
 approvals list below.
 
+## Follow-up: AI Searchability Coding Handoff (2026-07-30)
+
+Items 1 through 7 of the agreed build plan, implemented against the AI Search
+Coding Handoff (Revision of 2026-07-30). Two companion documents were produced
+for AirEvac and are not in this repository: *Required Inputs and Approvals*
+(decisions A1 to A7 and fact sets F1 to F7) and *External Accounts and Platform
+Setup* (DNS, Render, Search Console, Bing, Google Business Profile).
+
+**Architecture decision.** The handoff prefers static generation. This build
+stays server-rendered: the strict CSP issues a per-response nonce (ADR 0004),
+which static output cannot carry. Crawlers receive identical complete HTML
+either way, and the Core Web Vitals budget passes with room to spare, so the
+handoff's underlying goal is met without weakening the CSP.
+
+| Handoff item | Implementation |
+| --- | --- |
+| §4 Crawler policy | `src/app/robots.ts` names ten search and answer-engine crawlers explicitly (adding `ChatGPT-User`, `Claude-User`, `PerplexityBot`, and `DuckDuckBot`, which the handoff omits) and blocks three training-only crawlers (`GPTBot`, plus `Google-Extended` and `Applebot-Extended`, which the handoff omits). The disallow list is repeated in every group because a crawler obeys only its most specific group; asserted in tests. |
+| §4 Access vs permission | `scripts/crawler-access-check.mjs` fetches 16 pages as each of 7 agents and compares status, text volume, H1, canonical, structured data, and indexability against a browser baseline. 112/112 pass. This is the check robots.txt cannot substitute for. |
+| §7 Structured data | `pageGraphJsonLd` emits a linked WebSite + WebPage + BreadcrumbList `@graph` on every page via the reusable `PageGraph` component; `serviceJsonLd` adds Service with `areaServed` read from the published coverage regions; `faqPageJsonLd` generates FAQPage from the page's own visible FAQ blocks. No offers, ratings, review markup, or LocalBusiness on destinations. |
+| §6 Opening answer | Audited all 18 content pages. Three opened with a bare list or definition set and answered nothing: How It Works, Why AirEvac, and Flight Medical Team now open with a direct prose answer. A test enforces a minimum opening on every page. |
+| §5 IndexNow | `src/lib/indexnow.ts`, the key-file route, and `scripts/indexnow-submit.mjs`, which submits only URLs whose sitemap `lastmod` falls in the lookback window. Dormant until `INDEXNOW_KEY` is set **and** the origin is production, so a preview deploy cannot ask to be indexed. Note: Google does not participate in IndexNow. |
+| §9 Analytics | `src/lib/analytics.ts` and `AnalyticsListener`, implementing the handoff's exact event list and answer-engine referral classification. **Disabled** behind `FEATURES.analytics`. One delegated listener derives events from `tel:`/`mailto:` hrefs, so phone and email links stay plain anchors that work without JavaScript. `categoryOf` discards the route slug deliberately. |
+| §8 Performance | `lighthouserc.json` with the handoff's thresholds for pipelines that run Lighthouse CI, plus `scripts/web-vitals-check.mjs`, which measures LCP, CLS, and TBT directly in the installed browser. 6/6 pages inside budget (LCP under 250ms, CLS 0.000, TBT under 30ms). |
+
+**Also fixed while auditing:** the services landing page still said "Four
+transport types" after the July 27 handoff reduced them to three.
+
+**Not implemented, with reasons.** The handoff's proposed URL scheme
+(`/air-ambulance/`, `/destinations/`) is not adopted: it explicitly allows
+different labels provided the information model is structured, and renaming
+would invalidate the verified redirect map. Its page list restores pages the
+July 27 change handoff removed (escort, equipment, cost, separate hospital and
+case-manager sections); the newer company-approved document governs, pending
+confirmation as item A5. A headless CMS is deferred pending item A7: content
+currently lives behind publication gates that block unapproved claims
+automatically, and moving it to a CMS moves it outside those gates.
+
 ## Open production approvals
 
 - AEI operations approval for the conditional 90-minute response copy.
