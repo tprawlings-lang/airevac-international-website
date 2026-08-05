@@ -48,6 +48,7 @@ npm run test:crawlers     # 16 pages x 7 crawler agents vs a browser baseline
 npm run test:vitals       # LCP / CLS / TBT against the performance budget
 npm run test:nav          # dropdown open, hover, idle-close, keyboard
 npm run test:screenshots  # 320 / 375 / 768 / 1024 / 1440
+npm run test:csp          # fails on ANY Content Security Policy refusal, 11 pages
 ```
 
 Copy `.env.example` to `.env.local`. There are no secrets in the repository.

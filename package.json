@@ -24,7 +24,8 @@
     "test:screenshots": "node scripts/screenshot-check.mjs",
     "indexnow": "node scripts/indexnow-submit.mjs",
     "db:migrate": "node scripts/migrate.mjs",
-    "check:translate": "node scripts/check-translate.mjs"
+    "check:translate": "node scripts/check-translate.mjs",
+    "test:csp": "node scripts/csp-check.mjs"
   },
   "repository": {
     "type": "git",

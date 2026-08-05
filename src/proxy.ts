@@ -62,6 +62,30 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // does not weaken script protection; styles carry no script capability.
     'style-src': ["'self'", `'nonce-${nonce}'`, "'unsafe-inline'"],
 
+    /*
+     * STYLE ATTRIBUTES, and why this directive has to exist separately.
+     *
+     * `style-src` above carries a nonce, and CSP Level 3 says a nonce makes
+     * `'unsafe-inline'` be ignored. That is the intended behaviour for <style>
+     * elements, which can carry the nonce. A `style="..."` ATTRIBUTE cannot
+     * carry one, so the same rule silently blocked every inline style attribute
+     * on the site.
+     *
+     * That was not theoretical. Next's `<Image fill>` positions itself with an
+     * inline style attribute; blocked, the hero photograph rendered at its
+     * intrinsic 3200px instead of covering the section, which left a hard
+     * vertical seam on any display wider than that and meant the art-directed
+     * focal point never applied at any width. The browser said so in the
+     * console on every page load and nothing was reading the console.
+     *
+     * `style-src-attr` governs attributes only and accepts no nonce, so
+     * `'unsafe-inline'` is the sole way to permit them. What that admits is
+     * styling, not execution: `script-src` is untouched and remains nonce plus
+     * strict-dynamic. An attacker able to inject a style attribute already has
+     * HTML injection, which is the larger problem by far.
+     */
+    'style-src-attr': ["'unsafe-inline'"],
+
     // data: is needed for inline SVG data URIs used by the icon set. GA4 falls
     // back to an image beacon in some browsers, hence the same conditional.
     'img-src': ["'self'", 'data:', 'blob:', ...(analyticsEnabled ? ANALYTICS_HOSTS : [])],
