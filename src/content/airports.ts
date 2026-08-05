@@ -85,6 +85,7 @@ export const MAPPED_AIRPORTS: readonly MappedAirport[] = [
    * asserts a destination, never authority to fly there (D6).
    */
   { code: 'MUHA', name: 'Havana', lat: 22.989, lon: -82.409, region: 'caribbean', labelled: true, labelDy: -14 },
+  { code: 'TIST', name: 'St Thomas', lat: 18.337, lon: -64.973, region: 'caribbean', labelled: true, labelDy: 18 },
   { code: 'TQPF', name: 'Anguilla', lat: 18.205, lon: -63.055, region: 'caribbean', labelled: true, labelDy: -14 },
 
   // --- Central America --------------------------------------------------
