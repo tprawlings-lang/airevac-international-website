@@ -105,7 +105,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
               </ul>
             </nav>
 
-            <p className="mt-6 text-xs leading-relaxed text-white/70">
+            <p className="mt-6 max-w-[80ch] text-xs leading-relaxed text-white/70">
               {locale === 'es'
                 ? 'AirEvac International coordina transporte médico aéreo. Este sitio no ofrece ' +
                   'asesoramiento médico ni garantiza cobertura del seguro. La viabilidad del ' +

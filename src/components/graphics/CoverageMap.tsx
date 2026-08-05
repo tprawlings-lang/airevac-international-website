@@ -318,7 +318,7 @@ export function CoverageMap({
             })}
           </ul>
 
-          <p className="mt-3 text-xs opacity-70">
+          <p className="mt-3 max-w-[80ch] text-xs opacity-70">
             {locale === 'es'
               ? 'Base de operaciones y mercados prioritarios. Este mapa muestra dónde ' +
                 'trabajamos con mayor frecuencia; no es una lista exhaustiva ni una ' +

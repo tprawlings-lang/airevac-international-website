@@ -18,7 +18,7 @@ export function EmergencyNotice({ locale }: { locale: Locale }) {
 
   return (
     <div className="border-l-4 border-urgent-600 bg-urgent-50 px-4 py-3">
-      <p className="text-sm text-ink-900">
+      <p className="max-w-[80ch] text-sm text-ink-900">
         <strong className="font-semibold">
           {locale === 'es' ? 'Emergencia inmediata: ' : 'Immediate emergency: '}
         </strong>
