@@ -34,7 +34,7 @@ npm run dev            # http://localhost:3000 → redirects to /en
 
 ```bash
 npm run check          # typecheck + tests + build (run this before pushing)
-npm run test           # 340 unit and integration tests across 16 files
+npm run test           # 359 unit and integration tests across 18 files
 npm run test:coverage  # enforces 100% coverage on the security decision paths
 npx eslint .
 ```
@@ -114,7 +114,7 @@ a source scan in CI. The registration-to-internal-reference mapping lives in
 ```
 src/
 ├── app/[locale]/          Routes. Locale is a path prefix; English is canonical.
-│   ├── page.tsx           Homepage, in the AEI handoff's section 04 order
+│   ├── page.tsx           Homepage. Coverage leads; see the note in the file
 │   ├── request-transport/ Callback form (noindex, never measured, no third-party code)
 │   ├── partners/          One merged referral page (hospital · cruise · insurer)
 │   ├── coverage/          4 regions + 12 route pages + other-destinations
@@ -127,13 +127,14 @@ src/
 │                          Sign-in · password · users · chats · presence
 ├── server/                Server-only. Never imported by a client component:
 │   ├── auth/              scrypt passwords · sessions · guards · audit
-│   ├── chat/              sessions · presence · translate · events bus
+│   ├── chat/              sessions · presence · staffing watch · translate · bus
 │   ├── db/                pool · TLS mode · migrations
 │   └── http/              site-relative redirects (proxy-safe)
 ├── app/robots.ts          Search vs training crawler policy, per named agent
 ├── app/llms.txt/          Generated site map for AI systems; obeys the claim gate
-├── components/            Server components; the client ones are the form,
-│                          the nav menu, and the (inert) analytics listener
+├── components/            Server by default. The client ones are the callback
+│                          form, the nav menu, the chat widget and console chat,
+│                          presence and auto-refresh, and the analytics listener
 ├── content/               Typed block content — the CMS-shaped source of truth
 │   ├── credentials.ts     THE CREDENTIAL AND CLAIMS REGISTER
 │   ├── fleet.ts           Masked aircraft records, each wrapping a claim
@@ -143,11 +144,14 @@ src/
 ├── lib/                   credential-register · intake-schema · rate-limit ·
 │                          redact · inquiry-queue · structured-data · analytics ·
 │                          indexnow · nonce · i18n
-└── proxy.ts               CSP nonce and locale prefix
+├── instrumentation.ts     The only background scheduler: staffing watch and
+│                          transcript retention sweep. One instance only
+└── proxy.ts               CSP nonce, style-src-attr, and locale prefix
 
-tests/                     340 tests in 16 files. See "What the tests protect".
-scripts/                   a11y · crawler access · web vitals · nav · screenshots ·
-                           coastline generation · IndexNow · handoff PDFs
+tests/                     359 tests in 18 files. See "What the tests protect".
+scripts/                   a11y · CSP violations · crawler access · web vitals ·
+                           nav · screenshots · coastlines · migrations · IndexNow ·
+                           translation check · handoff and sign-off PDFs
 docs/                      Sign-off register · readiness matrix · open decisions ·
                            ADRs · Render setup · chat plan · handback PDFs
 ```
@@ -287,7 +291,7 @@ put in front of a signer is
 Two handback documents track the same ground in non-technical language:
 [Facts and Approvals Still Required](docs/AirEvac_Facts_and_Approvals.pdf) and
 [Sign-Ups and Accounts Required](docs/AirEvac_Signups_and_Accounts.pdf)
-(revision 2.0, regenerate with `python3 scripts/generate-handoff-pdfs.py`).
+(revision 3.0, regenerate with `python3 scripts/generate-handoff-pdfs.py`).
 
 ### Blockers — the site must not go live with these open
 
@@ -299,7 +303,9 @@ Two handback documents track the same ground in non-technical language:
 | **Custom domain not attached** | DNS records at the registrar pointing at Render, and a decision between `www` and non-`www`. | The site is on an `onrender.com` address. Until the real domain is live and canonical, indexing it would train search engines on a URL that is going to change. |
 | **Manual accessibility testing not done** | Screen-reader, keyboard-matrix, and 400% zoom review by a human. | axe covers roughly a third of WCAG failures. The accessibility statement says so rather than claiming conformance nobody verified. |
 | **Chat has no BAA and no matching privacy notice** | An executed Business Associate Agreement covering the database (L6), and a privacy notice rewritten to describe a site that receives clinical information (L4). | Chat is on by default on previews and off by default on production for exactly this reason. The published privacy notice currently says the site receives no clinical information, which a chat makes false in the first minute. |
-| **Chat runs on one instance only** | Move fan-out from the in-process bus to Postgres `LISTEN`/`NOTIFY` before scaling past `numInstances: 1`. | A second instance would leave each side of a conversation seeing only their own messages, which reads as the other person having stopped replying. |
+| **Chat runs on one instance only** | Move fan-out from the in-process bus to Postgres `LISTEN`/`NOTIFY` before scaling past `numInstances: 1`. | A second instance would leave each side of a conversation seeing only their own messages, which reads as the other person having stopped replying. The background scheduler in `src/instrumentation.ts` shares this constraint. |
+| **The database connection is unverified** | `DATABASE_CA_CERT` set to the provider CA (B6). The preview runs `DATABASE_SSL=no-verify` because the managed instance presents a self-signed certificate. | Encrypted against a passive observer, not against an active attacker between the app and the database. Adding the CA takes precedence automatically, so no second edit is needed. |
+| **Cuba is published as a destination** | Compliance and legal confirmation (K6). MUHA was added to the coverage map at AirEvac's request. | A United States operator advertising Cuba touches OFAC sanctions. Medical evacuation is generally licensable but not automatically permitted, and the published claim is what a regulator reads. |
 
 ### Unblocks that materially change the result
 
@@ -355,6 +361,18 @@ globally.
 axe runs in CI against 17 representative pages, both locales. **Manual screen-reader,
 keyboard-matrix, and 400% zoom testing has not been done**, and the accessibility
 statement says so rather than claiming a conformance nobody has verified.
+
+**Screen sizes.** Tailwind's largest breakpoint is 1536px, which would treat a
+laptop and a 5120px ultrawide as the same layout; four breakpoints above it
+(`3xl` through `6xl` in `globals.css`) step the root font size up so type,
+spacing, and container widths scale together, since every size in this codebase
+is in `rem`. Upwards only and never below 16px, because scaling down would
+override a reader who has raised their own browser default.
+
+Long-form copy is capped in `ch` rather than `rem`, so line length stays put as
+everything else grows: past roughly 75 characters the eye loses its place
+returning to the next line, and that limit does not move because the monitor
+got wider. Measured content share is 80% of a 1440 screen and 52% of a 5120.
 
 ---
 
@@ -421,6 +439,19 @@ deploy proved it was needed:
 - the database connects without TLS to a non-local host, or verification is
   weakened without being asked for by name
 - a session cookie's path stops matching the endpoints that need it
+- an availability renew can open a presence window rather than only extend one,
+  which would put a signed-out coordinator back in the queue
+- a coordinator is not marked available on sign-in, or an administrator is
+- a path is written with `${...}` inside single quotes, which is a literal
+  rather than an interpolation and which TypeScript accepts happily. This
+  shipped in the claim redirect and sent coordinators to a URL containing the
+  characters `${chatId}`
+
+Two checks need a browser and so live in `scripts/` rather than in the suite:
+`npm run test:a11y` and `npm run test:csp`. The second exists because a
+Content Security Policy refusal throws nothing, fails no request, and reddens
+no test, so the policy silently blocked every inline style attribute on the
+site for as long as it had been deployed.
 
 ---
 
@@ -466,7 +497,7 @@ must actually be in the repository.
 | [Executive sign-off register](docs/executive-sign-off-register.md) | **Every approval required before the site is public**, with named signers |
 | [Sign-off register (PDF)](docs/AirEvac_Executive_Sign_Off_Register.pdf) | The same register, printable and signable |
 | [Readiness matrix](docs/readiness-matrix.md) | Scored status, severity, evidence, owner |
-| [Open decisions](docs/open-decisions.md) | D1–D14, what the code does while each is open |
+| [Open decisions](docs/open-decisions.md) | D1–D22, what the code does while each is open |
 | [Handoff completion report](docs/handoff-completion-report.md) | Sign-off matrix for both handoffs, conflicts, open approvals |
 | [Facts and Approvals](docs/AirEvac_Facts_and_Approvals.pdf) | Handback: documents, names, and sign-offs AirEvac owes |
 | [Sign-Ups and Accounts](docs/AirEvac_Signups_and_Accounts.pdf) | Handback: Google, Bing, DNS, and profile actions |
